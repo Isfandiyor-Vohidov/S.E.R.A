@@ -105,6 +105,19 @@
     ['over by', 'не хватает', 'yetmaydi:'],
     ['Base (home) · habitat', 'База (дом) · жилой модуль', 'Baza (uy) · yashash moduli'],
     ['Your base', 'Ваша база', 'Sizning bazangiz'],
+    ['Mission Twin · compare 2 routes', 'Mission Twin · сравнить 2 маршрута', 'Mission Twin · compare 2 routes'],
+    ['Route A · fastest', 'Маршрут A · быстрый', 'Route A · fastest'],
+    ['Route B · gentle', 'Маршрут B · пологий', 'Route B · gentle'],
+    ['Distance (there and back)', 'Расстояние (туда и обратно)', 'Distance (there and back)'],
+    ['Steep ground 15–25°', 'Крутые участки 15–25°', 'Steep ground 15–25°'],
+    ['Steepest step', 'Самый крутой шаг', 'Steepest step'],
+    ['Time there', 'Время туда', 'Time there'],
+    ['Time back', 'Время обратно', 'Time back'],
+    ['Recommendation', 'Рекомендация', 'Recommendation'],
+    ['= same route', '= маршрут один', '= same route'],
+    ['✓ SERA picks this', '✓ SERA выбирает этот', '✓ SERA picks this'],
+    ['Route B does not avoid enough steep ground to be worth the extra time. Route A is the better choice.', 'Маршрут B обходит слишком мало крутых участков, чтобы тратить лишнее время. Маршрут A лучше.', 'Route B does not avoid enough steep ground to be worth the extra time. Route A is the better choice.'],
+    ['MODEL · Route B: 15–25° slopes cost 8× · solid: there, dashed: back · SERA is an AI-generated character', 'МОДЕЛЬ · Маршрут B: уклоны 15–25° стоят в 8 раз дороже · сплошная: туда, пунктир: обратно · SERA — персонаж, созданный ИИ', 'MODEL · Route B: 15–25° slopes cost 8× · solid: there, dashed: back · SERA is an AI-generated character'],
     ['SERA · AI assistant', 'SERA · ИИ-ассистент', 'SERA · AI assistant'],
     ['SERA is an AI-generated character', 'SERA — персонаж, созданный ИИ', 'SERA is an AI-generated character'],
     ['Ask SERA', 'Спросить SERA', 'Ask SERA'],
@@ -414,7 +427,7 @@
 
   // Numbers with units and patterns, after the phrases.
   var RULES = {
-    ru: [[/^1 s = (\d+) min$/, '1 с = $1 мин'], [/^Off route by (\d+) m: new safe path to (.+)$/, 'Сход с маршрута на $1 м: новый безопасный путь к $2'], [/^New path to (.+)$/, 'Новый путь к $1'], [/^To (.+)$/, 'К: $1'], [/^Walk (.+)$/, 'Идти $1'], [/^Way home (.+)$/, 'Домой $1'], [/^Science work · (.+)$/, 'Научная работа · $1'], [/\bPoint (\d+)\b/g, 'Точка $1'],
+    ru: [[/^1 s = (\d+) min$/, '1 с = $1 мин'], [/^For (.+?) the fastest way is already the gentlest: both routes are the same\.$/, 'Для $1 самый быстрый путь уже самый пологий: маршруты совпадают.'], [/^Route B takes (.+?) longer but walks (\d+) m less on steep ground\. With a heavy suit and samples, I would take B\.$/, 'Маршрут B дольше на $1, зато на $2 м меньше крутых участков. С тяжёлым скафандром и образцами я бы выбрала B.'], [/^Off route by (\d+) m: new safe path to (.+)$/, 'Сход с маршрута на $1 м: новый безопасный путь к $2'], [/^New path to (.+)$/, 'Новый путь к $1'], [/^To (.+)$/, 'К: $1'], [/^Walk (.+)$/, 'Идти $1'], [/^Way home (.+)$/, 'Домой $1'], [/^Science work · (.+)$/, 'Научная работа · $1'], [/\bPoint (\d+)\b/g, 'Точка $1'],
       [/(\d+) h (\d+) min/g, '$1 ч $2 мин'], [/(\d+) h\b/g, '$1 ч'], [/(\d+) min\b/g, '$1 мин'], [/(\d) km\b/g, '$1 км'],
       [/(\d) m\b/g, '$1 м'], [/^Split into (\d+) EVAs/, 'Разбить на выходы: $1'], [/^EVA (\d+) · points (.+)$/, 'Выход $1 · точки $2'], [/Gale Crater · Sol (\d+)/, 'Кратер Гейл · сол $1'], [/^(\s*)ETA(\s*)$/, '$1Прибытие$2']],
     uz: [[/^To (.+)$/, 'Tomon: $1'], [/^Science work · (.+)$/, 'Ilmiy ish · $1'], [/\bPoint (\d+)\b/g, '$1-nuqta'],

@@ -32,7 +32,8 @@
 
   // Time in seconds to walk from cell a to neighbour cell b, Infinity if not allowed.
   // The direction matters: uphill and downhill take different time.
-  function stepTime(t, ra, ca, rb, cb, distCells) {
+  // caution (optional): cost factor on 15-25 deg cells; a higher one gives a gentler route.
+  function stepTime(t, ra, ca, rb, cb, distCells, caution) {
     var a = ra * t.cols + ca, b = rb * t.cols + cb;
     if (isBlocked(t, b) || isBlocked(t, a)) return Infinity;
     // No cutting corners between two blocked cells.
@@ -42,7 +43,7 @@
     var dist = distCells * t.cellM;
     var grade = (t.elev[b] - t.elev[a]) / dist;
     var time = dist / walkSpeed(grade);
-    if (t.slopeDeg[b] >= T.SLOPE_CAUTION_DEG) time *= CAUTION_COST;
+    if (t.slopeDeg[b] >= T.SLOPE_CAUTION_DEG) time *= (caution || CAUTION_COST);
     return time;
   }
 
@@ -78,7 +79,7 @@
   };
 
   // A* from start cell to goal cell. Returns {cells:[{r,c}], timeS, distM} or null.
-  function findPath(t, start, goal) {
+  function findPath(t, start, goal, caution) {
     var rows = t.rows, cols = t.cols, n = rows * cols;
     var s = start.r * cols + start.c, g = goal.r * cols + goal.c;
     if (isBlocked(t, s) || isBlocked(t, g)) return null;
@@ -100,7 +101,7 @@
         if (nr < 0 || nc < 0 || nr >= rows || nc >= cols) continue;
         var ni = nr * cols + nc;
         if (done[ni]) continue;
-        var w = stepTime(t, r, c, nr, nc, NEIGH[k][2]);
+        var w = stepTime(t, r, c, nr, nc, NEIGH[k][2], caution);
         if (w === Infinity) continue;
         var cand = best[cur] + w;
         if (cand < best[ni]) {
@@ -121,7 +122,16 @@
     for (var j = 1; j < cells.length; j++) {
       distM += t.cellM * ((cells[j].r !== cells[j - 1].r && cells[j].c !== cells[j - 1].c) ? Math.SQRT2 : 1);
     }
-    return { cells: cells, timeS: best[g], distM: distM };
+    // With a non-default caution factor the cost is not the walking time: recount it by the model.
+    var timeS = best[g];
+    if (caution && caution !== CAUTION_COST) {
+      timeS = 0;
+      for (var q = 1; q < cells.length; q++) {
+        var dg = cells[q].r !== cells[q - 1].r && cells[q].c !== cells[q - 1].c;
+        timeS += stepTime(t, cells[q - 1].r, cells[q - 1].c, cells[q].r, cells[q].c, dg ? Math.SQRT2 : 1);
+      }
+    }
+    return { cells: cells, timeS: timeS, distM: distM };
   }
 
   // "Way home" field: for every cell, the fastest time to walk TO the base.

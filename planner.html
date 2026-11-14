@@ -8,13 +8,13 @@
   <meta name="description" content="Plan a safe walk on the real terrain of Gale Crater, Mars: route, way home and a GO / CAUTION / NO-GO verdict.">
   <link rel="icon" href="img/mark.png?v=3" type="image/png">
   <script src="js/theme.js?v=2"></script>
-  <script src="js/i18n.js?v=12"></script>
+  <script src="js/i18n.js?v=14"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&family=Montserrat:wght@400;500&display=swap">
   <link rel="stylesheet" href="lib/leaflet/leaflet.css">
   <link rel="stylesheet" href="css/theme.css?v=13">
-  <link rel="stylesheet" href="css/style.css?v=29">
+  <link rel="stylesheet" href="css/style.css?v=32">
 </head>
 <body>
   <div id="print-head" class="print-head" aria-hidden="true">
@@ -49,6 +49,17 @@
   <main class="layout">
     <div class="map-col">
       <div class="map-wrap">
+        <div id="twin" class="twin" role="dialog" aria-label="Mission Twin: two routes compared" hidden>
+          <img class="twin-sera" src="img/sera/explain.webp" alt="">
+          <div class="twin-body">
+            <div class="twin-head"><b>Mission Twin</b>
+              <label>Science point <select id="twin-stop"></select></label>
+              <button type="button" class="twin-close" aria-label="Close">×</button></div>
+            <table class="twin-table"></table>
+            <p class="twin-why"></p>
+            <small class="twin-note">MODEL · Route B: 15–25° slopes cost 8× · solid: there, dashed: back · SERA is an AI-generated character</small>
+          </div>
+        </div>
         <div id="map" aria-label="Map of Mars"></div>
         <div id="planner-globe" class="globe globe-pane" hidden></div>
       </div>
@@ -83,6 +94,7 @@
       <div class="panel-actions t-surface">
         <button type="button" id="btn-hud" class="btn-primary" disabled>Start EVA · helmet view</button>
         <button type="button" id="btn-storm" class="btn-secondary" aria-pressed="false">Simulate solar storm</button>
+        <button type="button" id="btn-twin" class="btn-secondary" disabled>Mission Twin · compare 2 routes</button>
         <div class="plan-tools">
           <button type="button" id="btn-share" class="btn-secondary">Share link</button>
           <button type="button" id="btn-print" class="btn-secondary">Print card</button>
@@ -157,7 +169,7 @@
   <script src="data/terrain.js?v=2"></script>
   <script src="data/rems.js?v=2"></script>
   <script src="js/terrain.js?v=3"></script>
-  <script src="js/pathfinding.js?v=4"></script>
+  <script src="js/pathfinding.js?v=5"></script>
   <script src="js/planner.js?v=4"></script>
   <script src="js/marstime.js?v=3"></script>
   <script src="js/risk.js?v=5"></script>
@@ -177,6 +189,7 @@
   <script src="js/search.js?v=2"></script>
   <script src="js/share.js?v=1"></script>
   <script src="js/offline.js?v=3"></script>
+  <script src="js/twin.js?v=3"></script>
   <script src="js/assistant.js?v=4"></script>
 </body>
 </html>

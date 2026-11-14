@@ -501,3 +501,36 @@ body.hud-open { overflow: hidden; }
 .hud .hud-test { border-style: dashed; opacity: .9; }
 .hud-msg.alert { color: #FF8A7A; font-weight: 700; }
 @media (max-width: 760px) { .hud-helmet { object-fit: fill; opacity: .9; } }
+
+/* Mission Twin: two routes to one point, side by side (over the map) */
+.twin { position: absolute; left: 12px; bottom: 30px; z-index: 1160; display: flex; align-items: flex-end;
+  max-width: min(470px, calc(100% - 24px)); pointer-events: none; }
+.twin[hidden] { display: none; }
+.twin > * { pointer-events: auto; }
+.twin-sera { height: 150px; margin-right: -14px; align-self: flex-end; position: relative; z-index: 1; filter: drop-shadow(0 8px 14px rgba(0,0,0,.45)); }
+.twin-body { background: #142329; color: #EDF2EA; border: 1px solid rgba(237,242,234,.14); border-radius: 14px;
+  padding: 12px 14px 10px 22px; box-shadow: 0 12px 34px rgba(0,0,0,.45); flex: 1; min-width: 0; }
+.twin-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
+.twin-head b { font: 700 17px var(--font-head); color: #E78F67; }
+.twin-head label { font-size: 12.5px; color: #9FB2AC; display: flex; gap: 6px; align-items: center; }
+.twin-head select { background: #0C171A; color: #EDF2EA; border: 1px solid rgba(237,242,234,.2); border-radius: 8px; padding: 4px 6px; max-width: 170px; }
+.twin-close { margin-left: auto; background: none; border: 0; color: #9FB2AC; font-size: 20px; cursor: pointer; }
+.twin-table { width: 100%; border-collapse: collapse; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.twin-table th, .twin-table td { padding: 4px 5px; border-bottom: 1px solid rgba(237,242,234,.1); text-align: left; }
+.twin-table thead th { font-size: 11.5px; color: #EDF2EA; }
+.twin-table tbody th { font-weight: 500; color: #9FB2AC; }
+.twin-table .sw { display: inline-block; width: 14px; height: 4px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+.twin-table .sw-a { background: #E78F67; } .twin-table .sw-b { background: #7CC4FF; }
+.twin-ok { color: #A7F1C2; font-weight: 700; } .twin-warn { color: #F2C46B; }
+.twin-why { margin: 8px 0 4px; font-size: 13px; line-height: 1.5; color: #C9D6D1; }
+.twin-note { font-size: 10.5px; color: #7F948D; }
+@media (max-height: 640px) { .twin-sera { display: none; } .twin { bottom: 12px; } }
+@media (max-width: 760px) {
+  .twin { left: 6px; right: 6px; bottom: 6px; max-width: none; }
+  .twin-sera { display: none; }
+  .twin-body { padding: 10px; max-height: 58%; overflow-y: auto; }
+  .twin { top: auto; max-height: 58%; }
+  .twin-body { max-height: none; }
+  .twin { overflow-y: auto; border-radius: 14px; }
+  .twin-note { display: none; }
+}
