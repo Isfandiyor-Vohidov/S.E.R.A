@@ -185,3 +185,7 @@ td a:hover { text-decoration: underline; }
   .facts div { padding: 0 10px; }
   .facts dd { font-size: 14px; }
 }
+
+.hero-logo { display: block; width: 112px; height: 112px; border-radius: 20px; margin: 0 0 22px; object-fit: cover; }
+.hero-logo[hidden] { display: none; }
+@media (max-width: 760px) { .hero-logo { width: 88px; height: 88px; border-radius: 16px; } }

@@ -1,5 +1,7 @@
 # S.E.R.A — Safe Exploration & Return Assistant
 
+<img src="img/sera-logo.jpg" alt="SERA logo" width="200">
+
 **A walk planner for astronauts on Mars that always knows the way home.**
 
 NASA Space Apps Challenge 2026 · Challenge: *Interplanetary Survival Guide: Martian Map* · Team VAA (Tashkent)
@@ -139,7 +141,7 @@ The core modules are pure functions without the DOM, so they also run in Node.js
 
 ## Use of AI
 
-The code was written with AI assistance (Claude by Anthropic, in Claude Code) and reviewed by the team. Every JavaScript file says so in its header. The idea, the choice of place, the safety rules and all decisions were made by the team; the AI helped to implement them and to check the numbers. No images, voices or videos in this project were made by AI. *(Full report added before submission.)*
+The code was written with AI assistance (Claude by Anthropic, in Claude Code) and reviewed by the team. Every JavaScript file says so in its header. The idea, the choice of place, the safety rules and all decisions were made by the team; the AI helped to implement them and to check the numbers. The SERA logo (`img/sera-logo.jpg`) is an AI-generated concept image and is marked so on the image itself. No other images, voices or videos in this project were made by AI. *(Full report added before submission.)*
 
 ## License
 
