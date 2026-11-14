@@ -101,5 +101,6 @@
     var b = $(id); if (b) b.addEventListener('click', start);
   });
   S.tour = { start: start, stop: stop };
+  window.SeraTour = { start: start, stop: stop, isOn: function () { return !card.hidden; } };
   if (/[?&]tour=1\b/.test(location.search)) setTimeout(start, 600);
 })();

@@ -164,3 +164,65 @@ a { color: inherit; }
 .globe-go.eva { background: #E78F67; color: #0C171A; border-color: #E78F67; }
 .globe-hint { position: absolute; right: 14px; top: 12px; z-index: 2; font-size: 11.5px; color: #9FB2AC; }
 .globe-nogl::after { content: "3D needs WebGL"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #9FB2AC; }
+
+/* ---- SERA, the assistant character (js/assistant.js) ---- */
+.sera-card {
+  position: fixed; z-index: 4500; display: flex; align-items: flex-end; gap: 0;
+  left: 16px; bottom: 16px; max-width: min(560px, calc(100vw - 32px)); pointer-events: none;
+}
+.sera-card[hidden] { display: none; }
+.sera-card > * { pointer-events: auto; }
+.sera-pose { height: 270px; width: auto; flex: none; margin-right: -14px; filter: drop-shadow(0 10px 18px rgba(0,0,0,.45)); position: relative; z-index: 1; }
+.sera-bubble {
+  position: relative; background: #142329; color: #EDF2EA; border: 1px solid rgba(237,242,234,.14);
+  border-radius: 16px; padding: 16px 18px 12px 26px; box-shadow: 0 14px 40px rgba(0,0,0,.45);
+  display: flex; flex-direction: column; gap: 6px; min-width: 240px; margin-bottom: 18px;
+}
+.sera-name { font: 700 10.5px var(--font-body); letter-spacing: .18em; text-transform: uppercase; color: #E78F67; }
+.sera-title { font: 700 20px/1.2 var(--font-head); }
+.sera-text { margin: 0; font-size: 14px; line-height: 1.55; color: #C9D6D1; }
+.sera-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.sera-actions button { padding: 8px 14px; font-size: 13.5px; border-radius: 10px; cursor: pointer; }
+.sera-actions .btn-secondary { background: transparent; color: #EDF2EA; border: 1px solid rgba(237,242,234,.25); }
+.sera-actions .btn-primary { background: #E78F67; color: #0C171A; border: 0; font-weight: 600; }
+.sera-credit { font-size: 10.5px; color: #8EA39C; margin-top: 2px; }
+.sera-x { position: absolute; top: 6px; right: 8px; background: none; border: 0; color: #9FB2AC; font-size: 20px; cursor: pointer; line-height: 1; }
+.sera-card.toast .sera-pose { height: 200px; }
+.sera-card.toast .sera-title { font-size: 18px; }
+.sera-card.at-corner { left: 16px; bottom: 16px; }
+.sera-card.at-right { left: auto; right: 24px; bottom: 24px; }
+.sera-card.at-left { left: 24px; bottom: 24px; }
+.sera-card.at-center { left: 50%; bottom: 50%; transform: translate(-50%, 50%); }
+.sera-card.at-center .sera-pose { height: 360px; }
+
+/* The guide: one part of the screen in focus, the rest blurred */
+.guide { position: fixed; inset: 0; z-index: 4400; }
+.guide[hidden] { display: none; }
+.guide > i { position: absolute; display: block; background: rgba(4, 9, 11, .55);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.guide .g-ring { background: none; -webkit-backdrop-filter: none; backdrop-filter: none; pointer-events: none;
+  border: 2px solid #E78F67; border-radius: 12px; box-shadow: 0 0 0 4px rgba(231,143,103,.25), 0 0 30px rgba(231,143,103,.35); }
+.guide .g-ring[hidden] { display: none; }
+
+/* The SERA button */
+.sera-ai {
+  position: absolute; left: 12px; bottom: 34px; z-index: 1150; display: flex; align-items: center; gap: 8px;
+  padding: 4px 14px 4px 4px; border-radius: 999px; border: 1px solid #E78F67; background: #142329; color: #EDF2EA;
+  font: 700 13px var(--font-body); letter-spacing: .08em; cursor: pointer; box-shadow: 0 6px 18px rgba(0,0,0,.35);
+}
+.sera-ai img { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; object-position: 50% 4%; background: #22343B; }
+.sera-ai:hover { background: #1B2E35; }
+body > .sera-ai { position: fixed; left: auto; right: 18px; bottom: 18px; z-index: 1500; }
+
+@media (max-width: 760px) {
+  .sera-card, .sera-card.at-right, .sera-card.at-left, .sera-card.at-corner, .sera-card.at-bottom {
+    left: 8px; right: 8px; bottom: 8px; top: auto; max-width: none; transform: none;
+  }
+  .sera-card.at-top { left: 8px; right: 8px; top: 8px; bottom: auto; max-width: none; transform: none; }
+  .sera-card.at-center { left: 8px; right: 8px; bottom: 8px; transform: none; }
+  .sera-pose, .sera-card.toast .sera-pose, .sera-card.at-center .sera-pose { height: 150px; margin-right: -18px; }
+  .sera-bubble { min-width: 0; flex: 1; padding: 12px 12px 10px 22px; margin-bottom: 10px; }
+  .sera-title { font-size: 17px; }
+  .sera-text { font-size: 13px; }
+}
+.sera-actions button { width: auto; flex: 1 1 auto; }
