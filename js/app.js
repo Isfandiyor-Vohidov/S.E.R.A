@@ -556,7 +556,21 @@
       '<span>Sunrise – sunset</span><span>' + MT.formatHours(c.sunriseLtst) + ' – ' + MT.formatHours(c.sunsetLtst) + '</span>' +
       (c.isDay
         ? '<span>Daylight left</span><span>' + fmtMin(c.hoursToSunset * MT.MARS_HOUR_S) + '</span>'
-        : '<span class="night">Night at the EVA zone</span><span class="night">Sun ' + c.sunElevationDeg.toFixed(0) + '°</span>');
+        : '<span class="night">Night at the EVA zone</span><span class="night">Sun ' + c.sunElevationDeg.toFixed(0) + '°</span>') +
+      weatherRows(c.ls);
+  }
+
+  // Typical weather for this season: Curiosity REMS means for the current 10 degree Ls bin.
+  function weatherRows(ls) {
+    var rems = window.SERA_REMS;
+    if (!rems) return '';
+    var bin = rems.bins[Math.floor((ls % 360) / rems.binDeg)];
+    if (!bin || bin.airMinC === null) return '';
+    var data = ' <span class="tag">DATA</span>';
+    return '<span>Air temperature, typical' + data + '</span><span>' + Math.round(bin.airMinC) + ' … ' + (Math.round(bin.airMaxC) || 0) + ' °C</span>' +
+      '<span>Ground temperature</span><span>' + Math.round(bin.groundMinC) + ' … ' + (Math.round(bin.groundMaxC) || 0) + ' °C</span>' +
+      '<span>Pressure</span><span>' + bin.pressurePa.toFixed(0) + ' Pa</span>' +
+      '<span class="src">Curiosity REMS, mean of ' + bin.sols + ' sols at this season</span><span></span>';
   }
   renderClock();
   setInterval(renderClock, 15000);

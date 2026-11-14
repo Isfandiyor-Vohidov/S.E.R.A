@@ -121,6 +121,7 @@ body {
 }
 .clock .big { font-size: 22px; font-weight: 700; }
 .clock .night { color: var(--caution); }
+.clock .src { color: var(--muted); font-size: 11px; }
 
 .verdict {
   border-radius: 8px;
@@ -230,6 +231,7 @@ body {
   .map-col { flex: none; }
   #map { flex: none; height: 55vh; }
   .panel { width: auto; border-left: 0; border-top: 1px solid var(--line); overflow: visible; }
+  .panel-actions { position: static; }
 }
 
 .coords {
