@@ -1,4 +1,4 @@
-// SARA — Safe Exploration & Return Assistant
+// S.E.R.A — Safe Exploration & Return Assistant
 // Written with AI assistance (Claude), reviewed by team VAA.
 // marstime.js: Mars clock and Sun position (Mars24 algorithm).
 // Source: Allison & McEwen 2000, as published by NASA GISS Mars24

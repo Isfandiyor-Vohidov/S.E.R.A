@@ -1,4 +1,4 @@
-// SARA — Safe Exploration & Return Assistant
+// S.E.R.A — Safe Exploration & Return Assistant
 // Written with AI assistance (Claude), reviewed by team VAA.
 // theme.js: dark / light theme. Dark is the default; the choice is kept in localStorage.
 // Loaded in <head> so the page never flashes in the wrong theme.
@@ -6,7 +6,7 @@
 (function () {
   'use strict';
 
-  var KEY = 'sara-theme';
+  var KEY = 'sera-theme';
   var root = document.documentElement;
 
   function stored() {
@@ -34,7 +34,7 @@
     root.setAttribute('data-theme', t);
     save(t);
     syncButtons();
-    document.dispatchEvent(new CustomEvent('sara-theme', { detail: t }));
+    document.dispatchEvent(new CustomEvent('sera-theme', { detail: t }));
   }
 
   document.addEventListener('DOMContentLoaded', function () {
@@ -47,5 +47,5 @@
     requestAnimationFrame(function () { root.classList.add('theme-ready'); });
   });
 
-  window.SaraTheme = { get: function () { return theme; }, set: setTheme };
+  window.SeraTheme = { get: function () { return theme; }, set: setTheme };
 })();

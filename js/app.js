@@ -1,4 +1,4 @@
-// SARA — Safe Exploration & Return Assistant
+// S.E.R.A — Safe Exploration & Return Assistant
 // Written with AI assistance (Claude), reviewed by team VAA.
 // app.js: map, layers and view switching (Mars -> Gale Crater -> EVA zone).
 
@@ -134,7 +134,7 @@
     eva: function () { map.flyToBounds(evaRect.getBounds(), { padding: [30, 30], duration: 1.8 }); }
   };
 
-  var buttons = document.querySelectorAll('.zoom-steps button');
+  var buttons = document.querySelectorAll('.zoom-steps button[data-view]');
   function setActive(name) {
     for (var i = 0; i < buttons.length; i++) {
       buttons[i].classList.toggle('active', buttons[i].getAttribute('data-view') === name);
@@ -400,6 +400,43 @@
     return (+parts[0]) + (+parts[1]) / 60;
   }
 
+  // Radio shadow of the base mast (js/radio.js), recomputed when the base moves.
+  function radioCheck(broken) {
+    if (!window.SeraRadio || !plan.base || broken) return null;
+    var key = plan.base.r + ',' + plan.base.c;
+    if (plan.radioKey !== key) {
+      plan.radioVis = SeraRadio.viewshed(terrain, plan.base);
+      plan.radioKey = key;
+      if (radioLayer) { map.removeLayer(radioLayer); radioLayer = null; if (radioOn) showRadio(true); }
+    }
+    var gaps = SeraRadio.contactGaps(terrain, plan.radioVis, plan.legs.concat([plan.home]),
+      PL.WORK_MIN_PER_STOP * 60, function (a, b) {
+        return P.stepTime(terrain, a.r, a.c, b.r, b.c, (a.r !== b.r && a.c !== b.c) ? Math.SQRT2 : 1);
+      });
+    return { longestS: gaps.longestS, totalS: gaps.totalS, limitS: SeraRadio.GAP_CAUTION_S };
+  }
+
+  // Map layer: darkened cells have no line of sight to the base mast.
+  var radioLayer = null, radioOn = false, radioBtn = document.getElementById('btn-radio');
+  function showRadio(on) {
+    radioOn = on;
+    radioBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    if (!on) { if (radioLayer) map.removeLayer(radioLayer); return; }
+    if (!plan.radioVis) { setHint('Place the base first: the radio shadow is seen from its mast.', true); radioOn = false; radioBtn.setAttribute('aria-pressed', 'false'); return; }
+    if (!radioLayer) {
+      var cv = document.createElement('canvas');
+      cv.width = terrain.cols; cv.height = terrain.rows;
+      var g = cv.getContext('2d'), img = g.createImageData(terrain.cols, terrain.rows);
+      for (var i = 0; i < plan.radioVis.length; i++) {
+        if (!plan.radioVis[i]) { img.data[i * 4] = 12; img.data[i * 4 + 1] = 23; img.data[i * 4 + 2] = 26; img.data[i * 4 + 3] = 150; }
+      }
+      g.putImageData(img, 0, 0);
+      radioLayer = L.imageOverlay(cv.toDataURL(), evaBounds(), { interactive: false, className: 'radio-overlay' });
+    }
+    radioLayer.addTo(map);
+  }
+  radioBtn.addEventListener('click', function () { showRadio(!radioOn); });
+
   function renderVerdict(broken) {
     var c = MT.localTime(Date.now(), zoneLon, zoneLat);
     var result = R.assess({
@@ -411,7 +448,8 @@
       sunsetLtst: c.sunsetLtst,
       ls: c.ls,
       dustSeason: MT.isDustSeason(c.ls),
-      space: stormSimulated ? { sepHoursAgo: 2, simulated: true } : space
+      space: stormSimulated ? { sepHoursAgo: 2, simulated: true } : space,
+      radio: radioCheck(broken)
     });
     plan.risk = result;
     verdictEl.hidden = false;
@@ -449,7 +487,7 @@
   var DONKI = 'https://api.nasa.gov/DONKI/';
   var GOES_FLARES = 'https://services.swpc.noaa.gov/json/goes/primary/xray-flares-7-day.json';
   var NASA_API_KEY = 'DEMO_KEY';
-  var DONKI_CACHE_KEY = 'sara_spacewx_v2';
+  var DONKI_CACHE_KEY = 'sera_spacewx_v2';
   var DONKI_TTL_MS = 3 * 3600 * 1000;
 
   function isoDay(ms) { return new Date(ms).toISOString().slice(0, 10); }
@@ -587,11 +625,14 @@
 
   // ---- Welcome screen and one-click demo plan ----
 
-  var DEMO = window.SARA_DEMO;
+  var DEMO = window.SERA_DEMO;
   var welcomeEl = document.getElementById('welcome');
 
   function clearPlan() {
     plan.base = null; plan.stops = []; plan.field = null; plan.baseOut = null;
+    plan.radioVis = null; plan.radioKey = null;
+    if (radioOn) showRadio(false);
+    if (radioLayer) { map.removeLayer(radioLayer); radioLayer = null; }
   }
 
   function runDemo() {

@@ -1,4 +1,4 @@
-// SARA — Safe Exploration & Return Assistant
+// S.E.R.A — Safe Exploration & Return Assistant
 // Written with AI assistance (Claude), reviewed by team VAA.
 // relief.js: grey shaded relief of the terrain grid (sun from the north-west, 45 degrees up)
 // with the slope classes on top. Used by the project site and the helmet HUD.
@@ -38,5 +38,5 @@
     return off;
   }
 
-  root.SaraRelief = { build: build };
+  root.SeraRelief = { build: build };
 })(window);

@@ -1,4 +1,4 @@
-// SARA — Safe Exploration & Return Assistant
+// S.E.R.A — Safe Exploration & Return Assistant
 // Written with AI assistance (Claude), reviewed by team VAA.
 // risk.js: GO / CAUTION / NO-GO verdict from the worst factor, always with a reason.
 // Pure functions, no DOM: can be tested in node.
@@ -35,6 +35,7 @@
   //   ls:          solar longitude in degrees
   //   dustSeason:  boolean
   //   space: { sepHoursAgo, xFlareHoursAgo, flaresChecked, simulated, source, asOf }  (null hours = none)
+  //   radio: { longestS, totalS, limitS }  time out of sight of the base mast (optional)
   // }
   function assess(input) {
     var f = [];
@@ -96,12 +97,27 @@
         text: 'no live data: check before going out' });
     }
 
-    // 5. Radiation dose for this EVA (information; particle events are handled above)
+    // 5. Radio contact with the base (line of sight to the mast) and the buddy rule
+    var rd = input.radio;
+    if (rd) {
+      if (rd.longestS > rd.limitS) {
+        f.push({ id: 'radio', level: CAUTION, tag: 'MODEL', label: 'Radio contact',
+          text: mins(rd.longestS) + ' in a row out of sight of the base mast: keep your buddy in sight, the buddy relays' });
+      } else if (rd.totalS > 0) {
+        f.push({ id: 'radio', level: GO, tag: 'MODEL', label: 'Radio contact',
+          text: 'longest gap ' + mins(rd.longestS) + ' (limit ' + mins(rd.limitS) + '); EVA in pairs' });
+      } else {
+        f.push({ id: 'radio', level: GO, tag: 'MODEL', label: 'Radio contact',
+          text: 'base mast in sight on the whole route; EVA in pairs' });
+      }
+    }
+
+    // 6. Radiation dose for this EVA (information; particle events are handled above)
     var doseMsv = DOSE_MSV_PER_SOL * b.totalS / SOL_S;
     f.push({ id: 'dose', level: GO, tag: 'MODEL', label: 'Radiation',
       text: 'about ' + doseMsv.toFixed(2) + ' mSv for this EVA at ' + DOSE_MSV_PER_SOL + ' mSv per sol' });
 
-    // 6. Dust season (information)
+    // 7. Dust season (information)
     if (input.dustSeason) {
       f.push({ id: 'dust', level: GO, tag: 'MODEL', label: 'Dust season',
         text: 'Ls ' + input.ls.toFixed(0) + '°: higher chance of dust storms' });

@@ -1,4 +1,4 @@
-// SARA — Safe Exploration & Return Assistant
+// S.E.R.A — Safe Exploration & Return Assistant
 // Written with AI assistance (Claude), reviewed by team VAA.
 // validate.mjs: recomputes every check number of the README from the code and the data files,
 // so anyone can repeat them. No network needed.
@@ -49,7 +49,7 @@ function randomSafeCell(field) {
 
 // 1. Terrain heights vs Curiosity's own record at every stop in the zone
 {
-  const stops = window.SARA_MSL.stops;
+  const stops = window.SERA_MSL.stops;
   let sum = 0, max = 0, n = 0, bias = 0;
   for (const s of stops) {
     const z = T.elevationAt(terrain, s.lat, s.lon);
@@ -140,7 +140,7 @@ report('Suit walking speed, flat ground', `${(P.walkSpeed(0) * 3.6).toFixed(2)} 
 
 // 8. The demo plan
 {
-  const D = window.SARA_DEMO;
+  const D = window.SERA_DEMO;
   const base = T.latLonToCell(terrain, D.base[0], D.base[1]);
   const nodes = [base].concat(D.stops.map((p) => T.latLonToCell(terrain, p[0], p[1])));
   const home = P.homeField(terrain, base);
@@ -162,6 +162,6 @@ report('Suit walking speed, flat ground', `${(P.walkSpeed(0) * 3.6).toFixed(2)} 
     `steepest ${s.maxDeg.toFixed(1)}° on the 5 m grid`);
 }
 
-console.log('SARA validation — ' + new Date().toISOString().slice(0, 10) + '\n');
+console.log('S.E.R.A validation — ' + new Date().toISOString().slice(0, 10) + '\n');
 for (const r of rows) console.log(`- ${r.check}: ${r.result}${r.note ? '  (' + r.note + ')' : ''}`);
 void R;

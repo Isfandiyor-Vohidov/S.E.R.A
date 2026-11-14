@@ -1,4 +1,4 @@
-// SARA — Safe Exploration & Return Assistant
+// S.E.R.A — Safe Exploration & Return Assistant
 // Written with AI assistance (Claude), reviewed by team VAA.
 // hud.js: helmet HUD. Plays the planned EVA as a simulation (the astronaut walks the route at
 // the modelled speed, works at each point) and shows what the visor would show: suit time left,
@@ -218,6 +218,12 @@
     slopeEl.textContent = slope.toFixed(0) + '°';
     slopeEl.className = slope > T.SLOPE_BLOCK_DEG ? 'neg' : (slope >= T.SLOPE_CAUTION_DEG ? 'warn' : '');
     q('hud-elev').textContent = terrain.elev[i].toFixed(0) + ' m';
+    var radioEl = q('hud-radio');
+    if (plan.radioVis) {
+      var link = !!plan.radioVis[i];
+      radioEl.textContent = link ? 'Base link' : 'No link · buddy relay';
+      radioEl.className = link ? '' : 'warn';
+    } else radioEl.textContent = '—';
     q('hud-progress').value = Math.round(simS / Math.max(tl.totalS, endS()) * 1000);
     q('hud-emergency').disabled = !!emergency || done;
     q('hud-play').textContent = playing ? 'Pause' : (done ? 'Replay' : 'Play');
@@ -243,7 +249,7 @@
 
   function open() {
     if (!plan.base || !plan.stops.length || !plan.home) return;
-    if (!relief) relief = SaraRelief.build(terrain, T);
+    if (!relief) relief = SeraRelief.build(terrain, T);
     tl = buildTimeline();
     emergency = null; simS = 0; speedIdx = 0; lastCellKey = '';
     q('hud-speed').textContent = '×' + SPEEDS[speedIdx];
@@ -299,6 +305,6 @@
   setInterval(syncButton, 500);
   syncButton();
 
-  window.SaraHud = { open: open, close: close, emergency: startEmergency,
+  window.SeraHud = { open: open, close: close, emergency: startEmergency,
     _state: function () { return { simS: simS, totalS: tl && tl.totalS, emergency: !!emergency }; } };
 })();

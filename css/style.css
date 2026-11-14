@@ -1,4 +1,4 @@
-/* SARA — Mission Planner. Written with AI assistance (Claude), reviewed by team VAA. */
+/* S.E.R.A — Mission Planner. Written with AI assistance (Claude), reviewed by team VAA. */
 /* Colours come from css/theme.css. The Mars map keeps its natural colours. */
 
 html, body { height: 100%; }
@@ -377,3 +377,10 @@ body.hud-open { overflow: hidden; }
   margin-top: 2px; background: #CC6946; color: #FFFAF2; border: 0; border-radius: 999px;
   padding: 8px 12px; font: 600 13px var(--font-body); cursor: pointer;
 }
+
+/* Radio shadow layer */
+.zoom-steps .radio-toggle[aria-pressed="false"] { text-decoration: none; opacity: 1; }
+.zoom-steps .radio-toggle[aria-pressed="true"] { background: var(--secondary); color: var(--on-secondary); border-color: var(--secondary); opacity: 1; }
+.radio-overlay { image-rendering: pixelated; }
+.sw-radio { width: 16px; height: 12px; background: rgba(12, 23, 26, 0.6); border: 1px solid var(--line); }
+.hud-cell b.warn { color: #F0BC54; }

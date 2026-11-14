@@ -1,10 +1,10 @@
-# SARA — Safe Exploration & Return Assistant
+# S.E.R.A — Safe Exploration & Return Assistant
 
 **A walk planner for astronauts on Mars that always knows the way home.**
 
 NASA Space Apps Challenge 2026 · Challenge: *Interplanetary Survival Guide: Martian Map* · Team VAA (Tashkent)
 
-SARA plans an EVA (a walk outside the habitat) on the real terrain of Gale Crater, where the Curiosity rover works. You place the base and the science points; SARA finds a safe path over the slopes, picks the fastest order of the points, checks the suit time, daylight and space weather, and answers one question: **can we go out, and will we always get back?** The answer is **GO**, **CAUTION** or **NO-GO**, always with the reason.
+S.E.R.A plans an EVA (a walk outside the habitat) on the real terrain of Gale Crater, where the Curiosity rover works. You place the base and the science points; S.E.R.A finds a safe path over the slopes, picks the fastest order of the points, checks the suit time, daylight and space weather, and answers one question: **can we go out, and will we always get back?** The answer is **GO**, **CAUTION** or **NO-GO**, always with the reason.
 
 > Live site: *(GitHub Pages link — added after publishing)*
 

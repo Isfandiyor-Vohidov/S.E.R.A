@@ -1,4 +1,4 @@
-// SARA — Safe Exploration & Return Assistant
+// S.E.R.A — Safe Exploration & Return Assistant
 // Written with AI assistance (Claude), reviewed by team VAA.
 // curiosity.js: the real path of the Curiosity rover through our EVA zone, with Navcam photos
 // taken at its stops (data/msl.js, built by tools/prep_msl.mjs). A rover stop can be added
@@ -7,7 +7,7 @@
 (function () {
   'use strict';
 
-  var M = window.SARA_MSL;
+  var M = window.SERA_MSL;
   var S = window.SERA;
   if (!M || !S) return;
   var map = S.map;

@@ -1,25 +1,25 @@
 <!DOCTYPE html>
-<!-- SARA — written with AI assistance (Claude), reviewed by team VAA. -->
+<!-- S.E.R.A — written with AI assistance (Claude), reviewed by team VAA. -->
 <html lang="en" data-theme="dark">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>SARA Mission Planner</title>
+  <title>S.E.R.A Mission Planner</title>
   <meta name="description" content="Plan a safe walk on the real terrain of Gale Crater, Mars: route, way home and a GO / CAUTION / NO-GO verdict.">
   <link rel="icon" href="img/logo.svg" type="image/svg+xml">
-  <script src="js/theme.js?v=1"></script>
+  <script src="js/theme.js?v=2"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap">
   <link rel="stylesheet" href="lib/leaflet/leaflet.css">
-  <link rel="stylesheet" href="css/theme.css?v=1">
-  <link rel="stylesheet" href="css/style.css?v=13">
+  <link rel="stylesheet" href="css/theme.css?v=2">
+  <link rel="stylesheet" href="css/style.css?v=15">
 </head>
 <body>
   <header class="topbar t-surface">
-    <a class="logo" href="index.html" title="SARA home">
+    <a class="logo" href="index.html" title="S.E.R.A home">
       <svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><rect x="2" y="2" width="28" height="28" rx="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M11.5 13H18a5 5 0 0 1 0 10h-4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M14.5 9.5 11 13l3.5 3.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <span class="logo-word">SARA</span>
+      <span class="logo-word">SERA</span>
       <span class="brand-sub">Mission Planner</span>
     </a>
     <div class="top-right">
@@ -28,6 +28,7 @@
         <button type="button" data-view="gale">Gale Crater</button>
         <button type="button" data-view="eva">EVA zone</button>
         <button type="button" id="btn-msl" class="msl-toggle" aria-pressed="true" title="Show the real path of the Curiosity rover">Curiosity</button>
+        <button type="button" id="btn-radio" class="msl-toggle radio-toggle" aria-pressed="false" title="Show where the base radio cannot reach">Radio</button>
         <button type="button" id="btn-demo-top" class="demo-top">Demo</button>
       </nav>
       <button type="button" class="theme-toggle" data-theme-toggle aria-label="Switch theme">
@@ -49,6 +50,7 @@
         <li><span class="sw sw-zone"></span>EVA zone 2 × 2 km</li>
         <li><span class="sw sw-base">H</span>Base</li>
         <li><span class="sw sw-stop">1</span>Science point</li>
+        <li><span class="sw sw-radio"></span>No radio to base</li>
         <li><span class="sw sw-msl"></span>Curiosity path · <span class="sw sw-msl-photo"></span>photo</li>
       </ul>
     </div>
@@ -77,9 +79,9 @@
   <div id="welcome" class="welcome" role="dialog" aria-modal="true" aria-labelledby="welcome-title" hidden>
     <div class="welcome-card">
       <svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><rect x="2" y="2" width="28" height="28" rx="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M11.5 13H18a5 5 0 0 1 0 10h-4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M14.5 9.5 11 13l3.5 3.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <h1 id="welcome-title">SARA Mission Planner</h1>
+      <h1 id="welcome-title">S.E.R.A Mission Planner</h1>
       <p class="welcome-sub">Safe Exploration &amp; Return Assistant</p>
-      <p>Plan a walk on Mars on the real terrain of Gale Crater. SARA checks the plan, says
+      <p>Plan a walk on Mars on the real terrain of Gale Crater. S.E.R.A checks the plan, says
         <b>GO</b>, <b>CAUTION</b> or <b>NO-GO</b> with the reason, and always knows the way home.</p>
       <button type="button" id="btn-demo" class="btn-primary">Show demo plan</button>
       <button type="button" id="btn-own" class="btn-secondary">Plan my own EVA</button>
@@ -93,6 +95,7 @@
       <div class="hud-cell"><span>Local solar time</span><b id="hud-clock">—</b></div>
       <div class="hud-cell"><span>EVA time</span><b id="hud-elapsed">—</b></div>
       <div class="hud-cell"><span>Pre-EVA verdict</span><b id="hud-preeva">—</b></div>
+      <div class="hud-cell"><span>Radio</span><b id="hud-radio">—</b></div>
       <button type="button" id="hud-exit" class="hud-btn">Exit ✕</button>
     </div>
     <div class="hud-left">
@@ -129,18 +132,19 @@
   </section>
 
   <script src="lib/leaflet/leaflet.js"></script>
-  <script src="data/terrain.js?v=1"></script>
-  <script src="data/rems.js?v=1"></script>
-  <script src="js/terrain.js?v=2"></script>
-  <script src="js/pathfinding.js?v=3"></script>
-  <script src="js/planner.js?v=2"></script>
-  <script src="js/marstime.js?v=2"></script>
-  <script src="js/risk.js?v=3"></script>
-  <script src="js/demo-plan.js?v=1"></script>
-  <script src="js/app.js?v=12"></script>
-  <script src="data/msl.js?v=1"></script>
-  <script src="js/curiosity.js?v=1"></script>
-  <script src="js/relief.js?v=1"></script>
-  <script src="js/hud.js?v=4"></script>
+  <script src="data/terrain.js?v=2"></script>
+  <script src="data/rems.js?v=2"></script>
+  <script src="js/terrain.js?v=3"></script>
+  <script src="js/pathfinding.js?v=4"></script>
+  <script src="js/planner.js?v=3"></script>
+  <script src="js/marstime.js?v=3"></script>
+  <script src="js/risk.js?v=5"></script>
+  <script src="js/demo-plan.js?v=2"></script>
+  <script src="js/radio.js?v=2"></script>
+  <script src="js/app.js?v=14"></script>
+  <script src="data/msl.js?v=2"></script>
+  <script src="js/curiosity.js?v=2"></script>
+  <script src="js/relief.js?v=2"></script>
+  <script src="js/hud.js?v=6"></script>
 </body>
 </html>

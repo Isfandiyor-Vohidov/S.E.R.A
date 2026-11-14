@@ -1,4 +1,4 @@
-// SARA — Safe Exploration & Return Assistant
+// S.E.R.A — Safe Exploration & Return Assistant
 // Written with AI assistance (Claude), reviewed by team VAA.
 // site.js: the project site. Draws the demo plan on a shaded relief of the real 1 m terrain,
 // using the same terrain, pathfinding, planner and risk modules as the Mission Planner.
@@ -7,7 +7,7 @@
   'use strict';
 
   var T = SeraTerrain, P = SeraPath, PL = SeraPlanner, MT = SeraMarsTime, R = SeraRisk;
-  var DEMO = window.SARA_DEMO;
+  var DEMO = window.SERA_DEMO;
   var terrain = T.createTerrain(window.SERA_TERRAIN);
   var zoneLat = (terrain.north + terrain.south) / 2;
   var zoneLon = (terrain.west + terrain.east) / 2;
@@ -140,7 +140,7 @@
   }
 
   function init() {
-    reliefImg = SaraRelief.build(terrain, T);
+    reliefImg = SeraRelief.build(terrain, T);
     plan = buildPlan();
     document.getElementById('pv-loading').hidden = true;
     draw();
