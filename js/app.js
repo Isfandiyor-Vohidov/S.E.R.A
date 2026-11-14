@@ -93,10 +93,23 @@
   }
   var slopes = buildSlopeLayer().addTo(map);
 
-  L.control.layers(null, {
+  // Extra NASA layers (off by default): USGS global geology and THEMIS night infrared.
+  // Bright in THEMIS night IR = stays warm at night = rock or coarse ground; dark = fine dust/sand.
+  var geology = L.tileLayer('https://trek.nasa.gov/mars/trekarcgis/rest/services/SIM3292_Global_Geology/MapServer/WMTS/tile/1.0.0/SIM3292_Global_Geology/default/default028mm/{z}/{y}/{x}.png', {
+    maxNativeZoom: 5, maxZoom: 17, noWrap: true, opacity: 0.6,
+    attribution: 'USGS SIM 3292 Geologic Map of Mars (Tanaka et al. 2014)'
+  });
+  var themis = L.tileLayer(trekUrl('THEMIS_NightIR_ControlledMosaics_100m_v2_oct2018', 'png'), {
+    maxNativeZoom: 11, maxZoom: 17, noWrap: true, opacity: 0.75,
+    attribution: 'Mars Odyssey THEMIS night IR 100 m (NASA/JPL/ASU)'
+  });
+
+  var layersCtl = L.control.layers(null, {
     'CTX · Gale Crater (6 m)': ctx,
     'HiRISE · Curiosity site (25 cm)': hirise,
-    'Slopes · 1 m DEM (15° / 25°)': slopes
+    'Slopes · 1 m DEM (15° / 25°)': slopes,
+    'Geology · USGS SIM 3292': geology,
+    'Thermal · THEMIS night IR': themis
   }, { collapsed: true }).addTo(map);
 
   L.control.scale({ imperial: false, maxWidth: 160 }).addTo(map);
@@ -218,6 +231,17 @@
     }
   }
 
+  // Science points are named by what is there (CRISM signal, Curiosity stop), if a layer knows.
+  var namers = [];
+  function stopName(s, idx) {
+    var ll = cellLatLng(s);
+    for (var i = 0; i < namers.length; i++) {
+      var n = namers[i](ll[0], ll[1]);
+      if (n) return n;
+    }
+    return (window.SeraI18n ? SeraI18n.t('Science point') : 'Science point') + ' ' + (idx + 1);
+  }
+
   function icon(label, isBase) {
     return L.divIcon({
       className: '',
@@ -266,7 +290,7 @@
       L.marker(cellLatLng(s), { icon: icon(idx + 1, false), interactive: false }).addTo(routeLayer);
       var leg = plan.legs[idx];
       var item = document.createElement('li');
-      item.innerHTML = '<span class="badge">' + (idx + 1) + '</span><span class="name">Science point ' + (idx + 1) + '</span>' +
+      item.innerHTML = '<span class="badge">' + (idx + 1) + '</span><span class="name">' + stopName(s, idx) + '</span>' +
         '<button type="button" class="del" title="Remove" data-i="' + idx + '">×</button>' +
         '<span class="meta">' + (leg ? 'leg ' + fmtDist(leg.distM) + ' · ' + fmtMin(leg.timeS) : 'no safe path') +
         ' · home from here ' + (isFinite(s.homeS) ? fmtMin(s.homeS) : '—') + '</span>';
@@ -670,5 +694,6 @@
   }
 
   window.SERA = { map: map, terrain: terrain, evaBounds: evaBounds, plan: plan,
-    views: views, setActive: setActive, runDemo: runDemo };
+    views: views, setActive: setActive, runDemo: runDemo, render: render, stopName: stopName,
+    addNamer: function (fn) { namers.push(fn); } };
 })();

@@ -379,8 +379,13 @@ body.hud-open { overflow: hidden; }
 }
 
 /* Radio shadow layer */
-.zoom-steps .radio-toggle[aria-pressed="false"] { text-decoration: none; opacity: 1; }
-.zoom-steps .radio-toggle[aria-pressed="true"] { background: var(--secondary); color: var(--on-secondary); border-color: var(--secondary); opacity: 1; }
+.zoom-steps .radio-toggle[aria-pressed="false"], .zoom-steps .crism-toggle[aria-pressed="false"] { text-decoration: none; opacity: 1; }
+.zoom-steps .radio-toggle[aria-pressed="true"], .zoom-steps .crism-toggle[aria-pressed="true"] { background: var(--secondary); color: var(--on-secondary); border-color: var(--secondary); opacity: 1; }
+/* CRISM mineral spots: a small diamond in the class colour */
+.crism-spot { width: 14px; height: 14px; transform: rotate(45deg); border: 2px solid #0C171A; border-radius: 2px; }
+.legend-crism { margin-top: 0; }
+.legend-crism[hidden] { display: none; }
+.legend-crism::before { content: 'Minerals · MRO CRISM'; font-weight: 700; margin-right: 6px; }
 .radio-overlay { image-rendering: pixelated; }
 .sw-radio { width: 16px; height: 12px; background: rgba(12, 23, 26, 0.6); border: 1px solid var(--line); }
 .hud-cell b.warn { color: #F0BC54; }

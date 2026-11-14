@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap">
   <link rel="stylesheet" href="lib/leaflet/leaflet.css">
   <link rel="stylesheet" href="css/theme.css?v=3">
-  <link rel="stylesheet" href="css/style.css?v=19">
+  <link rel="stylesheet" href="css/style.css?v=20">
 </head>
 <body>
   <header class="topbar t-surface">
@@ -29,6 +29,7 @@
         <button type="button" data-view="eva">EVA zone</button>
         <button type="button" id="btn-msl" class="msl-toggle" aria-pressed="true" title="Show the real path of the Curiosity rover">Curiosity</button>
         <button type="button" id="btn-radio" class="msl-toggle radio-toggle" aria-pressed="false" title="Show where the base radio cannot reach">Radio</button>
+        <button type="button" id="btn-crism" class="msl-toggle crism-toggle" aria-pressed="false" title="Mineral signals from MRO CRISM">Minerals</button>
         <button type="button" id="btn-demo-top" class="demo-top">Demo</button>
       </nav>
       <button type="button" class="theme-toggle" data-theme-toggle aria-label="Switch theme">
@@ -56,6 +57,7 @@
         <li><span class="sw sw-radio"></span>No radio to base</li>
         <li><span class="sw sw-msl"></span>Curiosity path · <span class="sw sw-msl-photo"></span>photo</li>
       </ul>
+      <ul id="crism-legend" class="legend legend-crism t-surface" aria-label="Mineral signals, MRO CRISM" hidden></ul>
     </div>
     <aside class="panel t-surface" aria-label="EVA plan">
       <h2>Mars now · EVA zone</h2>
@@ -144,12 +146,14 @@
   <script src="js/risk.js?v=5"></script>
   <script src="js/demo-plan.js?v=2"></script>
   <script src="js/radio.js?v=2"></script>
-  <script src="js/app.js?v=15"></script>
+  <script src="js/app.js?v=16"></script>
   <script src="data/msl.js?v=2"></script>
   <script src="js/curiosity.js?v=2"></script>
+  <script src="data/crism.js?v=1"></script>
+  <script src="js/crism.js?v=2"></script>
   <script src="js/globe.js?v=5"></script>
   <script src="js/planner-globe.js?v=2"></script>
   <script src="js/relief.js?v=2"></script>
-  <script src="js/hud.js?v=6"></script>
+  <script src="js/hud.js?v=7"></script>
 </body>
 </html>
