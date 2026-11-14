@@ -37,6 +37,14 @@ S.E.R.A plans an EVA (a walk outside the habitat) on the real terrain of Gale Cr
 | Curiosity path and photos | The real rover path through the zone (144 stops, sols 4464–4989) with Navcam photos; a rover stop can be added as a science point |
 | Light and dark theme | Toggle in the top bar, remembered in the browser |
 | Helmet view (simulation) | Plays the EVA along the route: suit time left, time home from where you stand, next target, slope under feet. **Emergency · home** leads back by the fastest safe way from the current spot. Always dark |
+| Several EVAs | A plan longer than one suit allows is split into several EVAs from the base, in the same fastest order |
+| Minerals (CRISM) | Hydrated minerals and clays from 5 MRO CRISM observations over the zone; the strongest spots (on safe ground) can be added as science points |
+| Geology and night IR | USGS global geologic map and THEMIS night infrared (rock vs dust) as map layers |
+| Place search | 1,783 IAU named features of Mars, offline; the map flies there |
+| 1-minute tour | `planner.html?tour=1`: globe → zone → demo → verdict → minerals → storm → helmet view |
+| Share and print | A link that restores the same plan (`?p=…&t=…`); a printable EVA card |
+| Offline | A service worker; **Save offline** downloads the map tiles and photos of the zone (786 files) |
+| Languages | English, Russian, Uzbek (button in the top bar) |
 
 Every number in the app is marked **DATA** (measured by a mission) or **MODEL** (our estimate).
 
@@ -86,6 +94,10 @@ node validate.mjs
 | Solar particle events | [NASA DONKI](https://api.nasa.gov/) | NASA CCMC |
 | X-ray flares | [NOAA SWPC GOES flare list](https://services.swpc.noaa.gov/json/goes/primary/xray-flares-7-day.json) | NOAA GOES |
 | Radiation dose rate | Curiosity RAD, Hassler et al. 2014 | MSL RAD |
+| Minerals | CRISM MTRDR browse products (HYD, PHY) from [PDS Geosciences ODE](https://ode.rsl.wustl.edu/mars/) (`tools/prep_crism.py`) | MRO CRISM |
+| Geology | USGS SIM 3292 Geologic Map of Mars (Tanaka et al. 2014), via Mars Trek | Viking, MGS, Mars Odyssey, MRO |
+| Night infrared | THEMIS night IR controlled mosaic 100 m, via Mars Trek | Mars Odyssey THEMIS |
+| Place names | IAU Gazetteer of Planetary Nomenclature, via Mars Trek (`tools/prep_places.py`) | IAU / USGS |
 
 Space agency partner data: ESA Mars Express HRSC is part of the Gale DEM.
 
@@ -116,6 +128,9 @@ node prep_dem.mjs
 node prep_rems.mjs
 node prep_msl.mjs
 python prep_globe.py   # needs Pillow
+python prep_crism.py   # needs Pillow
+python prep_places.py
+python prep_mark.py    # header icon from the globe texture
 ```
 
 `prep_dem.mjs` reads about 130 MB of the 3.6 GB DEM with HTTP range requests.
@@ -131,8 +146,13 @@ python prep_globe.py   # needs Pillow
 | `js/risk.js` | GO / CAUTION / NO-GO |
 | `js/app.js` | Mission Planner: map, panel, profile, demo (`planner.html`) |
 | `js/site.js` | Project site: live demo route on shaded relief (`index.html`) |
-| `js/theme.js`, `css/theme.css` | Curiosity path and photos | The real rover path through the zone (144 stops, sols 4464–4989) with Navcam photos; a rover stop can be added as a science point |
-| Light and dark theme |
+| `js/theme.js`, `css/theme.css` | Light and dark theme |
+| `js/crism.js` | Minerals layer and spots |
+| `js/search.js` | Place search |
+| `js/tour.js` | 1-minute tour |
+| `js/share.js` | Share link and print card |
+| `js/offline.js`, `sw.js` | Offline mode |
+| `js/i18n.js` | English / Russian / Uzbek |
 | `js/hud.js` | Helmet view: EVA simulation and emergency return |
 | `js/globe.js`, `js/planner-globe.js` | 3D Mars globe |
 | `js/curiosity.js` | Curiosity path and photos layer |
