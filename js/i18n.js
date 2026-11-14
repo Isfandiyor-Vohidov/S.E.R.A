@@ -105,6 +105,8 @@
     ['over by', 'не хватает', 'yetmaydi:'],
     ['Base (home) · habitat', 'База (дом) · жилой модуль', 'Baza (uy) · yashash moduli'],
     ['Your base', 'Ваша база', 'Sizning bazangiz'],
+    ['Back to the S.E.R.A site', 'Назад на сайт S.E.R.A', 'Back to the S.E.R.A site'],
+    ['Site', 'Сайт', 'Site'],
     ['Mission Twin · compare 2 routes', 'Mission Twin · сравнить 2 маршрута', 'Mission Twin · compare 2 routes'],
     ['Route A · fastest', 'Маршрут A · быстрый', 'Route A · fastest'],
     ['Route B · gentle', 'Маршрут B · пологий', 'Route B · gentle'],
