@@ -12,7 +12,8 @@ SARA plans an EVA (a walk outside the habitat) on the real terrain of Gale Crate
 
 1. Open the site and press **Launch Mission** — the Mission Planner opens with a ready demo plan.
 2. Or open the planner and press **Plan my own EVA**: the first click inside the dashed 2 × 2 km zone places the base, every next click adds a science point.
-3. Read the verdict at the top of the panel. Change the **EVA start time** or press **Simulate solar storm** to see how the verdict changes.
+3. Press **Start EVA · helmet view** to play the walk as a simulation and try **Emergency · home**.
+4. Read the verdict at the top of the panel. Change the **EVA start time** or press **Simulate solar storm** to see how the verdict changes.
 
 ## What it does
 
@@ -31,6 +32,7 @@ SARA plans an EVA (a walk outside the habitat) on the real terrain of Gale Crate
 | Verdict | GO / CAUTION / NO-GO from the worst factor, with the reason |
 | Elevation profile and legend | Under the map |
 | Light and dark theme | Toggle in the top bar, remembered in the browser |
+| Helmet view (simulation) | Plays the EVA along the route: suit time left, time home from where you stand, next target, slope under feet. **Emergency · home** leads back by the fastest safe way from the current spot. Always dark |
 
 Every number in the app is marked **DATA** (measured by a mission) or **MODEL** (our estimate).
 
@@ -112,6 +114,8 @@ node prep_rems.mjs
 | `js/app.js` | Mission Planner: map, panel, profile, demo (`planner.html`) |
 | `js/site.js` | Project site: live demo route on shaded relief (`index.html`) |
 | `js/theme.js`, `css/theme.css` | Light and dark theme |
+| `js/hud.js` | Helmet view: EVA simulation and emergency return |
+| `js/relief.js` | Shaded relief of the terrain grid |
 | `js/demo-plan.js` | The demo plan, shared by the site and the planner |
 | `tools/prep_dem.mjs`, `tools/prep_rems.mjs` | Data preparation |
 

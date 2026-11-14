@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap">
   <link rel="stylesheet" href="lib/leaflet/leaflet.css">
   <link rel="stylesheet" href="css/theme.css?v=1">
-  <link rel="stylesheet" href="css/style.css?v=10">
+  <link rel="stylesheet" href="css/style.css?v=12">
 </head>
 <body>
   <header class="topbar t-surface">
@@ -65,6 +65,7 @@
       <div id="summary" class="summary" hidden></div>
       <ul id="factors" class="factors"></ul>
       <div class="panel-actions t-surface">
+        <button type="button" id="btn-hud" class="btn-primary" disabled>Start EVA · helmet view</button>
         <button type="button" id="btn-storm" class="btn-secondary" aria-pressed="false">Simulate solar storm</button>
         <button type="button" id="btn-clear" class="btn-secondary">Clear plan</button>
       </div>
@@ -83,6 +84,48 @@
     </div>
   </div>
 
+  <section id="hud" class="hud" role="dialog" aria-modal="true" aria-label="Helmet view, simulation" hidden>
+    <canvas id="hud-map" class="hud-map" aria-hidden="true"></canvas>
+    <div class="hud-top">
+      <span class="hud-sim">Simulation</span>
+      <div class="hud-cell"><span>Local solar time</span><b id="hud-clock">—</b></div>
+      <div class="hud-cell"><span>EVA time</span><b id="hud-elapsed">—</b></div>
+      <div class="hud-cell"><span>Pre-EVA verdict</span><b id="hud-preeva">—</b></div>
+      <button type="button" id="hud-exit" class="hud-btn">Exit ✕</button>
+    </div>
+    <div class="hud-left">
+      <div class="hud-box">
+        <span>Suit time left</span><b id="hud-suit">—</b>
+        <div class="hud-bar"><i id="hud-suit-bar"></i></div>
+      </div>
+      <div class="hud-box"><span>Home from here</span><b id="hud-home">—</b></div>
+      <div class="hud-box"><span>Spare if turning back now</span><b id="hud-margin">—</b></div>
+    </div>
+    <div class="hud-right">
+      <div class="hud-box hud-nav">
+        <span>Next</span><b id="hud-target">—</b>
+        <div class="hud-dir"><span id="hud-arrow" class="hud-arrow" aria-hidden="true">↑</span><em id="hud-target-dist">—</em></div>
+        <small>ETA <b id="hud-target-eta">—</b></small>
+      </div>
+      <div class="hud-box"><span>Slope under feet</span><b id="hud-slope">—</b></div>
+      <div class="hud-box"><span>Elevation</span><b id="hud-elev">—</b></div>
+    </div>
+    <div class="hud-bottom">
+      <div class="hud-statusline">
+        <span id="hud-status" class="hud-status">GO</span>
+        <span id="hud-task" class="hud-task">—</span>
+        <span id="hud-msg" class="hud-msg">—</span>
+      </div>
+      <div class="hud-controls">
+        <button type="button" id="hud-play" class="hud-btn">Play</button>
+        <button type="button" id="hud-speed" class="hud-btn" title="Simulation speed">×60</button>
+        <input type="range" id="hud-progress" min="0" max="1000" value="0" aria-label="EVA timeline">
+        <span class="hud-total">Plan <b id="hud-plan-total">—</b></span>
+        <button type="button" id="hud-emergency" class="hud-emergency">Emergency · home</button>
+      </div>
+    </div>
+  </section>
+
   <script src="lib/leaflet/leaflet.js"></script>
   <script src="data/terrain.js?v=1"></script>
   <script src="data/rems.js?v=1"></script>
@@ -93,5 +136,7 @@
   <script src="js/risk.js?v=3"></script>
   <script src="js/demo-plan.js?v=1"></script>
   <script src="js/app.js?v=12"></script>
+  <script src="js/relief.js?v=1"></script>
+  <script src="js/hud.js?v=4"></script>
 </body>
 </html>
