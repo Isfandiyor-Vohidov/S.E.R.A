@@ -30,7 +30,10 @@
     return out;
   }
 
+  // While saving, the same button cancels (files already saved stay saved).
+  var saving = null;
   btn.addEventListener('click', function () {
+    if (saving) { saving.cancelled = true; return; }
     var zone = S.evaBounds().pad(0.15);
     var gale = L.latLngBounds([[-6.6, 135.2], [-2.8, 139.3]]);
     var world = L.latLngBounds([[-90, -180], [90, 180]]);
@@ -43,8 +46,22 @@
     // Curiosity photos in the zone.
     if (window.SERA_MSL) SERA_MSL.stops.forEach(function (s) { if (s.photo) urls.push(s.photo.full); });
     var done = 0, failed = 0, total = urls.length, next = 0;
-    btn.disabled = true;
+    var run = saving = { cancelled: false };
+    btn.classList.add('saving');
+    btn.title = tr('Click to cancel');
+    function finish(text, note) {
+      saving = null;
+      btn.classList.remove('saving');
+      btn.title = '';
+      btn.textContent = text;
+      noteEl.textContent = note;
+      noteEl.hidden = false;
+    }
     function step() {
+      if (run.cancelled) {
+        if (next !== -1) { next = -1; finish(tr('Save offline'), done + ' / ' + total + ' ' + tr('map files saved. Saving cancelled.')); }
+        return;
+      }
       if (next >= total) return;
       var u = urls[next++];
       // Same request mode as the map's <img> tiles, so the saved copy is the one the map asks for.
@@ -52,12 +69,10 @@
         .catch(function () { failed++; })
         .then(function () {
           done++;
-          btn.textContent = tr('Saving') + ' ' + Math.round(done / total * 100) + ' %';
+          if (run.cancelled) return step();
+          btn.textContent = tr('Saving') + ' ' + Math.round(done / total * 100) + ' % · ' + tr('Cancel');
           if (done === total) {
-            btn.disabled = false;
-            btn.textContent = tr('Saved offline ✓');
-            noteEl.textContent = (total - failed) + ' / ' + total + ' ' + tr('map files saved. The planner now works without internet.');
-            noteEl.hidden = false;
+            finish(tr('Saved offline ✓'), (total - failed) + ' / ' + total + ' ' + tr('map files saved. The planner now works without internet.'));
           } else step();
         });
     }

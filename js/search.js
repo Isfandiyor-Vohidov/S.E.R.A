@@ -14,7 +14,15 @@
   var wrap = document.querySelector('.map-wrap');
 
   var OWN = [];
-  OWN.push({ name: 'EVA zone · S.E.R.A', kind: 'Our EVA zone', go: function () { S.setActive('eva'); S.views.eva(); } });
+  // The base (habitat): "home" of every EVA. If it is not placed yet, open the zone to place it.
+  OWN.push({ name: 'Base (home) · habitat', kind: 'Your base', alias: 'base home habitat hab база дом',
+    go: function () {
+      S.setActive('eva');
+      var b = S.plan && S.plan.base;
+      if (b && S.cellLatLng) map.flyTo(S.cellLatLng(b), 16, { duration: 1.2 });
+      else S.views.eva();
+    } });
+  OWN.push({ name: 'EVA zone · S.E.R.A', kind: 'Our EVA zone', alias: 'eva zone зона', go: function () { S.setActive('eva'); S.views.eva(); } });
   if (window.SERA_MSL && SERA_MSL.stops.length) {
     var last = SERA_MSL.stops[SERA_MSL.stops.length - 1];
     OWN.push({ name: 'Curiosity · sol ' + last.sol, kind: 'Rover position in our data', lat: last.lat, lon: last.lon, zoom: 15 });
@@ -40,7 +48,9 @@
     var starts = [], has = [];
     OWN.concat(P.map(function (p) { return { name: p[0], kind: p[1], lat: p[2], lon: p[3] }; })).forEach(function (p) {
       var n = norm(p.name);
-      if (n.indexOf(q) === 0) starts.push(p); else if (n.indexOf(q) > 0 || norm(p.kind || '').indexOf(q) === 0) has.push(p);
+      var al = p.alias ? ' ' + norm(p.alias) : '';
+      if (n.indexOf(q) === 0 || al.indexOf(' ' + q) >= 0) starts.push(p);
+      else if (n.indexOf(q) > 0 || norm(p.kind || '').indexOf(q) === 0) has.push(p);
     });
     return starts.concat(has).slice(0, 8);
   }

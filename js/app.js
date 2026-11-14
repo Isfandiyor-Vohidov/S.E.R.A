@@ -706,7 +706,7 @@
   }
 
   window.SERA = { map: map, terrain: terrain, evaBounds: evaBounds, plan: plan,
-    views: views, setActive: setActive, runDemo: runDemo, render: render, stopName: stopName,
+    views: views, setActive: setActive, runDemo: runDemo, render: render, stopName: stopName, cellLatLng: cellLatLng,
     tileLayers: { viking: viking, ctx: ctx, hirise: hirise },
     addNamer: function (fn) { namers.push(fn); } };
 })();
