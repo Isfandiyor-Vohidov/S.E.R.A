@@ -535,7 +535,7 @@
   });
 
   document.getElementById('btn-clear').addEventListener('click', function () {
-    plan.base = null; plan.stops = []; plan.field = null; plan.baseOut = null;
+    clearPlan();
     recompute();
     render();
   });
@@ -575,6 +575,40 @@
   renderClock();
   setInterval(renderClock, 15000);
   loadSpaceWeather();
+
+  // ---- Welcome screen and one-click demo plan ----
+
+  // Demo: base where Curiosity parked on sols ~4650-4800, three points around it.
+  var DEMO = {
+    base: [-4.8080, 137.3810],
+    stops: [[-4.8150, 137.3820], [-4.8000, 137.3840], [-4.8110, 137.3835]]
+  };
+  var welcomeEl = document.getElementById('welcome');
+
+  function clearPlan() {
+    plan.base = null; plan.stops = []; plan.field = null; plan.baseOut = null;
+  }
+
+  function runDemo() {
+    welcomeEl.hidden = true;
+    clearPlan();
+    startEl.value = '09:00';
+    if (stormSimulated) stormBtn.click();
+    [DEMO.base].concat(DEMO.stops).forEach(function (p) {
+      map.fire('click', { latlng: L.latLng(p[0], p[1]) });
+    });
+    setActive('eva');
+    map.invalidateSize();
+    map.fitBounds(evaBounds(), { padding: [20, 20], animate: false });
+  }
+
+  document.getElementById('btn-demo').addEventListener('click', runDemo);
+  document.getElementById('btn-demo-top').addEventListener('click', runDemo);
+  document.getElementById('btn-own').addEventListener('click', function () {
+    welcomeEl.hidden = true;
+    setActive('eva');
+    views.eva();
+  });
 
   // Exposed for the next modules and for testing in the console.
   window.SERA = { map: map, terrain: terrain, evaBounds: evaBounds, plan: plan };

@@ -7,7 +7,7 @@
   <title>S.E.R.A — Safe Exploration &amp; Returning Assistant</title>
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="lib/leaflet/leaflet.css">
-  <link rel="stylesheet" href="css/style.css?v=8">
+  <link rel="stylesheet" href="css/style.css?v=9">
 </head>
 <body>
   <header class="topbar">
@@ -19,6 +19,7 @@
       <button type="button" data-view="mars">Mars</button>
       <button type="button" data-view="gale">Gale Crater</button>
       <button type="button" data-view="eva">EVA zone</button>
+      <button type="button" id="btn-demo-top" class="demo-top">Demo</button>
     </nav>
   </header>
 
@@ -57,6 +58,17 @@
     </aside>
   </main>
 
+  <div id="welcome" class="welcome" role="dialog" aria-modal="true" aria-labelledby="welcome-title">
+    <div class="welcome-card">
+      <h1 id="welcome-title">S.E.R.A</h1>
+      <p class="welcome-sub">Safe Exploration &amp; Returning Assistant</p>
+      <p>Plan a walk on Mars on the real terrain of Gale Crater. S.E.R.A checks the plan, says
+        <b>GO</b>, <b>CAUTION</b> or <b>NO-GO</b> with the reason, and always knows the way home.</p>
+      <button type="button" id="btn-demo" class="btn-primary">Show demo plan</button>
+      <button type="button" id="btn-own" class="btn-secondary">Plan my own EVA</button>
+    </div>
+  </div>
+
   <script src="lib/leaflet/leaflet.js"></script>
   <script src="data/terrain.js?v=1"></script>
   <script src="data/rems.js?v=1"></script>
@@ -65,6 +77,6 @@
   <script src="js/planner.js?v=1"></script>
   <script src="js/marstime.js?v=1"></script>
   <script src="js/risk.js?v=2"></script>
-  <script src="js/app.js?v=10"></script>
+  <script src="js/app.js?v=11"></script>
 </body>
 </html>
