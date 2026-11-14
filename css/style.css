@@ -384,3 +384,12 @@ body.hud-open { overflow: hidden; }
 .radio-overlay { image-rendering: pixelated; }
 .sw-radio { width: 16px; height: 12px; background: rgba(12, 23, 26, 0.6); border: 1px solid var(--line); }
 .hud-cell b.warn { color: #F0BC54; }
+
+/* Phone: one scrollable row of map buttons under the logo */
+@media (max-width: 760px) {
+  .topbar { flex-wrap: wrap; row-gap: 8px; }
+  .top-right { width: 100%; flex-wrap: nowrap; }
+  .zoom-steps { flex: 1; min-width: 0; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .zoom-steps::-webkit-scrollbar { display: none; }
+  .zoom-steps button { flex: none; padding: 6px 11px; font-size: 13px; }
+}
