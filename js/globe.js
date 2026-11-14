@@ -195,12 +195,19 @@
         Math.abs(p.lon).toFixed(1) + '° ' + (p.lon >= 0 ? 'E' : 'W');
       var act = card.querySelector('.globe-actions');
       act.innerHTML = '';
-      var go = document.createElement('button');
-      go.type = 'button';
-      go.className = 'globe-go' + (p.eva ? ' eva' : '');
-      go.textContent = p.eva ? 'Open EVA zone in S.E.R.A →' : 'Open on the map →';
-      go.addEventListener('click', function () { if (opts.onGo) opts.onGo(p); });
-      act.appendChild(go);
+      // opts.actionsFor(place) may return [{label, eva, run}]; otherwise one button calls opts.onGo.
+      var list = opts.actionsFor ? opts.actionsFor(p) : [{
+        label: p.eva ? 'Open EVA zone in S.E.R.A →' : 'Open on the map →',
+        eva: p.eva, run: function () { if (opts.onGo) opts.onGo(p); }
+      }];
+      list.forEach(function (a) {
+        var go = document.createElement('button');
+        go.type = 'button';
+        go.className = 'globe-go' + (a.eva ? ' eva' : '');
+        go.textContent = a.label;
+        go.addEventListener('click', a.run);
+        act.appendChild(go);
+      });
       places.forEach(function (q) { q.el.classList.toggle('active', q === p); });
     }
     function flyTo(lat, lon, zoom) {
@@ -298,6 +305,8 @@
     if ('IntersectionObserver' in window) {
       new IntersectionObserver(function (en) { visible = en[0].isIntersecting; if (visible) dirty = true; }).observe(container);
     }
+    // Focusing a marker near the edge must not scroll the frame (overflow is hidden).
+    container.addEventListener('scroll', function () { container.scrollLeft = 0; container.scrollTop = 0; });
     window.addEventListener('resize', resize);
     resize();
     requestAnimationFrame(frame);

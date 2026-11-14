@@ -399,6 +399,12 @@ body.hud-open { overflow: hidden; }
 .map-wrap #map { flex: 1; }
 .globe-pane { position: absolute; inset: 0; z-index: 1100; background: #0C171A; }
 .globe-pane[hidden] { display: none; }
+.globe-flat {
+  position: absolute; top: 12px; left: 12px; z-index: 3; padding: 7px 12px; border-radius: 8px;
+  border: 1px solid rgba(237, 242, 234, .25); background: #142329; color: #EDF2EA;
+  font: 600 13px var(--font-body, sans-serif); cursor: pointer;
+}
+.globe-flat:hover { border-color: #E78F67; }
 .zoom-steps .globe-btn { border-color: var(--secondary); }
 .zoom-steps .globe-btn[aria-pressed="true"] { background: var(--secondary); color: var(--on-secondary); }
 @media (max-width: 760px) { .map-wrap { flex: none; height: 55vh; } .map-wrap #map { height: auto; } }
