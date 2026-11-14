@@ -73,5 +73,5 @@
   };
 
   // Start on the globe unless a link asked for the demo or a place.
-  if (!/[?&](demo|at|tour)=/.test(location.search)) show(true);
+  if (!/[?&](demo|at|tour|p)=/.test(location.search)) show(true);
 })();

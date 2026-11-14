@@ -274,6 +274,33 @@ body { display: flex; flex-direction: column; }
 
 .btn-primary[disabled] { opacity: 0.45; cursor: not-allowed; filter: none; }
 
+/* Share link and print card */
+.plan-tools { display: flex; gap: 8px; }
+.plan-tools .btn-secondary { padding: 8px; font-size: 13px; }
+.share-note { margin: 0; font-size: 13px; color: var(--secondary); }
+.share-note[hidden] { display: none; }
+.print-head { display: none; }
+
+@media print {
+  @page { size: A4 portrait; margin: 12mm; }
+  html, body { height: auto !important; overflow: visible !important; background: #fff !important; color: #111 !important; }
+  .topbar, .panel-actions, .leaflet-control-container, .legend-crism, .welcome, .globe-pane, .tour, .hud,
+  .controls button, #profile .hint, .stops .del { display: none !important; }
+  .print-head { display: flex; flex-direction: column; gap: 2px; margin-bottom: 8px; font-size: 11px; color: #111; }
+  .print-head b { font-size: 18px; }
+  .print-head .ph-link { word-break: break-all; color: #333; }
+  .print-head .ph-note { color: #555; }
+  .layout { display: block !important; height: auto !important; }
+  .map-col { display: block !important; }
+  .map-wrap, #map { height: 92mm !important; width: 100% !important; break-inside: avoid; }
+  .panel { width: auto !important; border: 0 !important; overflow: visible !important; padding: 6px 0 0 !important; }
+  .panel, .panel * { color: #111 !important; background: transparent !important; }
+  .verdict { border: 2px solid #111 !important; }
+  .legend { font-size: 10px; }
+  .profile { break-inside: avoid; }
+  * { box-shadow: none !important; }
+}
+
 /* Helmet HUD: always dark, whatever the page theme */
 .hud {
   --h-bg: #0C171A; --h-panel: rgba(20, 35, 41, 0.86); --h-text: #EDF2EA; --h-muted: #9FB2AC;
