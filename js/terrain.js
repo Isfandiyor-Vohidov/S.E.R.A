@@ -1,4 +1,4 @@
-// S.E.R.A — Safe Exploration & Returning Assistant
+// SARA — Safe Exploration & Return Assistant
 // Written with AI assistance (Claude), reviewed by team VAA.
 // terrain.js: elevation grid, slopes and lat/lon <-> cell conversion.
 // Pure functions, no DOM: can be tested in node.

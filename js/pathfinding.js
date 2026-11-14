@@ -1,4 +1,4 @@
-// S.E.R.A — Safe Exploration & Returning Assistant
+// SARA — Safe Exploration & Return Assistant
 // Written with AI assistance (Claude), reviewed by team VAA.
 // pathfinding.js: walking time model, A* route and the "way home" field.
 // Pure functions, no DOM: can be tested in node.

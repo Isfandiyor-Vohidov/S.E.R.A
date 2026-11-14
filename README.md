@@ -1,17 +1,17 @@
-# S.E.R.A — Safe Exploration & Returning Assistant
+# SARA — Safe Exploration & Return Assistant
 
 **A walk planner for astronauts on Mars that always knows the way home.**
 
 NASA Space Apps Challenge 2026 · Challenge: *Interplanetary Survival Guide: Martian Map* · Team VAA (Tashkent)
 
-S.E.R.A plans an EVA (a walk outside the habitat) on the real terrain of Gale Crater, where the Curiosity rover works. You place the base and the science points; S.E.R.A finds a safe path over the slopes, picks the fastest order of the points, checks the suit time, daylight and space weather, and answers one question: **can we go out, and will we always get back?** The answer is **GO**, **CAUTION** or **NO-GO**, always with the reason.
+SARA plans an EVA (a walk outside the habitat) on the real terrain of Gale Crater, where the Curiosity rover works. You place the base and the science points; SARA finds a safe path over the slopes, picks the fastest order of the points, checks the suit time, daylight and space weather, and answers one question: **can we go out, and will we always get back?** The answer is **GO**, **CAUTION** or **NO-GO**, always with the reason.
 
 > Live site: *(GitHub Pages link — added after publishing)*
 
 ## How to use
 
-1. Open the site and press **Show demo plan** — a ready plan appears in one click.
-2. Or press **Plan my own EVA**: the first click inside the dashed 2 × 2 km zone places the base, every next click adds a science point.
+1. Open the site and press **Launch Mission** — the Mission Planner opens with a ready demo plan.
+2. Or open the planner and press **Plan my own EVA**: the first click inside the dashed 2 × 2 km zone places the base, every next click adds a science point.
 3. Read the verdict at the top of the panel. Change the **EVA start time** or press **Simulate solar storm** to see how the verdict changes.
 
 ## What it does
@@ -30,6 +30,7 @@ S.E.R.A plans an EVA (a walk outside the habitat) on the real terrain of Gale Cr
 | Space weather | Live solar particle events (NASA DONKI) and X-ray flares (NOAA GOES) |
 | Verdict | GO / CAUTION / NO-GO from the worst factor, with the reason |
 | Elevation profile and legend | Under the map |
+| Light and dark theme | Toggle in the top bar, remembered in the browser |
 
 Every number in the app is marked **DATA** (measured by a mission) or **MODEL** (our estimate).
 
@@ -86,7 +87,7 @@ The site is plain HTML and JavaScript, no build step.
 python -m http.server 8765
 ```
 
-Then open `http://localhost:8765`.
+Then open `http://localhost:8765` (project site) or `http://localhost:8765/planner.html` (Mission Planner).
 
 The data files are already in `data/`. To rebuild them (Node.js 18+):
 
@@ -108,7 +109,10 @@ node prep_rems.mjs
 | `js/planner.js` | Order of points, suit budget |
 | `js/marstime.js` | Mars24 clock, Sun |
 | `js/risk.js` | GO / CAUTION / NO-GO |
-| `js/app.js` | Map, panel, profile, demo |
+| `js/app.js` | Mission Planner: map, panel, profile, demo (`planner.html`) |
+| `js/site.js` | Project site: live demo route on shaded relief (`index.html`) |
+| `js/theme.js`, `css/theme.css` | Light and dark theme |
+| `js/demo-plan.js` | The demo plan, shared by the site and the planner |
 | `tools/prep_dem.mjs`, `tools/prep_rems.mjs` | Data preparation |
 
 The core modules are pure functions without the DOM, so they also run in Node.js.

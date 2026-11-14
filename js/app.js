@@ -1,4 +1,4 @@
-// S.E.R.A — Safe Exploration & Returning Assistant
+// SARA — Safe Exploration & Return Assistant
 // Written with AI assistance (Claude), reviewed by team VAA.
 // app.js: map, layers and view switching (Mars -> Gale Crater -> EVA zone).
 
@@ -13,6 +13,12 @@
   var terrain = T.createTerrain(window.SERA_TERRAIN);
 
   var GALE_CENTER = [-5.1, 137.8];
+
+  // Overlays sit on natural Mars imagery, so they use fixed colours in both themes.
+  var MAP_COLORS = {
+    route: '#E78F67', home: '#A7F1C2', outline: '#0C171A', zone: '#E78F67',
+    caution: [240, 188, 84], nogo: [239, 100, 100]
+  };
 
   // NASA Mars Trek WMTS, equirectangular grid (2 x 1 tiles at zoom 0).
   var TREK = 'https://trek.nasa.gov/tiles/Mars/EQ/';
@@ -76,10 +82,10 @@
     var s = terrain.slopeDeg;
     for (var i = 0; i < s.length; i++) {
       var p = i * 4;
-      if (s[i] > T.SLOPE_BLOCK_DEG) {
-        img.data[p] = 229; img.data[p + 1] = 72; img.data[p + 2] = 77; img.data[p + 3] = 190;
-      } else if (s[i] >= T.SLOPE_CAUTION_DEG) {
-        img.data[p] = 230; img.data[p + 1] = 185; img.data[p + 2] = 60; img.data[p + 3] = 140;
+      var col = s[i] > T.SLOPE_BLOCK_DEG ? MAP_COLORS.nogo : (s[i] >= T.SLOPE_CAUTION_DEG ? MAP_COLORS.caution : null);
+      if (col) {
+        img.data[p] = col[0]; img.data[p + 1] = col[1]; img.data[p + 2] = col[2];
+        img.data[p + 3] = s[i] > T.SLOPE_BLOCK_DEG ? 180 : 130;
       }
     }
     g.putImageData(img, 0, 0);
@@ -96,7 +102,7 @@
   L.control.scale({ imperial: false, maxWidth: 160 }).addTo(map);
 
   var evaRect = L.rectangle(evaBounds(), {
-    color: '#e2703a',
+    color: MAP_COLORS.zone,
     weight: 2,
     fill: false,
     dashArray: '6 4',
@@ -239,11 +245,15 @@
       var leg = plan.legs[i];
       if (!leg) { broken = true; continue; }
       totalS += leg.timeS; totalM += leg.distM;
-      L.polyline(leg.cells.map(cellLatLng), { color: '#e2703a', weight: 4, opacity: 0.95 }).addTo(routeLayer);
+      var outPts = leg.cells.map(cellLatLng);
+      L.polyline(outPts, { color: MAP_COLORS.outline, weight: 7, opacity: 0.55, interactive: false }).addTo(routeLayer);
+      L.polyline(outPts, { color: MAP_COLORS.route, weight: 4, opacity: 1, interactive: false }).addTo(routeLayer);
     }
     if (plan.home) {
       totalS += plan.home.timeS; totalM += plan.home.distM;
-      L.polyline(plan.home.cells.map(cellLatLng), { color: '#5ab0ff', weight: 3, dashArray: '8 6' }).addTo(routeLayer);
+      var homePts = plan.home.cells.map(cellLatLng);
+      L.polyline(homePts, { color: MAP_COLORS.outline, weight: 6, opacity: 0.55, interactive: false }).addTo(routeLayer);
+      L.polyline(homePts, { color: MAP_COLORS.home, weight: 3, dashArray: '8 6', interactive: false }).addTo(routeLayer);
     }
 
     L.marker(cellLatLng(plan.base), { icon: icon('H', true), interactive: false }).addTo(routeLayer);
@@ -269,7 +279,7 @@
     } else {
       var b = plan.budget;
       setHint(broken ? 'Some points cannot be reached on safe slopes.'
-        : 'Points are visited in the fastest order. Orange: route out. Blue dashed: way home.', broken);
+        : 'Points are visited in the fastest order. Copper: route out. Mint dashed: way home.', broken);
       summaryEl.hidden = false;
       summaryEl.innerHTML =
         '<span>EVA time <span class="tag">MODEL</span></span><span class="big">' + fmtMin(b.totalS) + '</span>' +
@@ -328,9 +338,8 @@
     function flush() {
       if (run.length > 1) {
         var k = runKey.split('|');
-        lines += '<polyline fill="none" stroke="' + (k[1] === '1' ? '#e6b93c' : (k[0] === '1' ? '#5ab0ff' : '#e2703a')) +
-          '" stroke-width="' + (k[1] === '1' ? 4 : 2.5) + '"' + (k[0] === '1' && k[1] !== '1' ? ' stroke-dasharray="6 4"' : '') +
-          ' points="' + run.join(' ') + '"/>';
+        lines += '<polyline class="' + (k[1] === '1' ? 'pf-steep' : (k[0] === '1' ? 'pf-home' : 'pf-out')) +
+          '" points="' + run.join(' ') + '"/>';
       }
     }
     pts.forEach(function (p) {
@@ -351,19 +360,19 @@
       ' L' + X(d).toFixed(1) + ',' + floor + ' Z';
 
     function baseMark(x, z) {
-      return '<rect x="' + (x - 7).toFixed(1) + '" y="' + (Y(z) - 7).toFixed(1) + '" width="14" height="14" rx="3" fill="#e6e9ef"/>' +
+      return '<rect x="' + (x - 7).toFixed(1) + '" y="' + (Y(z) - 7).toFixed(1) + '" width="14" height="14" rx="3" class="pf-base"/>' +
         '<text class="num" text-anchor="middle" x="' + x.toFixed(1) + '" y="' + (Y(z) + 4).toFixed(1) + '">H</text>';
     }
     var marksSvg = baseMark(X(0), pts[0].z);
     marks.forEach(function (m) {
-      marksSvg += '<circle cx="' + X(m.d).toFixed(1) + '" cy="' + Y(m.z).toFixed(1) + '" r="8" fill="#e2703a"/>' +
+      marksSvg += '<circle cx="' + X(m.d).toFixed(1) + '" cy="' + Y(m.z).toFixed(1) + '" r="8" class="pf-stop"/>' +
         '<text class="num" text-anchor="middle" x="' + X(m.d).toFixed(1) + '" y="' + (Y(m.z) + 4).toFixed(1) + '">' + m.label + '</text>';
     });
     marksSvg += baseMark(X(d), pts[pts.length - 1].z);
 
     profileEl.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img">' +
-      '<path d="' + area + '" fill="rgba(226,112,58,0.10)"/>' +
-      '<line x1="' + padL + '" y1="' + floor + '" x2="' + (W - padR) + '" y2="' + floor + '" stroke="#2a3342"/>' +
+      '<path d="' + area + '" class="pf-area"/>' +
+      '<line x1="' + padL + '" y1="' + floor + '" x2="' + (W - padR) + '" y2="' + floor + '" class="pf-axis"/>' +
       lines + marksSvg +
       '<text x="6" y="' + (padT + 4) + '">' + zMax.toFixed(0) + ' m</text>' +
       '<text x="6" y="' + floor + '">' + zMin.toFixed(0) + ' m</text>' +
@@ -440,7 +449,7 @@
   var DONKI = 'https://api.nasa.gov/DONKI/';
   var GOES_FLARES = 'https://services.swpc.noaa.gov/json/goes/primary/xray-flares-7-day.json';
   var NASA_API_KEY = 'DEMO_KEY';
-  var DONKI_CACHE_KEY = 'sera_spacewx_v2';
+  var DONKI_CACHE_KEY = 'sara_spacewx_v2';
   var DONKI_TTL_MS = 3 * 3600 * 1000;
 
   function isoDay(ms) { return new Date(ms).toISOString().slice(0, 10); }
@@ -578,11 +587,7 @@
 
   // ---- Welcome screen and one-click demo plan ----
 
-  // Demo: base where Curiosity parked on sols ~4650-4800, three points around it.
-  var DEMO = {
-    base: [-4.8080, 137.3810],
-    stops: [[-4.8150, 137.3820], [-4.8000, 137.3840], [-4.8110, 137.3835]]
-  };
+  var DEMO = window.SARA_DEMO;
   var welcomeEl = document.getElementById('welcome');
 
   function clearPlan() {
@@ -592,7 +597,7 @@
   function runDemo() {
     welcomeEl.hidden = true;
     clearPlan();
-    startEl.value = '09:00';
+    startEl.value = DEMO.startLtst;
     if (stormSimulated) stormBtn.click();
     [DEMO.base].concat(DEMO.stops).forEach(function (p) {
       map.fire('click', { latlng: L.latLng(p[0], p[1]) });
@@ -609,6 +614,10 @@
     setActive('eva');
     views.eva();
   });
+
+  // planner.html?demo=1 (from the site) builds the demo at once; otherwise show the welcome card.
+  if (/[?&]demo=1\b/.test(location.search)) runDemo();
+  else welcomeEl.hidden = false;
 
   // Exposed for the next modules and for testing in the console.
   window.SERA = { map: map, terrain: terrain, evaBounds: evaBounds, plan: plan };

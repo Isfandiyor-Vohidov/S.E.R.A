@@ -1,4 +1,4 @@
-// S.E.R.A — Safe Exploration & Returning Assistant
+// SARA — Safe Exploration & Return Assistant
 // Written with AI assistance (Claude), reviewed by team VAA.
 // planner.js: best order of science points and suit time budget.
 // Pure functions, no DOM: can be tested in node.

@@ -1,82 +1,198 @@
 <!DOCTYPE html>
-<!-- S.E.R.A — written with AI assistance (Claude), reviewed by team VAA. -->
-<html lang="en">
+<!-- SARA — written with AI assistance (Claude), reviewed by team VAA. -->
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>S.E.R.A — Safe Exploration &amp; Returning Assistant</title>
-  <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="lib/leaflet/leaflet.css">
-  <link rel="stylesheet" href="css/style.css?v=9">
+  <title>SARA — Safe Exploration &amp; Return Assistant</title>
+  <meta name="description" content="SARA plans a safe walk on the real terrain of Gale Crater, Mars, and always knows the way home. NASA Space Apps Challenge 2026, team VAA.">
+  <link rel="icon" href="img/logo.svg" type="image/svg+xml">
+  <script src="js/theme.js?v=1"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap">
+  <link rel="stylesheet" href="css/theme.css?v=1">
+  <link rel="stylesheet" href="css/site.css?v=6">
 </head>
-<body>
-  <header class="topbar">
-    <div class="brand">
-      <span class="brand-name">S.E.R.A</span>
-      <span class="brand-sub">Safe Exploration &amp; Returning Assistant</span>
+<body id="top">
+  <header class="nav t-surface">
+    <div class="wrap nav-row">
+      <a class="logo" href="#top" aria-label="SARA home">
+        <svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><rect x="2" y="2" width="28" height="28" rx="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M11.5 13H18a5 5 0 0 1 0 10h-4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M14.5 9.5 11 13l3.5 3.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="logo-word">SARA</span>
+      </a>
+      <nav class="nav-links" aria-label="Sections">
+        <a href="#top">Overview</a>
+        <a href="planner.html">Mission Planner</a>
+        <a href="#data">Science &amp; Data</a>
+        <a href="#about">About Project</a>
+      </nav>
+      <div class="nav-right">
+        <span class="chip"><span class="dot"></span><span id="mars-chip">Mars / Gale Crater</span></span>
+        <button type="button" class="theme-toggle" data-theme-toggle aria-label="Switch theme">
+          <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+        </button>
+        <a class="btn btn-dark" href="planner.html?demo=1">Launch Mission ↗</a>
+      </div>
     </div>
-    <nav class="zoom-steps" aria-label="Map scale">
-      <button type="button" data-view="mars">Mars</button>
-      <button type="button" data-view="gale">Gale Crater</button>
-      <button type="button" data-view="eva">EVA zone</button>
-      <button type="button" id="btn-demo-top" class="demo-top">Demo</button>
-    </nav>
   </header>
 
-  <main class="layout">
-    <div class="map-col">
-      <div id="map" aria-label="Map of Mars"></div>
-      <div id="profile" class="profile" hidden aria-label="Elevation profile of the route"></div>
-      <ul class="legend" aria-label="Map legend">
-        <li><span class="sw sw-out"></span>Route out</li>
-        <li><span class="sw sw-home"></span>Way home</li>
-        <li><span class="sw sw-caution"></span>Slope 15–25° · caution</li>
-        <li><span class="sw sw-block"></span>Slope over 25° · no-go</li>
-        <li><span class="sw sw-zone"></span>EVA zone 2 × 2 km</li>
-        <li><span class="sw sw-base">H</span>Base</li>
-        <li><span class="sw sw-stop">1</span>Science point</li>
-      </ul>
-    </div>
-    <aside class="panel" aria-label="EVA plan">
-      <h2>Mars now · EVA zone</h2>
-      <div id="clock" class="clock"></div>
-      <h2>EVA plan</h2>
-      <div id="verdict" class="verdict" hidden></div>
-      <p id="hint" class="hint"></p>
-      <div class="controls">
-        <label for="start-time">EVA start · local solar time</label>
-        <input type="time" id="start-time" value="09:00">
-        <button type="button" id="btn-now" class="btn-small">Now</button>
+  <main>
+    <section class="hero wrap">
+      <div class="hero-text">
+        <p class="eyebrow">Safer exploration <span class="rule"></span> 001</p>
+        <h1>A safer way<br>across <span class="accent">Mars.</span></h1>
+        <p class="lead">Meet <b>SARA</b> — Safe Exploration &amp; Return Assistant. Plan a walk across
+          Gale Crater on real terrain, see every risk with a clear verdict, and always keep the way back in sight.</p>
+        <div class="cta">
+          <a class="btn btn-primary" href="planner.html?demo=1">Launch Mission <span aria-hidden="true">→</span></a>
+          <a class="btn btn-ghost" href="#features">Explore Features ↗</a>
+        </div>
+        <dl class="facts">
+          <div><dt>Exploration zone</dt><dd>Gale Crater</dd></div>
+          <div><dt>Terrain</dt><dd>Real 1 m DEM</dd></div>
+          <div><dt>Focus</dt><dd>Safe return</dd></div>
+        </dl>
       </div>
-      <ol id="stops" class="stops"></ol>
-      <div id="summary" class="summary" hidden></div>
-      <ul id="factors" class="factors"></ul>
-      <div class="panel-actions">
-        <button type="button" id="btn-storm" class="btn-secondary" aria-pressed="false">Simulate solar storm</button>
-        <button type="button" id="btn-clear" class="btn-secondary">Clear plan</button>
+
+      <figure class="preview t-surface" aria-label="Demo plan on the real terrain of Gale Crater">
+        <div class="preview-map">
+          <canvas id="preview-canvas" aria-hidden="true"></canvas>
+          <div class="pv-label pv-tl"><b>Gale Crater, Mars</b><span>Real 1 m terrain · demo plan</span></div>
+          <div class="pv-label pv-tr" id="pv-coords">4.81° S / 137.38° E</div>
+          <div class="pv-label pv-bl" id="pv-scale">2 km × 2 km</div>
+          <div class="pv-loading" id="pv-loading">Computing the route…</div>
+        </div>
+        <figcaption class="route-card">
+          <div class="rc-title">
+            <span class="rc-kicker">Mission / demo EVA</span>
+            <span class="rc-name">Base → 3 science points → Base</span>
+          </div>
+          <div class="rc-stat"><span>Distance</span><b id="pv-dist">—</b></div>
+          <div class="rc-stat"><span>EVA time</span><b id="pv-time">—</b></div>
+          <div class="rc-stat"><span>Home from farthest</span><b id="pv-home">—</b></div>
+          <span class="status" id="pv-status">…</span>
+        </figcaption>
+      </figure>
+    </section>
+
+    <section class="section wrap" id="features">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">01 — Why SARA</p>
+          <h2>Made for decisions,<br>not just destinations.</h2>
+        </div>
+        <p class="note">Every number on this page is computed live from the real terrain, by the same code as the planner.</p>
       </div>
-    </aside>
+      <div class="cards">
+        <article class="card t-surface">
+          <div class="card-top"><span class="icon"><svg viewBox="0 0 24 24"><path d="M3 16c3 0 3-8 6-8s3 8 6 8 3-8 6-8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><span class="count">01 / 03</span></div>
+          <h3>Route Intelligence</h3>
+          <p>A safe path over the real slopes, and the fastest order of your science points, found in a fraction of a second.</p>
+        </article>
+        <article class="card t-surface">
+          <div class="card-top"><span class="icon"><svg viewBox="0 0 24 24"><path d="M12 4 21 19H3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></span><span class="count">02 / 03</span></div>
+          <h3>Terrain &amp; Risk</h3>
+          <p>Slopes, suit time, daylight and space weather in one verdict — <b class="go">GO</b>, <b class="caution">CAUTION</b> or <b class="nogo">NO-GO</b> — always with the reason.</p>
+        </article>
+        <article class="card t-surface">
+          <div class="card-top"><span class="icon"><svg viewBox="0 0 24 24"><path d="M4 11 12 4l8 7v9H4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></span><span class="count">03 / 03</span></div>
+          <h3>Always Return</h3>
+          <p>The fastest way home from every point of the zone. Walking uphill takes longer than downhill, and SARA knows it.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section wrap" id="how">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">02 — How it works</p>
+          <h2>Three steps from plan to home.</h2>
+        </div>
+      </div>
+      <ol class="steps">
+        <li class="t-surface"><span class="n">1</span><h3>Plan at the base</h3><p>Place the habitat and the science points on the map of a 2 × 2 km zone at Mount Sharp.</p></li>
+        <li class="t-surface"><span class="n">2</span><h3>Check before going out</h3><p>SARA builds the route, keeps a 15 % suit reserve, checks sunset and live space weather, and gives the verdict.</p></li>
+        <li class="t-surface"><span class="n">3</span><h3>Come back safely</h3><p>The way home and its time stay visible for every point of the walk.</p></li>
+      </ol>
+    </section>
+
+    <section class="section wrap" id="data">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">03 — Science &amp; Data</p>
+          <h2>Built on mission data,<br>not on guesses.</h2>
+        </div>
+        <p class="note">Values in the planner are marked <span class="tag">DATA</span> when a mission measured them and <span class="tag">MODEL</span> when they are our estimate.</p>
+      </div>
+      <div class="table-wrap t-surface">
+        <table>
+          <thead><tr><th>Data</th><th>Source</th><th>Mission</th></tr></thead>
+          <tbody>
+            <tr><td>Map imagery</td><td><a href="https://trek.nasa.gov/mars/">NASA Mars Trek</a> — Viking, CTX and HiRISE mosaics</td><td>Viking · MRO</td></tr>
+            <tr><td>Terrain, 1 m</td><td><a href="https://astrogeology.usgs.gov/search/map/mars_msl_gale_merged_dem_1m">USGS MSL Gale Merged DEM</a> (Calef &amp; Parker 2016)</td><td>MRO HiRISE · CTX · ESA Mars Express HRSC · MOLA</td></tr>
+            <tr><td>Rover traverse</td><td>NASA/JPL MMGIS waypoints</td><td>MSL Curiosity</td></tr>
+            <tr><td>Weather</td><td><a href="https://mars.nasa.gov/rss/api/?feed=weather&amp;category=msl&amp;feedtype=json">REMS daily reports</a>, <span id="rems-sols">4,745</span> sols</td><td>MSL REMS</td></tr>
+            <tr><td>Solar particle events</td><td><a href="https://api.nasa.gov/">NASA DONKI</a>, live</td><td>NASA CCMC</td></tr>
+            <tr><td>X-ray flares</td><td><a href="https://www.swpc.noaa.gov/">NOAA SWPC</a>, live</td><td>NOAA GOES</td></tr>
+            <tr><td>Radiation</td><td>Hassler et al. 2014, <i>Science</i></td><td>MSL RAD</td></tr>
+            <tr><td>Mars time</td><td><a href="https://www.giss.nasa.gov/tools/mars24/">NASA GISS Mars24</a> algorithm</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section wrap" id="checks">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">04 — Checked with numbers</p>
+          <h2>We test the model<br>against real missions.</h2>
+        </div>
+      </div>
+      <div class="checks">
+        <div class="check t-surface"><b>−3608.8 m</b><span>terrain height at a Curiosity stop; the rover's own record says −3608 m</span></div>
+        <div class="check t-surface"><b>0.77°</b><span>mean difference between our Mars clock and 4,745 REMS weather reports</span></div>
+        <div class="check t-surface"><b>119.19 min</b><span>best order of 6 points — the same as trying all 720 orders (clicking order: 214.94 min)</span></div>
+        <div class="check t-surface"><b>2.52 km/h</b><span>walking speed in a suit on flat ground; Apollo EVAs: about 2.2 km/h</span></div>
+      </div>
+    </section>
+
+    <section class="section wrap" id="about">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">05 — About project</p>
+          <h2>NASA Space Apps<br>Challenge 2026.</h2>
+        </div>
+      </div>
+      <div class="about">
+        <div class="about-text">
+          <p>SARA answers the challenge <b>Interplanetary Survival Guide: Martian Map</b>: a hyper-local, layered view of one EVA site, built from several NASA missions, to plan and carry out a walk on Mars and do science on the way.</p>
+          <p>Made in Tashkent by <b>Team VAA</b> during the hackathon, 14–15 November 2026. The code was written with AI assistance (Claude by Anthropic) and reviewed by the team; the idea and every decision are the team's.</p>
+        </div>
+        <div class="about-cta t-surface">
+          <h3>Try it now</h3>
+          <p>The demo plan opens in one click.</p>
+          <a class="btn btn-primary" href="planner.html?demo=1">Launch Mission <span aria-hidden="true">→</span></a>
+          <a class="btn btn-ghost" href="planner.html">Plan my own EVA</a>
+        </div>
+      </div>
+    </section>
   </main>
 
-  <div id="welcome" class="welcome" role="dialog" aria-modal="true" aria-labelledby="welcome-title">
-    <div class="welcome-card">
-      <h1 id="welcome-title">S.E.R.A</h1>
-      <p class="welcome-sub">Safe Exploration &amp; Returning Assistant</p>
-      <p>Plan a walk on Mars on the real terrain of Gale Crater. S.E.R.A checks the plan, says
-        <b>GO</b>, <b>CAUTION</b> or <b>NO-GO</b> with the reason, and always knows the way home.</p>
-      <button type="button" id="btn-demo" class="btn-primary">Show demo plan</button>
-      <button type="button" id="btn-own" class="btn-secondary">Plan my own EVA</button>
-    </div>
-  </div>
+  <footer class="footer wrap">
+    <span>© 2026 Team VAA · MIT License</span>
+    <span>Not an official NASA product. Mars data: NASA, JPL-Caltech, USGS, ESA, NOAA.</span>
+  </footer>
 
-  <script src="lib/leaflet/leaflet.js"></script>
   <script src="data/terrain.js?v=1"></script>
   <script src="data/rems.js?v=1"></script>
-  <script src="js/terrain.js?v=1"></script>
-  <script src="js/pathfinding.js?v=2"></script>
-  <script src="js/planner.js?v=1"></script>
-  <script src="js/marstime.js?v=1"></script>
-  <script src="js/risk.js?v=2"></script>
-  <script src="js/app.js?v=11"></script>
+  <script src="js/terrain.js?v=2"></script>
+  <script src="js/pathfinding.js?v=3"></script>
+  <script src="js/planner.js?v=2"></script>
+  <script src="js/marstime.js?v=2"></script>
+  <script src="js/risk.js?v=3"></script>
+  <script src="js/demo-plan.js?v=1"></script>
+  <script src="js/site.js?v=4"></script>
 </body>
 </html>

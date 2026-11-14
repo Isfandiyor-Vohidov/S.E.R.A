@@ -1,4 +1,4 @@
-// S.E.R.A — Safe Exploration & Returning Assistant
+// SARA — Safe Exploration & Return Assistant
 // Written with AI assistance (Claude), reviewed by team VAA.
 // risk.js: GO / CAUTION / NO-GO verdict from the worst factor, always with a reason.
 // Pure functions, no DOM: can be tested in node.
