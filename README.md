@@ -1,0 +1,122 @@
+# S.E.R.A — Safe Exploration & Returning Assistant
+
+**A walk planner for astronauts on Mars that always knows the way home.**
+
+NASA Space Apps Challenge 2026 · Challenge: *Interplanetary Survival Guide: Martian Map* · Team VAA (Tashkent)
+
+S.E.R.A plans an EVA (a walk outside the habitat) on the real terrain of Gale Crater, where the Curiosity rover works. You place the base and the science points; S.E.R.A finds a safe path over the slopes, picks the fastest order of the points, checks the suit time, daylight and space weather, and answers one question: **can we go out, and will we always get back?** The answer is **GO**, **CAUTION** or **NO-GO**, always with the reason.
+
+> Live site: *(GitHub Pages link — added after publishing)*
+
+## How to use
+
+1. Open the site and press **Show demo plan** — a ready plan appears in one click.
+2. Or press **Plan my own EVA**: the first click inside the dashed 2 × 2 km zone places the base, every next click adds a science point.
+3. Read the verdict at the top of the panel. Change the **EVA start time** or press **Simulate solar storm** to see how the verdict changes.
+
+## What it does
+
+| Feature | How |
+| --- | --- |
+| Map: Mars → Gale Crater → EVA zone | NASA Mars Trek tiles: Viking, CTX, HiRISE |
+| Real terrain | 1 m DEM of Gale Crater, cut to a 2 × 2 km zone on a 5 m grid |
+| Slopes | 15–25° = caution (time × 2), over 25° = blocked |
+| Safe route | A* over the terrain; walking time by Tobler's hiking function × 0.5 for the suit |
+| Way home from every point | Reverse Dijkstra from the base; uphill and downhill take different time |
+| Fastest order of points | Exact search over all orders up to 8 points, heuristic above |
+| Suit budget | 8 h suit, 15 % reserve, 20 min of science work per point |
+| Mars clock | Mars24 algorithm: local solar time, season (Ls), sunrise and sunset, Curiosity sol |
+| Weather | Curiosity REMS means for the current season |
+| Space weather | Live solar particle events (NASA DONKI) and X-ray flares (NOAA GOES) |
+| Verdict | GO / CAUTION / NO-GO from the worst factor, with the reason |
+| Elevation profile and legend | Under the map |
+
+Every number in the app is marked **DATA** (measured by a mission) or **MODEL** (our estimate).
+
+## Verdict rules
+
+| Factor | NO-GO | CAUTION |
+| --- | --- | --- |
+| Slopes | a point has no path under 25° | part of the route is on 15–25° |
+| Suit time | plan is longer than 8 h minus 15 % reserve | less than 30 min spare |
+| Daylight | start before sunrise or back after sunset | back less than 1 Mars hour before sunset |
+| Space weather | solar particle event in the last 48 h | X-class flare in the last 24 h, or no live data |
+
+The radiation dose of the EVA and the dust season are shown for information.
+
+## How we checked it
+
+| Check | Result |
+| --- | --- |
+| DEM height at a Curiosity stop (sol ~4700) vs the rover's own record | −3608.8 m vs −3608 m |
+| Our Mars clock (Ls) vs the Ls in 4,745 REMS daily reports | mean difference 0.77°, max 1.61° (REMS gives whole degrees) |
+| Mars clock at Curiosity's landing (2012-08-06 05:17:57 UTC) | sol 0, 15:03 local mean solar time |
+| Best order of 6 points vs brute force over all 720 orders | 119.19 min, identical; clicking order: 214.94 min |
+| A* route time vs the Dijkstra field | identical to 0.0001 s |
+| Way home vs way out on the same path (test hill) | 35.4 min down vs 50.2 min up |
+| Walking speed on flat ground | 2.52 km/h (Apollo EVA ≈ 2.2 km/h) |
+
+## Data sources
+
+| Data | Source | Mission / agency |
+| --- | --- | --- |
+| Map tiles | [NASA Mars Trek](https://trek.nasa.gov/mars/) WMTS: Viking MDIM 2.1, `Gale_CTX_BlockAdj_dd`, `curiosity_hirise_mosaic` | Viking, MRO CTX, MRO HiRISE |
+| Terrain 1 m | [Mars MSL Gale Merged DEM 1m v3](https://astrogeology.usgs.gov/search/map/mars_msl_gale_merged_dem_1m), USGS Astrogeology (Calef & Parker 2016) | MRO HiRISE, MRO CTX, **ESA Mars Express HRSC**, MGS MOLA |
+| Curiosity traverse (zone choice and check) | NASA/JPL MMGIS `MSL_waypoints.json` | MSL |
+| Weather | [Curiosity REMS weather feed](https://mars.nasa.gov/rss/api/?feed=weather&category=msl&feedtype=json) | MSL REMS (NASA/JPL-Caltech, CAB) |
+| Solar particle events | [NASA DONKI](https://api.nasa.gov/) | NASA CCMC |
+| X-ray flares | [NOAA SWPC GOES flare list](https://services.swpc.noaa.gov/json/goes/primary/xray-flares-7-day.json) | NOAA GOES |
+| Radiation dose rate | Curiosity RAD, Hassler et al. 2014 | MSL RAD |
+
+Space agency partner data: ESA Mars Express HRSC is part of the Gale DEM.
+
+## References
+
+- Tobler, W. (1993). *Three presentations on geographical analysis and modeling.* NCGIA Technical Report 93-1 (hiking function).
+- Allison, M. & McEwen, M. (2000). A post-Pathfinder evaluation of areocentric solar coordinates. *Planetary and Space Science* 48 — as used in [NASA GISS Mars24](https://www.giss.nasa.gov/tools/mars24/help/algorithm.html).
+- Hassler, D. M. et al. (2014). Mars' surface radiation environment measured with the Mars Science Laboratory's Curiosity rover. *Science* 343.
+- Calef, F. J. & Parker, T. (2016). MSL Gale Merged Orthophoto Mosaic and DEM. USGS Astrogeology / PDS.
+- Horn, B. K. P. (1981). Hill shading and the reflectance map. *Proceedings of the IEEE* 69 (slope method).
+
+## Run it yourself
+
+The site is plain HTML and JavaScript, no build step.
+
+```bash
+python -m http.server 8765
+```
+
+Then open `http://localhost:8765`.
+
+The data files are already in `data/`. To rebuild them (Node.js 18+):
+
+```bash
+cd tools
+npm install
+node prep_dem.mjs
+node prep_rems.mjs
+```
+
+`prep_dem.mjs` reads about 130 MB of the 3.6 GB DEM with HTTP range requests.
+
+## Code
+
+| File | Role |
+| --- | --- |
+| `js/terrain.js` | Elevation grid, slopes, lat/lon ↔ cell |
+| `js/pathfinding.js` | Walking time, A*, way-home field |
+| `js/planner.js` | Order of points, suit budget |
+| `js/marstime.js` | Mars24 clock, Sun |
+| `js/risk.js` | GO / CAUTION / NO-GO |
+| `js/app.js` | Map, panel, profile, demo |
+| `tools/prep_dem.mjs`, `tools/prep_rems.mjs` | Data preparation |
+
+The core modules are pure functions without the DOM, so they also run in Node.js.
+
+## Use of AI
+
+The code was written with AI assistance (Claude by Anthropic, in Claude Code) and reviewed by the team. Every JavaScript file says so in its header. The idea, the choice of place, the safety rules and all decisions were made by the team; the AI helped to implement them and to check the numbers. No images, voices or videos in this project were made by AI. *(Full report added before submission.)*
+
+## License
+
+Our code: [MIT](LICENSE). Third-party: [Leaflet 1.9.4](https://leafletjs.com/) — BSD-2-Clause (`lib/leaflet/LICENSE`); [geotiff.js](https://github.com/geotiffjs/geotiff.js) (tools only) — MIT. NASA data is public domain; check each source for terms.
