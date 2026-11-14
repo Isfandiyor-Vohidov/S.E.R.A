@@ -50,15 +50,25 @@ The radiation dose of the EVA and the dust season are shown for information.
 
 ## How we checked it
 
+All numbers below come from one command (no network needed):
+
+```bash
+cd tools
+node validate.mjs
+```
+
 | Check | Result |
 | --- | --- |
-| DEM height at a Curiosity stop (sol ~4700) vs the rover's own record | −3608.8 m vs −3608 m |
+| Terrain height vs Curiosity's own record at its 144 stops in the zone (sols 4464–4989) | mean difference 0.26 m, max 1.05 m. Rover positions are fitted to orbital maps, so this checks our cut and grid, not the DEM itself |
 | Our Mars clock (Ls) vs the Ls in 4,745 REMS daily reports | mean difference 0.77°, max 1.61° (REMS gives whole degrees) |
 | Mars clock at Curiosity's landing (2012-08-06 05:17:57 UTC) | sol 0, 15:03 local mean solar time |
-| Best order of 6 points vs brute force over all 720 orders | 119.19 min, identical; clicking order: 214.94 min |
-| A* route time vs the Dijkstra field | identical to 0.0001 s |
-| Way home vs way out on the same path (test hill) | 35.4 min down vs 50.2 min up |
+| Best order of 6 random points vs trying all 720 orders | 319.51 min, identical; clicking order: 499.94 min |
+| Heuristic order (used above 8 points) vs exact, 8 points | 331.63 min vs 331.52 min (0.03 % longer) |
+| A* route time vs the Dijkstra field, 13 random pairs | identical (max difference 0.0000 s) |
+| Same trip up and down a hill (303 m height difference) | 103.2 min down vs 129.7 min up |
 | Walking speed on flat ground | 2.52 km/h (Apollo EVA ≈ 2.2 km/h) |
+| Demo plan | 1.93 km, 1 h 56 min, 292 min spare |
+| Slopes in the zone | 61.5 % safe, 22.2 % caution, 16.3 % blocked |
 
 ## Data sources
 
@@ -123,6 +133,7 @@ node prep_msl.mjs
 | `js/relief.js` | Shaded relief of the terrain grid |
 | `js/demo-plan.js` | The demo plan, shared by the site and the planner |
 | `tools/prep_dem.mjs`, `tools/prep_rems.mjs`, `tools/prep_msl.mjs` | Data preparation |
+| `tools/validate.mjs` | All check numbers of this README |
 
 The core modules are pure functions without the DOM, so they also run in Node.js.
 
