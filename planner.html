@@ -12,8 +12,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap">
   <link rel="stylesheet" href="lib/leaflet/leaflet.css">
-  <link rel="stylesheet" href="css/theme.css?v=2">
-  <link rel="stylesheet" href="css/style.css?v=16">
+  <link rel="stylesheet" href="css/theme.css?v=3">
+  <link rel="stylesheet" href="css/style.css?v=18">
 </head>
 <body>
   <header class="topbar t-surface">
@@ -24,6 +24,7 @@
     </a>
     <div class="top-right">
       <nav class="zoom-steps" aria-label="Map scale">
+        <button type="button" id="btn-globe" class="globe-btn" aria-pressed="false" title="3D model of Mars">3D Mars</button>
         <button type="button" data-view="mars">Mars</button>
         <button type="button" data-view="gale">Gale Crater</button>
         <button type="button" data-view="eva">EVA zone</button>
@@ -40,7 +41,10 @@
 
   <main class="layout">
     <div class="map-col">
-      <div id="map" aria-label="Map of Mars"></div>
+      <div class="map-wrap">
+        <div id="map" aria-label="Map of Mars"></div>
+        <div id="planner-globe" class="globe globe-pane" hidden></div>
+      </div>
       <div id="profile" class="profile t-surface" hidden aria-label="Elevation profile of the route"></div>
       <ul class="legend t-surface" aria-label="Map legend">
         <li><span class="sw sw-out"></span>Route out</li>
@@ -141,9 +145,11 @@
   <script src="js/risk.js?v=5"></script>
   <script src="js/demo-plan.js?v=2"></script>
   <script src="js/radio.js?v=2"></script>
-  <script src="js/app.js?v=14"></script>
+  <script src="js/app.js?v=15"></script>
   <script src="data/msl.js?v=2"></script>
   <script src="js/curiosity.js?v=2"></script>
+  <script src="js/globe.js?v=3"></script>
+  <script src="js/planner-globe.js?v=1"></script>
   <script src="js/relief.js?v=2"></script>
   <script src="js/hud.js?v=6"></script>
 </body>

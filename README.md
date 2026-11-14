@@ -33,6 +33,7 @@ S.E.R.A plans an EVA (a walk outside the habitat) on the real terrain of Gale Cr
 | Space weather | Live solar particle events (NASA DONKI) and X-ray flares (NOAA GOES) |
 | Verdict | GO / CAUTION / NO-GO from the worst factor, with the reason |
 | Elevation profile and legend | Under the map |
+| 3D Mars | A small WebGL globe (no libraries, ~0.5 MB texture) with famous places; Gale Crater opens the EVA zone. On the site and behind the **3D Mars** button of the planner |
 | Curiosity path and photos | The real rover path through the zone (144 stops, sols 4464–4989) with Navcam photos; a rover stop can be added as a science point |
 | Light and dark theme | Toggle in the top bar, remembered in the browser |
 | Helmet view (simulation) | Plays the EVA along the route: suit time left, time home from where you stand, next target, slope under feet. **Emergency · home** leads back by the fastest safe way from the current spot. Always dark |
@@ -79,6 +80,7 @@ node validate.mjs
 | Map tiles | [NASA Mars Trek](https://trek.nasa.gov/mars/) WMTS: Viking MDIM 2.1, `Gale_CTX_BlockAdj_dd`, `curiosity_hirise_mosaic` | Viking, MRO CTX, MRO HiRISE |
 | Terrain 1 m | [Mars MSL Gale Merged DEM 1m v3](https://astrogeology.usgs.gov/search/map/mars_msl_gale_merged_dem_1m), USGS Astrogeology (Calef & Parker 2016) | MRO HiRISE, MRO CTX, **ESA Mars Express HRSC**, MGS MOLA |
 | Curiosity path (zone choice, map layer) | NASA/JPL MMGIS `MSL_waypoints.json`, `MSL_traverse.json` | MSL |
+| 3D globe texture | NASA Mars Trek: Viking MDIM 2.1 colour mosaic × MOLA + HRSC shaded relief (`tools/prep_globe.py`) | Viking, MGS MOLA, **ESA Mars Express HRSC** |
 | Rover photos | [NASA raw images](https://mars.nasa.gov/msl/multimedia/raw-images/) API, Navcam (linked, not copied) | MSL Navcam |
 | Weather | [Curiosity REMS weather feed](https://mars.nasa.gov/rss/api/?feed=weather&category=msl&feedtype=json) | MSL REMS (NASA/JPL-Caltech, CAB) |
 | Solar particle events | [NASA DONKI](https://api.nasa.gov/) | NASA CCMC |
@@ -113,6 +115,7 @@ npm install
 node prep_dem.mjs
 node prep_rems.mjs
 node prep_msl.mjs
+python prep_globe.py   # needs Pillow
 ```
 
 `prep_dem.mjs` reads about 130 MB of the 3.6 GB DEM with HTTP range requests.
@@ -131,6 +134,7 @@ node prep_msl.mjs
 | `js/theme.js`, `css/theme.css` | Curiosity path and photos | The real rover path through the zone (144 stops, sols 4464–4989) with Navcam photos; a rover stop can be added as a science point |
 | Light and dark theme |
 | `js/hud.js` | Helmet view: EVA simulation and emergency return |
+| `js/globe.js`, `js/planner-globe.js` | 3D Mars globe |
 | `js/curiosity.js` | Curiosity path and photos layer |
 | `js/relief.js` | Shaded relief of the terrain grid |
 | `js/demo-plan.js` | The demo plan, shared by the site and the planner |

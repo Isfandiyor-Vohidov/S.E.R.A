@@ -1,7 +1,7 @@
 // S.E.R.A — Safe Exploration & Return Assistant
 // Written with AI assistance (Claude), reviewed by team VAA.
-// site.js: the project site. Draws the demo plan on a shaded relief of the real 1 m terrain,
-// using the same terrain, pathfinding, planner and risk modules as the Mission Planner.
+// site.js: the project site. The 3D Mars globe, and the numbers of the demo plan computed
+// by the same terrain, pathfinding, planner and risk modules as the Mission Planner.
 
 (function () {
   'use strict';
@@ -12,8 +12,6 @@
   var zoneLat = (terrain.north + terrain.south) / 2;
   var zoneLon = (terrain.west + terrain.east) / 2;
 
-  var canvas = document.getElementById('preview-canvas');
-  var reliefImg = null;  // 400 x 400 shaded relief, built once
   var plan = null;
 
   function fmtMin(seconds) {
@@ -55,66 +53,6 @@
     };
   }
 
-  function draw() {
-    if (!reliefImg || !plan) return;
-    var dpr = window.devicePixelRatio || 1;
-    var w = canvas.clientWidth, h = canvas.clientHeight;
-    canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
-    var g = canvas.getContext('2d');
-    g.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-    // Fit the square zone to cover the frame, centred on the route.
-    var size = Math.max(w, h) * (w < 520 ? 1.2 : 1);   // zoom in a little on phones
-    var scale = size / terrain.cols;
-    var r0 = Infinity, r1 = -Infinity, c0 = Infinity, c1 = -Infinity;
-    plan.legs.concat([plan.home]).forEach(function (leg) {
-      leg.cells.forEach(function (c) {
-        if (c.r < r0) r0 = c.r; if (c.r > r1) r1 = c.r;
-        if (c.c < c0) c0 = c.c; if (c.c > c1) c1 = c.c;
-      });
-    });
-    var cr = (r0 + r1) / 2 - 8, cc = (c0 + c1) / 2;   // -8 cells: room for the label on top
-    var ox = Math.min(0, Math.max(w - size, w / 2 - (cc + 0.5) * scale));
-    var oy = Math.min(0, Math.max(h - size, h / 2 - (cr + 0.5) * scale));
-
-    g.imageSmoothingEnabled = true;
-    g.drawImage(reliefImg, ox, oy, size, size);
-
-    function X(c) { return ox + (c.c + 0.5) * scale; }
-    function Y(c) { return oy + (c.r + 0.5) * scale; }
-    function line(leg, color, width, dash) {
-      g.beginPath();
-      leg.cells.forEach(function (c, i) { if (i) g.lineTo(X(c), Y(c)); else g.moveTo(X(c), Y(c)); });
-      g.setLineDash([]);
-      g.lineJoin = 'round'; g.lineCap = 'round';
-      g.strokeStyle = 'rgba(12,23,26,0.6)'; g.lineWidth = width + 3; g.stroke();
-      g.setLineDash(dash || []);
-      g.strokeStyle = color; g.lineWidth = width; g.stroke();
-    }
-    plan.legs.forEach(function (leg) { line(leg, '#E78F67', 3.5); });
-    line(plan.home, '#A7F1C2', 3, [8, 6]);
-    g.setLineDash([]);
-
-    function marker(c, label, isBase) {
-      var x = X(c), y = Y(c);
-      g.fillStyle = isBase ? '#EDF2EA' : '#E78F67';
-      g.strokeStyle = '#0C171A'; g.lineWidth = 2;
-      g.beginPath();
-      if (isBase) { g.roundRect ? g.roundRect(x - 11, y - 11, 22, 22, 5) : g.rect(x - 11, y - 11, 22, 22); }
-      else g.arc(x, y, 11, 0, Math.PI * 2);
-      g.fill(); g.stroke();
-      g.fillStyle = '#0C171A';
-      g.font = '700 12px Inter, system-ui, sans-serif';
-      g.textAlign = 'center'; g.textBaseline = 'middle';
-      g.fillText(label, x, y + 0.5);
-    }
-    plan.stops.forEach(function (c, i) { marker(c, String(i + 1), false); });
-    marker(plan.base, 'H', true);
-
-    var metres = Math.round(w / scale * terrain.cellM);
-    document.getElementById('pv-scale').textContent = 'View ' + (metres / 1000).toFixed(1) + ' km wide · 1 m DEM';
-  }
-
   function fillCard() {
     var c = MT.localTime(Date.now(), zoneLon, zoneLat);
     var parts = DEMO.startLtst.split(':');
@@ -140,21 +78,20 @@
   }
 
   function init() {
-    reliefImg = SeraRelief.build(terrain, T);
     plan = buildPlan();
-    document.getElementById('pv-loading').hidden = true;
-    draw();
     fillCard();
-    var lat = Math.abs(zoneLat).toFixed(2) + '° S', lon = zoneLon.toFixed(2) + '° E';
-    document.getElementById('pv-coords').textContent = lat + ' / ' + lon;
     if (window.SERA_REMS) document.getElementById('rems-sols').textContent = window.SERA_REMS.sols.toLocaleString('en-US');
   }
 
-  var resizeTimer = null;
-  window.addEventListener('resize', function () {
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(draw, 120);
-  });
+  // 3D globe: a place opens the planner there; Gale Crater opens the demo EVA.
+  var globeEl = document.getElementById('site-globe');
+  if (globeEl && window.SeraGlobe) {
+    SeraGlobe.create(globeEl, {
+      onGo: function (p) {
+        location.href = p.eva ? 'planner.html?demo=1' : 'planner.html?at=' + p.lat + ',' + p.lon;
+      }
+    });
+  }
 
   // Let the page paint first, then compute (about half a second).
   setTimeout(init, 30);

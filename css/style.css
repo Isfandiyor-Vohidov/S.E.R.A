@@ -393,3 +393,12 @@ body.hud-open { overflow: hidden; }
   .zoom-steps::-webkit-scrollbar { display: none; }
   .zoom-steps button { flex: none; padding: 6px 11px; font-size: 13px; }
 }
+
+/* 3D globe over the map */
+.map-wrap { position: relative; flex: 1; min-height: 320px; display: flex; }
+.map-wrap #map { flex: 1; }
+.globe-pane { position: absolute; inset: 0; z-index: 1100; background: #0C171A; }
+.globe-pane[hidden] { display: none; }
+.zoom-steps .globe-btn { border-color: var(--secondary); }
+.zoom-steps .globe-btn[aria-pressed="true"] { background: var(--secondary); color: var(--on-secondary); }
+@media (max-width: 760px) { .map-wrap { flex: none; height: 55vh; } .map-wrap #map { height: auto; } }

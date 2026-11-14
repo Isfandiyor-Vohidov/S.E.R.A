@@ -11,8 +11,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap">
-  <link rel="stylesheet" href="css/theme.css?v=2">
-  <link rel="stylesheet" href="css/site.css?v=101">
+  <link rel="stylesheet" href="css/theme.css?v=3">
+  <link rel="stylesheet" href="css/site.css?v=102">
 </head>
 <body id="top">
   <header class="nav t-surface">
@@ -64,18 +64,14 @@
     <section class="section wrap" id="demo">
       <div class="section-head">
         <div>
-          <p class="eyebrow">Live demo</p>
-          <h2>A real walk on real terrain.</h2>
+          <p class="eyebrow">Explore Mars</p>
+          <h2>Turn the planet. Pick a place.</h2>
         </div>
-        <p class="note">The demo plan on the 1 m terrain of Gale Crater, computed in your browser by the same code as the planner.</p>
+        <p class="note">A real 3D Mars from NASA data: Viking colour with MOLA and HRSC relief. Gale Crater opens our EVA zone in the planner.</p>
       </div>
-      <figure class="preview preview-wide t-surface" aria-label="Demo plan on the real terrain of Gale Crater">
-        <div class="preview-map">
-          <canvas id="preview-canvas" aria-hidden="true"></canvas>
-          <div class="pv-label pv-tl"><b>Gale Crater, Mars</b><span>Real 1 m terrain · demo plan</span></div>
-          <div class="pv-label pv-tr" id="pv-coords">4.81° S / 137.38° E</div>
-          <div class="pv-label pv-bl" id="pv-scale">2 km × 2 km</div>
-          <div class="pv-loading" id="pv-loading">Computing the route…</div>
+      <figure class="preview preview-wide t-surface" aria-label="3D model of Mars with famous places">
+        <div class="globe globe-site" id="site-globe">
+          <span class="globe-hint">Drag to turn · click a place</span>
         </div>
         <figcaption class="route-card">
           <div class="rc-title">
@@ -86,6 +82,7 @@
           <div class="rc-stat"><span>EVA time</span><b id="pv-time">—</b></div>
           <div class="rc-stat"><span>Home from farthest</span><b id="pv-home">—</b></div>
           <span class="status" id="pv-status">…</span>
+          <a class="btn btn-primary rc-go" href="planner.html?demo=1">Open demo EVA →</a>
         </figcaption>
       </figure>
     </section>
@@ -207,7 +204,7 @@
   <script src="js/marstime.js?v=3"></script>
   <script src="js/risk.js?v=4"></script>
   <script src="js/demo-plan.js?v=2"></script>
-  <script src="js/relief.js?v=2"></script>
-  <script src="js/site.js?v=6"></script>
+  <script src="js/globe.js?v=3"></script>
+  <script src="js/site.js?v=20"></script>
 </body>
 </html>

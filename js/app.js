@@ -661,5 +661,14 @@
   else welcomeEl.hidden = false;
 
   // Exposed for the next modules and for testing in the console.
-  window.SERA = { map: map, terrain: terrain, evaBounds: evaBounds, plan: plan };
+  // planner.html?at=lat,lon (from the 3D globe on the site) opens the map at that place.
+  var at = /[?&]at=(-?[\d.]+),(-?[\d.]+)/.exec(location.search);
+  if (at && !/[?&]demo=1/.test(location.search)) {
+    welcomeEl.hidden = true;
+    setActive('');
+    map.setView([+at[1], +at[2]], 5);
+  }
+
+  window.SERA = { map: map, terrain: terrain, evaBounds: evaBounds, plan: plan,
+    views: views, setActive: setActive, runDemo: runDemo };
 })();
