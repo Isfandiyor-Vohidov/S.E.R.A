@@ -15,8 +15,8 @@
     pane.hidden = !on;
     if (on) {
       S.setActive('mars');
-      if (!globe) globe = SeraGlobe.create(pane, { actionsFor: actionsFor });
-      else globe.resize();
+      if (!globe) globe = SeraGlobe.create(pane, { actionsFor: actionsFor, onDeepZoom: deepZoom });
+      else { globe.resize(); globe.zoomOut(); }
     } else S.map.invalidateSize();
   }
 
@@ -33,6 +33,15 @@
       show(false); S.setActive('');
       S.map.flyTo([place.lat, place.lon], 5, { duration: 1.5 });
     } }];
+  }
+
+  // Zooming the globe in close hands over to the flat map at the same place
+  // (near Gale Crater: straight to the crater view).
+  function deepZoom(lat, lon) {
+    show(false);
+    if (Math.abs(lat - (-5.4)) < 6 && Math.abs(lon - 137.8) < 8) { S.setActive('gale'); S.views.gale(); return; }
+    S.setActive('');
+    S.map.setView([lat, lon], 4);
   }
 
   // "Flat map" button in the corner of the globe.
@@ -74,4 +83,15 @@
 
   // Start on the globe unless a link asked for the demo or a place.
   if (!/[?&](demo|at|tour|p)=/.test(location.search)) show(true);
+
+  // A link like ?demo=1 is used once: afterwards the address is cleaned, so F5 starts fresh
+  // on the globe instead of running the same thing again (the language choice is kept).
+  window.addEventListener('load', function () {
+    setTimeout(function () {
+      var lang = /[?&]lang=(en|ru)/.exec(location.search);
+      if (location.search && history.replaceState) {
+        history.replaceState(null, '', location.pathname + (lang ? '?lang=' + lang[1] : '') + location.hash);
+      }
+    }, 1500);
+  });
 })();

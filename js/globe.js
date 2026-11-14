@@ -322,19 +322,30 @@
       if (opts.hero) return;        // the hero must not stop the page from scrolling
       e.preventDefault();
       target = null;
-      view.zoom = Math.max(0.6, Math.min(3, view.zoom * Math.exp(-e.deltaY * 0.0015)));
-      dirty = true;
+      setZoom(view.zoom * Math.exp(-e.deltaY * 0.0015));
     }, { passive: false });
     canvas.addEventListener('touchstart', function (e) {
       if (e.touches.length === 2) pinch = { d: dist(e.touches), z: view.zoom };
     }, { passive: true });
     canvas.addEventListener('touchmove', function (e) {
       if (pinch && e.touches.length === 2) {
-        view.zoom = Math.max(0.6, Math.min(3, pinch.z * dist(e.touches) / pinch.d));
-        dirty = true;
+        setZoom(pinch.z * dist(e.touches) / pinch.d);
       }
     }, { passive: true });
     canvas.addEventListener('touchend', function (e) { if (e.touches.length < 2) pinch = null; });
+    // Zoom by the user. Close enough to see one region -> opts.onDeepZoom(lat, lon) can hand
+    // over to the flat map there (the globe texture is too coarse for more).
+    var MIN_ZOOM = 0.6, MAX_ZOOM = opts.maxZoom || 2.2, DEEP_ZOOM = opts.deepZoom || 2.1, deepSent = false;
+    function setZoom(z) {
+      view.zoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, z));
+      dirty = true;
+      if (opts.onDeepZoom && view.zoom >= DEEP_ZOOM && !deepSent) {
+        deepSent = true;
+        var lon = ((view.lon % 360) + 540) % 360 - 180;
+        opts.onDeepZoom(view.lat, lon);
+      }
+      if (view.zoom < DEEP_ZOOM - 0.3) deepSent = false;
+    }
     function dist(t) { return Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY); }
 
     // Draw only while on screen.
@@ -351,6 +362,8 @@
     return {
       select: function (id) { places.forEach(function (p) { if (p.id === id) select(p); }); },
       resize: resize,
+      // Back to the whole planet (used when the globe is opened again).
+      zoomOut: function () { target = { lat: view.lat, lon: view.lon, zoom: opts.zoom || 0.82 }; deepSent = false; },
       places: places
     };
   }
