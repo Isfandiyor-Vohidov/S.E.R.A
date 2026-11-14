@@ -143,6 +143,148 @@
   }
   setActive('mars');
 
+  // ---- EVA plan: base + science points by click, route and way home ----
+
+  var P = SeraPath;
+  var plan = { base: null, stops: [], field: null, legs: [], home: null };
+  var routeLayer = L.layerGroup().addTo(map);
+  var hintEl = document.getElementById('hint');
+  var stopsEl = document.getElementById('stops');
+  var summaryEl = document.getElementById('summary');
+
+  function fmtMin(seconds) {
+    var m = Math.round(seconds / 60);
+    return m < 60 ? m + ' min' : Math.floor(m / 60) + ' h ' + (m % 60 < 10 ? '0' : '') + (m % 60) + ' min';
+  }
+  function fmtDist(m) {
+    return m < 1000 ? Math.round(m) + ' m' : (m / 1000).toFixed(2) + ' km';
+  }
+  function cellLatLng(cell) {
+    var p = T.cellToLatLon(terrain, cell.r, cell.c);
+    return [p.lat, p.lon];
+  }
+  function setHint(text, warn) {
+    hintEl.textContent = text;
+    hintEl.classList.toggle('warn', !!warn);
+  }
+
+  // Recomputes all legs: base -> stops in order -> base (way home from the last stop).
+  function recompute() {
+    plan.legs = [];
+    plan.home = null;
+    if (!plan.base) return;
+    var from = plan.base;
+    for (var i = 0; i < plan.stops.length; i++) {
+      var leg = P.findPath(terrain, from, plan.stops[i]);
+      plan.legs.push(leg);
+      plan.stops[i].homeS = plan.field.timeS[plan.stops[i].r * terrain.cols + plan.stops[i].c];
+      from = plan.stops[i];
+    }
+    if (plan.stops.length) plan.home = P.pathHome(terrain, plan.field, from);
+  }
+
+  function icon(label, isBase) {
+    return L.divIcon({
+      className: '',
+      html: '<div class="stop-icon' + (isBase ? ' base' : '') + '">' + label + '</div>',
+      iconSize: [24, 24],
+      iconAnchor: [12, 12]
+    });
+  }
+
+  function render() {
+    routeLayer.clearLayers();
+    stopsEl.innerHTML = '';
+
+    if (!plan.base) {
+      setHint('Click inside the EVA zone to place the base (habitat).');
+      summaryEl.hidden = true;
+      return;
+    }
+
+    var i, totalS = 0, totalM = 0, broken = false;
+    for (i = 0; i < plan.legs.length; i++) {
+      var leg = plan.legs[i];
+      if (!leg) { broken = true; continue; }
+      totalS += leg.timeS; totalM += leg.distM;
+      L.polyline(leg.cells.map(cellLatLng), { color: '#e2703a', weight: 4, opacity: 0.95 }).addTo(routeLayer);
+    }
+    if (plan.home) {
+      totalS += plan.home.timeS; totalM += plan.home.distM;
+      L.polyline(plan.home.cells.map(cellLatLng), { color: '#5ab0ff', weight: 3, dashArray: '8 6' }).addTo(routeLayer);
+    }
+
+    L.marker(cellLatLng(plan.base), { icon: icon('H', true), interactive: false }).addTo(routeLayer);
+    var li = document.createElement('li');
+    li.innerHTML = '<span class="badge base">H</span><span class="name">Base</span><span></span>' +
+      '<span class="meta">start and finish · elev ' + terrain.elev[plan.base.r * terrain.cols + plan.base.c].toFixed(0) + ' m</span>';
+    stopsEl.appendChild(li);
+
+    plan.stops.forEach(function (s, idx) {
+      L.marker(cellLatLng(s), { icon: icon(idx + 1, false), interactive: false }).addTo(routeLayer);
+      var leg = plan.legs[idx];
+      var item = document.createElement('li');
+      item.innerHTML = '<span class="badge">' + (idx + 1) + '</span><span class="name">Science point ' + (idx + 1) + '</span>' +
+        '<button type="button" class="del" title="Remove" data-i="' + idx + '">×</button>' +
+        '<span class="meta">' + (leg ? 'leg ' + fmtDist(leg.distM) + ' · ' + fmtMin(leg.timeS) : 'no safe path') +
+        ' · home from here ' + (isFinite(s.homeS) ? fmtMin(s.homeS) : '—') + '</span>';
+      stopsEl.appendChild(item);
+    });
+
+    if (!plan.stops.length) {
+      setHint('Base is set. Click to add science points.');
+      summaryEl.hidden = true;
+    } else {
+      setHint(broken ? 'Some points cannot be reached on safe slopes.' : 'Orange: route out. Blue dashed: way home.', broken);
+      summaryEl.hidden = false;
+      summaryEl.innerHTML =
+        '<span>Walking time <span class="tag">MODEL</span></span><span class="big">' + fmtMin(totalS) + '</span>' +
+        '<span>Distance</span><span>' + fmtDist(totalM) + '</span>' +
+        '<span>Way home from last point</span><span>' + (plan.home ? fmtMin(plan.home.timeS) : '—') + '</span>';
+    }
+  }
+
+  map.on('click', function (e) {
+    var cell = T.latLonToCell(terrain, e.latlng.lat, e.latlng.lng);
+    if (!cell) {
+      setHint('Click inside the dashed EVA zone.', true);
+      return;
+    }
+    var i = cell.r * terrain.cols + cell.c;
+    if (terrain.slopeDeg[i] > T.SLOPE_BLOCK_DEG) {
+      setHint('Too steep here (' + terrain.slopeDeg[i].toFixed(0) + '°, limit ' + T.SLOPE_BLOCK_DEG + '°). Pick another spot.', true);
+      return;
+    }
+    if (!plan.base) {
+      plan.base = cell;
+      plan.field = P.homeField(terrain, cell);
+    } else {
+      if (!isFinite(plan.field.timeS[i])) {
+        setHint('No safe way home from this spot. Pick another one.', true);
+        return;
+      }
+      plan.stops.push({ r: cell.r, c: cell.c });
+    }
+    recompute();
+    render();
+  });
+
+  stopsEl.addEventListener('click', function (e) {
+    var idx = e.target.getAttribute && e.target.getAttribute('data-i');
+    if (idx === null || idx === undefined) return;
+    plan.stops.splice(+idx, 1);
+    recompute();
+    render();
+  });
+
+  document.getElementById('btn-clear').addEventListener('click', function () {
+    plan.base = null; plan.stops = []; plan.field = null;
+    recompute();
+    render();
+  });
+
+  render();
+
   // Exposed for the next modules and for testing in the console.
-  window.SERA = { map: map, terrain: terrain, evaBounds: evaBounds };
+  window.SERA = { map: map, terrain: terrain, evaBounds: evaBounds, plan: plan };
 })();

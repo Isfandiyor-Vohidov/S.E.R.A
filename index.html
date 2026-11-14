@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>S.E.R.A — Safe Exploration &amp; Returning Assistant</title>
   <link rel="stylesheet" href="lib/leaflet/leaflet.css">
-  <link rel="stylesheet" href="css/style.css?v=1">
+  <link rel="stylesheet" href="css/style.css?v=2">
 </head>
 <body>
   <header class="topbar">
@@ -23,11 +23,21 @@
 
   <main class="layout">
     <div id="map" aria-label="Map of Mars"></div>
+    <aside class="panel" aria-label="EVA plan">
+      <h2>EVA plan</h2>
+      <p id="hint" class="hint"></p>
+      <ol id="stops" class="stops"></ol>
+      <div id="summary" class="summary" hidden></div>
+      <div class="panel-actions">
+        <button type="button" id="btn-clear" class="btn-secondary">Clear plan</button>
+      </div>
+    </aside>
   </main>
 
   <script src="lib/leaflet/leaflet.js"></script>
   <script src="data/terrain.js?v=1"></script>
   <script src="js/terrain.js?v=1"></script>
-  <script src="js/app.js?v=2"></script>
+  <script src="js/pathfinding.js?v=1"></script>
+  <script src="js/app.js?v=3"></script>
 </body>
 </html>
