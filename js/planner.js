@@ -107,8 +107,37 @@
     };
   }
 
+  // A plan too long for one suit is split into several EVAs (sorties), each from the base
+  // and back. The stops keep the fastest order; a new EVA starts when the next stop
+  // would not leave time to walk home inside the usable suit time.
+  // Returns [{stops: [indexes into order], totalS, fits}].
+  function splitSorties(matrix, order, homeS) {
+    var usableS = SUIT_HOURS * 3600 * (1 - RESERVE_SHARE);
+    var workS = WORK_MIN_PER_STOP * 60;
+    var out = [], cur = null;
+    function close() {
+      if (!cur) return;
+      cur.totalS = cur.elapsed + homeS[cur.last];
+      cur.fits = cur.totalS <= usableS;
+      out.push({ stops: cur.stops, totalS: cur.totalS, fits: cur.fits });
+      cur = null;
+    }
+    for (var i = 0; i < order.length; i++) {
+      var k = order[i];
+      if (cur) {
+        var t = cur.elapsed + matrix[cur.last][k] + workS;
+        if (t + homeS[k] <= usableS) { cur.elapsed = t; cur.last = k; cur.stops.push(i); continue; }
+        close();
+      }
+      cur = { elapsed: matrix[0][k] + workS, last: k, stops: [i] };
+    }
+    close();
+    return out;
+  }
+
   var api = {
     SUIT_HOURS: SUIT_HOURS,
+    splitSorties: splitSorties,
     RESERVE_SHARE: RESERVE_SHARE,
     WORK_MIN_PER_STOP: WORK_MIN_PER_STOP,
     EXACT_LIMIT: EXACT_LIMIT,

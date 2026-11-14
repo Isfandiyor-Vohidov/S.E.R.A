@@ -355,9 +355,10 @@
   var RULES = {
     ru: [[/^To (.+)$/, 'К: $1'], [/^Science work · (.+)$/, 'Научная работа · $1'], [/\bPoint (\d+)\b/g, 'Точка $1'],
       [/(\d+) h (\d+) min/g, '$1 ч $2 мин'], [/(\d+) h\b/g, '$1 ч'], [/(\d+) min\b/g, '$1 мин'], [/(\d) km\b/g, '$1 км'],
-      [/(\d) m\b/g, '$1 м'], [/Gale Crater · Sol (\d+)/, 'Кратер Гейл · сол $1'], [/^(\s*)ETA(\s*)$/, '$1Прибытие$2']],
+      [/(\d) m\b/g, '$1 м'], [/^Split into (\d+) EVAs/, 'Разбить на выходы: $1'], [/^EVA (\d+) · points (.+)$/, 'Выход $1 · точки $2'], [/Gale Crater · Sol (\d+)/, 'Кратер Гейл · сол $1'], [/^(\s*)ETA(\s*)$/, '$1Прибытие$2']],
     uz: [[/^To (.+)$/, 'Tomon: $1'], [/^Science work · (.+)$/, 'Ilmiy ish · $1'], [/\bPoint (\d+)\b/g, '$1-nuqta'],
       [/(\d+) h (\d+) min/g, '$1 soat $2 daq'], [/(\d+) h\b/g, '$1 soat'], [/(\d+) min\b/g, '$1 daq'],
+      [/^Split into (\d+) EVAs/, '$1 ta chiqishga bo\'lish'], [/^EVA (\d+) · points (.+)$/, '$1-chiqish · nuqtalar $2'],
       [/Gale Crater · Sol (\d+)/, 'Geyl krateri · sol $1'], [/^(\s*)ETA(\s*)$/, '$1Yetib borish$2']]
   };
 

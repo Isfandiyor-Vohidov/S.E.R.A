@@ -216,6 +216,7 @@
     var homeS = nodes.map(function (n) { return plan.field.timeS[cellIndex(n)]; });
     var order = PL.bestOrder(matrix);
     plan.budget = PL.evaluate(matrix, order, homeS);
+    plan.sorties = plan.budget.fits ? null : PL.splitSorties(matrix, order, homeS);
     plan.stops = order.map(function (k) { return nodes[k]; });
 
     var fromField = plan.baseOut;
@@ -313,6 +314,16 @@
         '<span>Suit limit · ' + PL.SUIT_HOURS + ' h − ' + Math.round(PL.RESERVE_SHARE * 100) + ' % reserve</span><span>' + fmtMin(b.usableS) + '</span>' +
         '<span>Margin <span class="tag">MODEL</span></span><span class="' + (b.fits ? 'ok' : 'bad') + '">' +
         (b.fits ? fmtMin(b.marginS) : 'over by ' + fmtMin(-b.marginS)) + '</span>';
+      // §6: too long for one suit -> the same points as several EVAs from the base.
+      if (plan.sorties && plan.sorties.length > 1) {
+        summaryEl.innerHTML += '<span class="split-head">Split into ' + plan.sorties.length +
+          ' EVAs <span class="tag">MODEL</span></span><span></span>';
+        plan.sorties.forEach(function (so, n) {
+          var a = so.stops[0] + 1, z = so.stops[so.stops.length - 1] + 1;
+          summaryEl.innerHTML += '<span>EVA ' + (n + 1) + ' · points ' + (a === z ? a : a + '–' + z) + '</span>' +
+            '<span class="' + (so.fits ? 'ok' : 'bad') + '">' + fmtMin(so.totalS) + '</span>';
+        });
+      }
       renderVerdict(broken);
     }
     renderProfile();
