@@ -1,0 +1,83 @@
+/* S.E.R.A — written with AI assistance (Claude), reviewed by team VAA. */
+
+/* Placeholder palette: replace with the team design palette. */
+:root {
+  --bg: #0d1117;
+  --panel: #161c26;
+  --line: #2a3342;
+  --text: #e6e9ef;
+  --muted: #8f9bb0;
+  --accent: #e2703a;
+  --go: #3fb96b;
+  --caution: #e6b93c;
+  --nogo: #e5484d;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 16px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+
+.brand { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+.brand-name { font-weight: 700; font-size: 20px; letter-spacing: 2px; color: var(--accent); }
+.brand-sub { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.zoom-steps { display: flex; gap: 6px; }
+.zoom-steps button {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.zoom-steps button:hover { border-color: var(--accent); }
+.zoom-steps button.active { background: var(--accent); border-color: var(--accent); color: #111; font-weight: 600; }
+
+.layout { flex: 1; min-height: 0; display: flex; }
+#map { flex: 1; min-height: 320px; background: #000; }
+
+.leaflet-container { font-family: inherit; background: #000; }
+.leaflet-control-layers, .leaflet-bar a, .leaflet-control-scale-line {
+  background: var(--panel);
+  color: var(--text);
+  border-color: var(--line);
+}
+.leaflet-bar a:hover { background: var(--line); color: var(--text); }
+.leaflet-control-attribution { background: rgba(13, 17, 23, 0.8) !important; color: var(--muted); }
+.leaflet-control-attribution a { color: var(--text); }
+
+.coords {
+  background: rgba(13, 17, 23, 0.8);
+  color: var(--text);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font: 12px ui-monospace, Consolas, monospace;
+}
+
+@media (max-width: 760px) {
+  .brand-sub { display: none; }
+  .topbar { padding: 6px 10px; }
+}

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<!-- S.E.R.A — written with AI assistance (Claude), reviewed by team VAA. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>S.E.R.A — Safe Exploration &amp; Returning Assistant</title>
+  <link rel="stylesheet" href="lib/leaflet/leaflet.css">
+  <link rel="stylesheet" href="css/style.css?v=1">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-name">S.E.R.A</span>
+      <span class="brand-sub">Safe Exploration &amp; Returning Assistant</span>
+    </div>
+    <nav class="zoom-steps" aria-label="Map scale">
+      <button type="button" data-view="mars">Mars</button>
+      <button type="button" data-view="gale">Gale Crater</button>
+      <button type="button" data-view="eva">EVA zone</button>
+    </nav>
+  </header>
+
+  <main class="layout">
+    <div id="map" aria-label="Map of Mars"></div>
+  </main>
+
+  <script src="lib/leaflet/leaflet.js"></script>
+  <script src="js/app.js?v=1"></script>
+</body>
+</html>

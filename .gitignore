@@ -1,0 +1,7 @@
+.claude/
+__pycache__/
+*.tif
+*.tiff
+node_modules/
+.DS_Store
+Thumbs.db
