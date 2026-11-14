@@ -95,6 +95,50 @@ body {
 .clock .big { font-size: 22px; font-weight: 700; }
 .clock .night { color: var(--caution); }
 
+.verdict {
+  border-radius: 8px;
+  padding: 10px 12px;
+  border: 2px solid var(--line);
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 10px;
+  align-items: center;
+}
+.verdict .mark { grid-row: span 2; font-size: 30px; font-weight: 800; line-height: 1; }
+.verdict .word { font-size: 24px; font-weight: 800; letter-spacing: 1px; }
+.verdict .why { font-size: 13px; color: var(--text); }
+.verdict.lv0 { border-color: var(--go); }
+.verdict.lv0 .mark, .verdict.lv0 .word { color: var(--go); }
+.verdict.lv1 { border-color: var(--caution); }
+.verdict.lv1 .mark, .verdict.lv1 .word { color: var(--caution); }
+.verdict.lv2 { border-color: var(--nogo); background: rgba(229, 72, 77, 0.12); }
+.verdict.lv2 .mark, .verdict.lv2 .word { color: var(--nogo); }
+
+.controls { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); flex-wrap: wrap; }
+.controls label { flex: 1; min-width: 120px; }
+.controls input {
+  background: var(--bg); color: var(--text);
+  border: 1px solid var(--line); border-radius: 6px;
+  padding: 5px 6px; font: inherit; color-scheme: dark;
+}
+.btn-small {
+  background: transparent; color: var(--text);
+  border: 1px solid var(--line); border-radius: 6px;
+  padding: 6px 10px; font-size: 13px; cursor: pointer;
+}
+.btn-small:hover { border-color: var(--accent); }
+
+.factors { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+.factors li { display: grid; grid-template-columns: 18px 1fr; gap: 6px; line-height: 1.35; }
+.factors .lv0 { color: var(--go); }
+.factors .lv1 { color: var(--caution); }
+.factors .lv2 { color: var(--nogo); }
+.factors b { font-weight: 600; }
+.factors .txt { color: var(--text); }
+
+.panel-actions { display: flex; flex-direction: column; gap: 6px; }
+.btn-secondary[aria-pressed="true"] { border-color: var(--nogo); color: var(--nogo); }
+
 .hint { margin: 0; font-size: 14px; line-height: 1.4; }
 .hint.warn { color: var(--caution); }
 

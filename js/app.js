@@ -152,6 +152,17 @@
   var hintEl = document.getElementById('hint');
   var stopsEl = document.getElementById('stops');
   var summaryEl = document.getElementById('summary');
+  var verdictEl = document.getElementById('verdict');
+  var factorsEl = document.getElementById('factors');
+  var startEl = document.getElementById('start-time');
+  var stormBtn = document.getElementById('btn-storm');
+  var R = SeraRisk;
+  var MT = SeraMarsTime;
+  var zoneLat = (terrain.north + terrain.south) / 2;
+  var zoneLon = (terrain.west + terrain.east) / 2;
+  var space = {};          // live space weather (NASA DONKI), filled by loadSpaceWeather()
+  var stormSimulated = false;
+  var MARKS = ['✓', '!', '✕'];
 
   function fmtMin(seconds) {
     var m = Math.round(seconds / 60);
@@ -213,6 +224,8 @@
   function render() {
     routeLayer.clearLayers();
     stopsEl.innerHTML = '';
+    verdictEl.hidden = true;
+    factorsEl.innerHTML = '';
 
     if (!plan.base) {
       setHint('Click inside the EVA zone to place the base (habitat).');
@@ -264,7 +277,134 @@
         '<span>Suit limit · ' + PL.SUIT_HOURS + ' h − ' + Math.round(PL.RESERVE_SHARE * 100) + ' % reserve</span><span>' + fmtMin(b.usableS) + '</span>' +
         '<span>Margin <span class="tag">MODEL</span></span><span class="' + (b.fits ? 'ok' : 'bad') + '">' +
         (b.fits ? fmtMin(b.marginS) : 'over by ' + fmtMin(-b.marginS)) + '</span>';
+      renderVerdict(broken);
     }
+  }
+
+  // Metres of the planned route on 15-25 degree slopes.
+  function cautionMetres() {
+    var m = 0;
+    plan.legs.concat([plan.home]).forEach(function (leg) {
+      if (!leg) return;
+      for (var i = 1; i < leg.cells.length; i++) {
+        if (terrain.slopeDeg[cellIndex(leg.cells[i])] >= T.SLOPE_CAUTION_DEG) m += terrain.cellM;
+      }
+    });
+    return m;
+  }
+
+  function startHours() {
+    var parts = (startEl.value || '09:00').split(':');
+    return (+parts[0]) + (+parts[1]) / 60;
+  }
+
+  function renderVerdict(broken) {
+    var c = MT.localTime(Date.now(), zoneLon, zoneLat);
+    var result = R.assess({
+      budget: plan.budget,
+      reachable: !broken,
+      cautionM: cautionMetres(),
+      startLtst: startHours(),
+      sunriseLtst: c.sunriseLtst,
+      sunsetLtst: c.sunsetLtst,
+      ls: c.ls,
+      dustSeason: MT.isDustSeason(c.ls),
+      space: stormSimulated ? { sepHoursAgo: 2, simulated: true } : space
+    });
+    plan.risk = result;
+    verdictEl.hidden = false;
+    verdictEl.className = 'verdict lv' + result.level;
+    verdictEl.innerHTML = '<span class="mark">' + MARKS[result.level] + '</span>' +
+      '<span class="word">' + result.verdict + '</span><span class="why"></span>';
+    verdictEl.querySelector('.why').textContent = result.reason;
+    factorsEl.innerHTML = '';
+    result.factors.forEach(function (f) {
+      var li = document.createElement('li');
+      li.innerHTML = '<span class="lv' + f.level + '">' + MARKS[f.level] + '</span>' +
+        '<span class="txt"><b></b> <span class="tag">' + f.tag + '</span><br><span class="t"></span></span>';
+      li.querySelector('b').textContent = f.label;
+      li.querySelector('.t').textContent = f.text;
+      factorsEl.appendChild(li);
+    });
+  }
+
+  startEl.addEventListener('input', render);
+  document.getElementById('btn-now').addEventListener('click', function () {
+    startEl.value = MT.formatHours(MT.localTime(Date.now(), zoneLon, zoneLat).ltst);
+    render();
+  });
+  stormBtn.addEventListener('click', function () {
+    stormSimulated = !stormSimulated;
+    stormBtn.setAttribute('aria-pressed', stormSimulated ? 'true' : 'false');
+    stormBtn.textContent = stormSimulated ? 'Stop storm simulation' : 'Simulate solar storm';
+    render();
+  });
+
+  // Live space weather, cached in the browser for 3 hours:
+  //  - solar energetic particle events: NASA DONKI (api.nasa.gov)
+  //  - X-ray flares: NOAA SWPC GOES list (the DONKI flare endpoint answered 404 on 14 Nov 2026)
+  // If the request fails, the last cached answer is used and marked as cached.
+  var DONKI = 'https://api.nasa.gov/DONKI/';
+  var GOES_FLARES = 'https://services.swpc.noaa.gov/json/goes/primary/xray-flares-7-day.json';
+  var NASA_API_KEY = 'DEMO_KEY';
+  var DONKI_CACHE_KEY = 'sera_spacewx_v2';
+  var DONKI_TTL_MS = 3 * 3600 * 1000;
+
+  function isoDay(ms) { return new Date(ms).toISOString().slice(0, 10); }
+  function hoursSince(iso) { return (Date.now() - Date.parse(iso)) / 3600000; }
+
+  function applySpaceWeather(data, cached) {
+    var sep = null, flare = null;
+    (data.sep || []).forEach(function (e) {
+      var h = hoursSince(e.eventTime);
+      if (isFinite(h) && h >= 0 && (sep === null || h < sep)) sep = h;
+    });
+    (data.flr || []).forEach(function (e) {
+      if (!e.max_class || e.max_class.charAt(0) !== 'X') return;
+      var h = hoursSince(e.max_time || e.begin_time);
+      if (isFinite(h) && h >= 0 && (flare === null || h < flare)) flare = h;
+    });
+    space = {
+      sepHoursAgo: sep,
+      xFlareHoursAgo: flare,
+      flaresChecked: !!data.flaresOk,
+      source: (data.flaresOk ? 'NASA DONKI + NOAA GOES' : 'NASA DONKI') + (cached ? ', cached ' + isoDay(data.t) : ''),
+      asOf: data.t
+    };
+    render();
+  }
+
+  function loadSpaceWeather() {
+    var cachedData = null;
+    try { cachedData = JSON.parse(localStorage.getItem(DONKI_CACHE_KEY)); } catch (e) { cachedData = null; }
+    if (cachedData && Date.now() - cachedData.t < DONKI_TTL_MS) {
+      applySpaceWeather(cachedData, false);
+      return;
+    }
+    var now = Date.now();
+    var range = '?startDate=' + isoDay(now - 3 * 86400000) + '&endDate=' + isoDay(now) + '&api_key=' + NASA_API_KEY;
+    function get(url) {
+      return fetch(url).then(function (r) {
+        if (!r.ok) throw new Error(url + ' ' + r.status);
+        return r.text();
+      }).then(function (text) { return text ? JSON.parse(text) : []; });
+    }
+    // The particle events are required; flares are optional (CAUTION only).
+    get(DONKI + 'SEP' + range).then(function (sep) {
+      return get(GOES_FLARES).catch(function () { return null; }).then(function (flr) {
+        var flaresOk = flr !== null;
+        flr = flr || [];
+        // Keep only what the verdict needs, so the cache stays small.
+        flr = flr.filter(function (e) { return e.max_class && e.max_class.charAt(0) === 'X'; })
+          .map(function (e) { return { max_class: e.max_class, max_time: e.max_time, begin_time: e.begin_time }; });
+        sep = sep.map(function (e) { return { eventTime: e.eventTime }; });
+        var data = { t: now, sep: sep, flr: flr, flaresOk: flaresOk };
+        try { localStorage.setItem(DONKI_CACHE_KEY, JSON.stringify(data)); } catch (e) { /* private mode */ }
+        applySpaceWeather(data, false);
+      });
+    }).catch(function () {
+      if (cachedData) applySpaceWeather(cachedData, true);
+    });
   }
 
   map.on('click', function (e) {
@@ -311,10 +451,7 @@
 
   // ---- Mars clock at the EVA zone (Mars24 algorithm) ----
 
-  var MT = SeraMarsTime;
   var clockEl = document.getElementById('clock');
-  var zoneLat = (terrain.north + terrain.south) / 2;
-  var zoneLon = (terrain.west + terrain.east) / 2;
 
   function renderClock() {
     var c = MT.localTime(Date.now(), zoneLon, zoneLat);
@@ -330,6 +467,7 @@
   }
   renderClock();
   setInterval(renderClock, 15000);
+  loadSpaceWeather();
 
   // Exposed for the next modules and for testing in the console.
   window.SERA = { map: map, terrain: terrain, evaBounds: evaBounds, plan: plan };
