@@ -448,6 +448,7 @@
     var st = guide.list[guide.i];
     if (st.enter) st.enter();
     guide.scrolled = false;
+    guide.fixed = false;
     var n = guide.list.length;
     var actions = [];
     if (guide.i > 0) actions.push({ label: '← Back', run: function () { guide.i--; showStep(); } });
@@ -477,8 +478,22 @@
         guide.scrolled = true;
         el.scrollIntoView({ block: W < 761 ? 'center' : 'nearest' });
       }
+      // In the side panel the action buttons stick to the bottom: keep the target above them,
+      // and never light a part of the panel that is scrolled away or under them.
+      var panel = el.closest('.panel'), foot = panel && panel.querySelector('.panel-actions');
+      var top = 0, bottom = H;
+      if (panel && foot && !foot.contains(el) && W > 760) {
+        var pr = panel.getBoundingClientRect(), fr = foot.getBoundingClientRect();
+        top = pr.top; bottom = Math.min(pr.bottom, fr.top);
+        var eb = el.getBoundingClientRect();
+        if (!guide.fixed && (eb.bottom + 14 > bottom || eb.top - 14 < top)) {
+          guide.fixed = true;
+          panel.scrollTop += eb.bottom + 14 > bottom ? eb.bottom + 14 - bottom : eb.top - 14 - top;
+        }
+      }
       var b = el.getBoundingClientRect(), pad = 6;
-      r = { x: Math.max(0, b.left - pad), y: Math.max(0, b.top - pad), w: Math.min(W, b.width + pad * 2), h: Math.min(H, b.height + pad * 2) };
+      var y0 = Math.max(top, b.top - pad), y1 = Math.min(bottom, b.bottom + pad);
+      r = { x: Math.max(0, b.left - pad), y: Math.max(0, y0), w: Math.min(W, b.width + pad * 2), h: Math.max(0, Math.min(H, y1 - y0)) };
     } else {
       r = { x: W / 2, y: H / 2, w: 0, h: 0 };
     }

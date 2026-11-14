@@ -702,9 +702,11 @@
 
   function renderClock() {
     var c = MT.localTime(Date.now(), zoneLon, zoneLat);
+    // Team design: big local time, a rule, the Mars clock rows, then the REMS history as its own block.
     var model = ' <span class="tag">MODEL</span>';
     clockEl.innerHTML =
-      '<span>Local solar time' + model + '</span><span class="big">' + MT.formatHours(c.ltst) + '</span>' +
+      '<span class="k-time">Local solar time' + model + '</span><span class="big">' + MT.formatHours(c.ltst) + '</span>' +
+      '<i class="rule"></i>' +
       '<span>Curiosity mission sol</span><span>' + c.mslSol + '</span>' +
       '<span>Season (L<sub>s</sub>)' + (MT.isDustSeason(c.ls) ? ' · dust season' : '') + '</span><span>' + c.ls.toFixed(1) + '°</span>' +
       '<span>Sunrise – sunset</span><span>' + MT.formatHours(c.sunriseLtst) + ' – ' + MT.formatHours(c.sunsetLtst) + '</span>' +
@@ -720,11 +722,11 @@
     if (!rems) return '';
     var bin = rems.bins[Math.floor((ls % 360) / rems.binDeg)];
     if (!bin || bin.airMinC === null) return '';
-    var data = ' <span class="tag">DATA</span>';
-    return '<span>Air temperature, typical' + data + '</span><span>' + Math.round(bin.airMinC) + ' … ' + (Math.round(bin.airMaxC) || 0) + ' °C</span>' +
+    return '<span class="sec">REMS · historical data <span class="tag">DATA</span></span>' +
+      '<span>Air temperature</span><span>' + Math.round(bin.airMinC) + ' … ' + (Math.round(bin.airMaxC) || 0) + ' °C</span>' +
       '<span>Ground temperature</span><span>' + Math.round(bin.groundMinC) + ' … ' + (Math.round(bin.groundMaxC) || 0) + ' °C</span>' +
       '<span>Pressure</span><span>' + bin.pressurePa.toFixed(0) + ' Pa</span>' +
-      '<span class="src">Curiosity REMS, mean of ' + bin.sols + ' sols at this season</span><span></span>';
+      '<span class="src">Curiosity REMS · mean of ' + bin.sols + ' sols at this season</span>';
   }
   renderClock();
   setInterval(renderClock, 15000);

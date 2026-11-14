@@ -6,7 +6,7 @@
 //  - NASA Mars Trek map tiles and Curiosity photos: cache first, up to 3000 files;
 //  - live space weather (api.nasa.gov, NOAA) is not cached here: the app keeps its own copy.
 
-var VERSION = 'sera-v4';                // change when our files change, so old copies are dropped
+var VERSION = 'sera-v5';                // change when our files change, so old copies are dropped
 var CORE = VERSION + '-core';
 var TILES = 'sera-v1-tiles';            // map tiles stay across versions (Save offline is kept)
 var MAX_TILES = 3000;
@@ -38,7 +38,8 @@ self.addEventListener('fetch', function (e) {
   var same = url.origin === self.location.origin;
 
   if (same && (req.mode === 'navigate' || /\.html$|\/$/.test(url.pathname))) {
-    e.respondWith(fetch(req).then(function (res) {
+    // no-cache: always ask the server (cheap 304 if unchanged), so a new version shows at once.
+    e.respondWith(fetch(url.href, { cache: 'no-cache', credentials: 'same-origin' }).then(function (res) {
       var copy = res.clone();
       caches.open(CORE).then(function (c) { c.put(req, copy); });
       return res;
