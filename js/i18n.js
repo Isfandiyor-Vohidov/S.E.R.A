@@ -20,7 +20,7 @@
     ['Find a place on Mars', 'Найти место на Марсе', 'Marsda joy topish'],
     ['Our EVA zone', 'Наша зона EVA', 'Bizning EVA hududimiz'],
     ['Rover position in our data', 'Положение марсохода в наших данных', 'Ma\'lumotlarimizdagi marsoxod joyi'],
-    ['Mars turning, made from NASA Viking and MOLA data, with the name SERA', 'Вращающийся Марс по данным NASA Viking и MOLA с названием SERA', 'NASA Viking va MOLA ma\'lumotlaridan aylanayotgan Mars, SERA nomi bilan'],
+    ['Mars turning, made from NASA Viking and MOLA data, with the name S.E.R.A', 'Вращающийся Марс по данным NASA Viking и MOLA с названием S.E.R.A', 'NASA Viking va MOLA ma\'lumotlaridan aylanayotgan Mars, S.E.R.A nomi bilan'],
     ['Mars 3D', 'Марс 3D', 'Mars 3D'],
     ['Gale Crater', 'Кратер Гейл', 'Geyl krateri'],
     ['EVA zone', 'Зона EVA', 'EVA hududi'],
@@ -165,12 +165,12 @@
     ['Time back', 'Время обратно', 'Time back'],
     ['Recommendation', 'Рекомендация', 'Recommendation'],
     ['= same route', '= маршрут один', '= same route'],
-    ['✓ SERA picks this', '✓ SERA выбирает этот', '✓ SERA picks this'],
+    ['✓ S.E.R.A picks this', '✓ S.E.R.A выбирает этот', '✓ S.E.R.A picks this'],
     ['Route B does not avoid enough steep ground to be worth the extra time. Route A is the better choice.', 'Маршрут B обходит слишком мало крутых участков, чтобы тратить лишнее время. Маршрут A лучше.', 'Route B does not avoid enough steep ground to be worth the extra time. Route A is the better choice.'],
-    ['MODEL · Route B: 15–25° slopes cost 8× · solid: there, dashed: back · SERA is an AI-generated character', 'МОДЕЛЬ · Маршрут B: уклоны 15–25° стоят в 8 раз дороже · сплошная: туда, пунктир: обратно · SERA — персонаж, созданный ИИ', 'MODEL · Route B: 15–25° slopes cost 8× · solid: there, dashed: back · SERA is an AI-generated character'],
-    ['SERA · AI assistant', 'SERA · ИИ-ассистент', 'SERA · AI assistant'],
-    ['SERA is an AI-generated character', 'SERA — персонаж, созданный ИИ', 'SERA is an AI-generated character'],
-    ['Ask SERA', 'Спросить SERA', 'Ask SERA'],
+    ['MODEL · Route B: 15–25° slopes cost 8× · solid: there, dashed: back · S.E.R.A is an AI-generated character', 'МОДЕЛЬ · Маршрут B: уклоны 15–25° стоят в 8 раз дороже · сплошная: туда, пунктир: обратно · S.E.R.A — персонаж, созданный ИИ', 'MODEL · Route B: 15–25° slopes cost 8× · solid: there, dashed: back · S.E.R.A is an AI-generated character'],
+    ['S.E.R.A · AI assistant', 'S.E.R.A · ИИ-ассистент', 'S.E.R.A · AI assistant'],
+    ['S.E.R.A is an AI-generated character', 'S.E.R.A — персонаж, созданный ИИ', 'S.E.R.A is an AI-generated character'],
+    ['Ask S.E.R.A', 'Спросить S.E.R.A', 'Ask S.E.R.A'],
     ['I plan safe walks on Mars', 'Я планирую безопасные выходы на Марсе', 'I plan safe walks on Mars'],
     ['S.E.R.A plans an EVA on the real terrain of Gale Crater, checks slopes, suit time, daylight and space weather, and always keeps the way home. Start the mission, or watch the 1-minute tour.', 'S.E.R.A планирует выход по настоящему рельефу кратера Гейл, проверяет уклоны, время скафандра, свет и космическую погоду и всегда держит путь домой. Начните миссию или посмотрите тур на 1 минуту.', 'S.E.R.A plans an EVA on the real terrain of Gale Crater, checks slopes, suit time, daylight and space weather, and always keeps the way home. Start the mission, or watch the 1-minute tour.'],
     ['Let’s plan an EVA', 'Давайте спланируем выход', 'Let’s plan an EVA'],
@@ -191,7 +191,7 @@
     ['Solar particle alert. I rebuilt the fastest safe way home from where you stand.', 'Тревога солнечных частиц. Я перестроила самый быстрый безопасный путь домой от того места, где вы стоите.', 'Solar particle alert. I rebuilt the fastest safe way home from where you stand.'],
     ['You left the route', 'Вы сошли с маршрута', 'You left the route'],
     ['No problem: here is a new safe path to the next point. The rest of the plan stays.', 'Не страшно: вот новый безопасный путь к следующей точке. Остальной план не меняется.', 'No problem: here is a new safe path to the next point. The rest of the plan stays.'],
-    ['Hi, I’m SERA', 'Привет, я SERA', 'Hi, I’m SERA'],
+    ['Hi, I’m S.E.R.A', 'Привет, я S.E.R.A', 'Hi, I’m S.E.R.A'],
     ['Your assistant for walks on Mars. In 7 short steps I’ll show how to plan an EVA that always brings you home.', 'Ваш ассистент для выходов на Марсе. За 7 коротких шагов покажу, как спланировать выход, который всегда возвращает домой.', 'Your assistant for walks on Mars. In 7 short steps I’ll show how to plan an EVA that always brings you home.'],
     ['1 · Start on Mars', '1 · Начните с Марса', '1 · Start on Mars'],
     ['The real planet from NASA data. Turn it and pick Gale Crater: our EVA zone is there. Zoom in close and the flat map opens.', 'Настоящая планета по данным NASA. Поверните её и выберите кратер Гейл: там наша зона выхода. Приблизьте — откроется плоская карта.', 'The real planet from NASA data. Turn it and pick Gale Crater: our EVA zone is there. Zoom in close and the flat map opens.'],
@@ -432,9 +432,9 @@
     ['Three steps from plan to home.', 'Три шага от плана до дома.', 'Rejadan uygacha uch qadam.'],
     ['Four steps from plan to home.', 'Четыре шага от плана до дома.', 'Four steps from plan to home.'],
     ['Watch for deviations', 'Следить за отклонениями', 'Watch for deviations'],
-    ['During the walk SERA follows the plan. Off the route, it builds a new safe path to the next point. Mission Twin compares a fast and a gentle way.', 'Во время выхода SERA следит за планом. Сошли с маршрута — она строит новый безопасный путь к следующей точке. Mission Twin сравнивает быстрый и пологий путь.', 'During the walk SERA follows the plan. Off the route, it builds a new safe path to the next point. Mission Twin compares a fast and a gentle way.'],
+    ['During the walk S.E.R.A follows the plan. Off the route, it builds a new safe path to the next point. Mission Twin compares a fast and a gentle way.', 'Во время выхода S.E.R.A следит за планом. Сошли с маршрута — она строит новый безопасный путь к следующей точке. Mission Twin сравнивает быстрый и пологий путь.', 'During the walk S.E.R.A follows the plan. Off the route, it builds a new safe path to the next point. Mission Twin compares a fast and a gentle way.'],
     ['Return to safety', 'Вернуть в безопасность', 'Return to safety'],
-    ['On a NO-GO (storm, suit time, sunset) SERA rebuilds the fastest way home from where you stand. The way home is visible at every point.', 'При NO-GO (буря, время скафандра, закат) SERA перестраивает самый быстрый путь домой от того места, где вы стоите. Путь домой виден в каждой точке.', 'On a NO-GO (storm, suit time, sunset) SERA rebuilds the fastest way home from where you stand. The way home is visible at every point.'],
+    ['On a NO-GO (storm, suit time, sunset) S.E.R.A rebuilds the fastest way home from where you stand. The way home is visible at every point.', 'При NO-GO (буря, время скафандра, закат) S.E.R.A перестраивает самый быстрый путь домой от того места, где вы стоите. Путь домой виден в каждой точке.', 'On a NO-GO (storm, suit time, sunset) S.E.R.A rebuilds the fastest way home from where you stand. The way home is visible at every point.'],
     ['Plan at the base', 'План на базе', 'Bazada reja'],
     ['Place the habitat and the science points on the map of a 2 × 2 km zone at Mount Sharp.', 'Поставьте жилой модуль и научные точки на карте зоны 2 × 2 км у горы Шарп.', 'Yashash moduli va ilmiy nuqtalarni Sharp tog\'i yonidagi 2 × 2 km hudud xaritasiga qo\'ying.'],
     ['Check before going out', 'Проверка перед выходом', 'Chiqishdan oldin tekshiruv'],
@@ -491,7 +491,7 @@
       [/Gale Crater · Sol (\d+)/, 'Geyl krateri · sol $1'], [/^(\s*)ETA(\s*)$/, '$1Yetib borish$2']]
   };
 
-  // Whole sentences with numbers (SERA's advice): matched before the phrase list, so no phrase cuts them.
+  // Whole sentences with numbers (S.E.R.A's advice): matched before the phrase list, so no phrase cuts them.
   var WHOLE = { ru: [[/^Curiosity REMS · mean of (\d+) sols at this season$/, 'Curiosity REMS · среднее за $1 солов в этот сезон'], [/^Too steep here \((\d+)°, limit (\d+)°\)\. Pick another spot\.$/, 'Здесь слишком круто ($1°, предел $2°). Выберите другое место.'], [/^Too steep there: (\d+)° \(the limit is 25°\)\.$/, 'Там слишком круто: $1° (предел 25°).'], [/^(\d+) science points, EVA (.+?), (.+?) of spare suit time\.$/, 'Научных точек: $1, выход $2, запас скафандра $3.'], [/^NO-GO · no safe way to (.+)$/, 'NO-GO · нет безопасного пути: $1'], [/^(\d+) m of the route is on 15–25° slopes \(yellow on the map\)\. Walking there takes twice as long\.$/, '$1 м маршрута идут по склонам 15–25° (жёлтые на карте). Там идти вдвое дольше.'], [/^The plan needs (.+?) more than the suit allows with the 15 % reserve\.$/, 'Плану нужно на $1 больше, чем позволяет скафандр с резервом 15 %.'], [/^Remove the farthest point \((.+?)\) or walk it as (\d+) EVAs\.$/, 'Уберите самую дальнюю точку ($1) или разбейте план на выходы: $2.'], [/^Remove the farthest point \((.+?)\) to keep more air for surprises\.$/, 'Уберите самую дальнюю точку ($1), чтобы остался воздух на неожиданности.'], [/^Remove the farthest point \((.+?)\)\.$/, 'Уберите самую дальнюю точку ($1).'], [/^Only (.+?) of spare suit time before the reserve\.$/, 'До резерва остаётся всего $1 запаса скафандра.'], [/^Start (\d\d:\d\d) is before sunrise \((\d\d:\d\d)\)\.$/, 'Старт в $1 — ещё до восхода ($2).'], [/^You would be back at (\S+), after sunset \((\S+)\)\.$/, 'Вы вернётесь в $1, уже после заката ($2).'], [/^Back at (\S+), less than 1 h before sunset \((\S+)\)\.$/, 'Возвращение в $1, меньше чем за 1 ч до заката ($2).'], [/^Solar particle event (\d+) h ago \(NASA DONKI\)\. Outside, the radiation dose is too high\.$/, 'Поток солнечных частиц $1 ч назад (NASA DONKI). Снаружи доза радиации слишком высокая.'], [/^X-class solar flare (\d+) h ago\.$/, 'Солнечная вспышка класса X $1 ч назад.'], [/^For (.+?) in a row the base mast is out of sight\.$/, '$1 подряд мачта базы вне прямой видимости.']], uz: [] };
 
   var lang = 'en';

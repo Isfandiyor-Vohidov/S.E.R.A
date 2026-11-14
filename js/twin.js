@@ -1,10 +1,10 @@
 // S.E.R.A — Safe Exploration & Return Assistant
 // Written with AI assistance (Claude), reviewed by team VAA.
-// twin.js: Mission Twin, the team's idea. For one science point SERA shows two futures side by side:
+// twin.js: Mission Twin, the team's idea. For one science point S.E.R.A shows two futures side by side:
 //   Route A — the fastest way (the planner's own route model);
 //   Route B — the gentle way: 15-25 deg slopes cost 8 times more, so it keeps to flatter ground.
 // Both are walked there and back; the table compares distance, steep ground, the slowest step,
-// time out, time back and the spare suit time, and SERA recommends one. Both routes are drawn on the map.
+// time out, time back and the spare suit time, and S.E.R.A recommends one. Both routes are drawn on the map.
 
 (function () {
   'use strict';
@@ -66,7 +66,7 @@
     layer.clearLayers();
     if (!A || !B) return;
     var same = Math.abs(A.distM - B.distM) < 1 && Math.abs(A.steepM - B.steepM) < 1;
-    // SERA's choice: the gentle way if it saves at least a third of the steep ground and still fits.
+    // S.E.R.A's choice: the gentle way if it saves at least a third of the steep ground and still fits.
     var pickB = !same && B.spareS >= 0 && B.steepM <= A.steepM * 0.67;
     var name = S.stopName(target, stopIdx);
 
@@ -76,7 +76,7 @@
     }).join('');
 
     function row(label, a, b) { return '<tr><th>' + label + '</th><td>' + a + '</td><td>' + b + '</td></tr>'; }
-    var mark = function (isPick) { return same ? '<span class="twin-ok">= same route</span>' : isPick ?'<span class="twin-ok">✓ SERA picks this</span>' : '<span class="twin-warn">⚠</span>'; };
+    var mark = function (isPick) { return same ? '<span class="twin-ok">= same route</span>' : isPick ?'<span class="twin-ok">✓ S.E.R.A picks this</span>' : '<span class="twin-warn">⚠</span>'; };
     dlg.querySelector('.twin-table').innerHTML =
       '<thead><tr><th></th><th><i class="sw sw-a"></i>Route A · fastest</th><th><i class="sw sw-b"></i>Route B · gentle</th></tr></thead><tbody>' +
       row('Distance (there and back)', (A.distM / 1000).toFixed(2) + ' km', (B.distM / 1000).toFixed(2) + ' km') +

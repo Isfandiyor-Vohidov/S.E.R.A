@@ -1,6 +1,6 @@
 # S.E.R.A — Safe Exploration & Return Assistant
 
-<img src="img/sera-logo.jpg" alt="SERA logo" width="200">
+<img src="img/sera-logo.jpg" alt="S.E.R.A logo" width="200">
 
 **A walk planner for astronauts on Mars that always knows the way home.**
 
@@ -13,12 +13,12 @@ S.E.R.A plans an EVA (a walk outside the habitat) on the real terrain of Gale Cr
 ## How to use
 
 1. Open the site and press **Launch Mission** — the Mission Planner opens with a ready demo plan.
-2. Or open the planner and press **Plan my own EVA**: the first click inside the dashed 2 × 2 km zone places the base, every next click adds a science point. Any marker can be dragged to a new spot; dropped on ground over 25°, outside the zone or with no safe way home, it goes back and SERA says why.
+2. Or open the planner and press **Plan my own EVA**: the first click inside the dashed 2 × 2 km zone places the base, every next click adds a science point. Any marker can be dragged to a new spot; dropped on ground over 25°, outside the zone or with no safe way home, it goes back and S.E.R.A says why.
 3. Press **Start EVA · helmet view** to play the walk as a simulation and try **Emergency · home**.
 4. Read the verdict at the top of the panel. Change the **EVA start time** or press **Simulate solar storm** to see how the verdict changes.
-5. Press **Mission Twin** to compare the fastest and the gentle route to one point. Press the **SERA** button any time: the assistant explains the current plan.
+5. Press **Mission Twin** to compare the fastest and the gentle route to one point. Press the **S.E.R.A** button any time: the assistant explains the current plan.
 
-At the first visit the assistant SERA shows a short guide: one part of the screen at a time, the rest blurred.
+At the first visit the assistant S.E.R.A shows a short guide: one part of the screen at a time, the rest blurred.
 
 ## What it does
 
@@ -41,9 +41,9 @@ At the first visit the assistant SERA shows a short guide: one part of the scree
 | Light and dark theme | Toggle in the top bar, remembered in the browser |
 | Helmet view (simulation) | Plays the EVA along the route, first person through a helmet frame: suit time left, time home from where you stand, next target, slope under feet. Speed 1 s = 10 s (walk pace, default in 3D), 1, 4 or 10 min. **Emergency · home** leads back by the fastest safe way from the current spot |
 | 3D helmet view | First person on the real terrain of the zone (WebGL, no libraries): the route on the ground, beacons for the points and the base, readouts on the visor glass, a round radar and a compass. Drag to look around. MODEL: 5 m grid, so small rocks are not in the data; the rocks you see are scattered for the look only (never on the route) and the visor says so. The Sun moves with the local solar time. **Map view** switches back to the top-down map |
-| Deviation watch | **Test · off route** moves the walker 40–60 m aside: SERA builds a new safe path to the next point and keeps the rest of the plan. **Test · storm alert** gives NO-GO and the fastest way home from where you stand |
-| Mission Twin | For one science point: Route A (fastest) and Route B (gentle: 15–25° slopes cost 8×), there and back, side by side: distance, steep ground, steepest step, time, spare suit time, and SERA's recommendation. Both drawn on the map |
-| Assistant SERA | A fictional AI assistant character: first-visit guide, reactions (thinking → GO / CAUTION / NO-GO, welcome back), and an explanation of the current plan on request |
+| Deviation watch | **Test · off route** moves the walker 40–60 m aside: S.E.R.A builds a new safe path to the next point and keeps the rest of the plan. **Test · storm alert** gives NO-GO and the fastest way home from where you stand |
+| Mission Twin | For one science point: Route A (fastest) and Route B (gentle: 15–25° slopes cost 8×), there and back, side by side: distance, steep ground, steepest step, time, spare suit time, and S.E.R.A's recommendation. Both drawn on the map |
+| Assistant S.E.R.A | A fictional AI assistant character: first-visit guide, reactions (thinking → GO / CAUTION / NO-GO, welcome back), and an explanation of the current plan on request |
 | Several EVAs | A plan longer than one suit allows is split into several EVAs from the base, in the same fastest order |
 | Minerals (CRISM) | Hydrated minerals and clays from 5 MRO CRISM observations over the zone; the strongest spots (on safe ground) can be added as science points |
 | Geology and night IR | USGS global geologic map and THEMIS night infrared (rock vs dust) as map layers |
@@ -137,7 +137,7 @@ node prep_msl.mjs
 python prep_globe.py   # needs Pillow
 python prep_crism.py   # needs Pillow
 python prep_places.py
-python prep_logo.py    # SERA letters and planet icon cut from our logo
+python prep_logo.py    # S.E.R.A letters and planet icon cut from our logo
 ```
 
 `prep_dem.mjs` reads about 130 MB of the 3.6 GB DEM with HTTP range requests.
@@ -163,7 +163,7 @@ python prep_logo.py    # SERA letters and planet icon cut from our logo
 | `js/hud.js` | Helmet view: EVA simulation, deviation and storm tests, emergency return |
 | `js/fpv.js` | 3D first-person view of the terrain for the helmet view (WebGL) |
 | `js/twin.js` | Mission Twin: two routes to one point |
-| `js/assistant.js` | Assistant SERA: guide, reactions, explanation |
+| `js/assistant.js` | Assistant S.E.R.A: guide, reactions, explanation |
 | `js/globe.js`, `js/planner-globe.js` | 3D Mars globe |
 | `js/curiosity.js` | Curiosity path and photos layer |
 | `js/relief.js` | Shaded relief of the terrain grid |
@@ -175,7 +175,7 @@ The core modules are pure functions without the DOM, so they also run in Node.js
 
 ## Use of AI
 
-The code was written with AI assistance (Claude by Anthropic, in Claude Code) and reviewed by the team. Every JavaScript file says so in its header. The idea, the choice of place, the safety rules and all decisions were made by the team; the AI helped to implement them and to check the numbers. The SERA logo (`img/sera-logo.jpg`) is an AI-generated concept image and is marked so on the image itself. The SERA character poses (`img/sera/`) and the helmet frame (`img/helmet.webp`) are AI-generated images; SERA is a fictional character, not a real person, and is marked “AI-generated character” in the app. No voices or videos in this project were made by AI. *(Full report added before submission.)*
+The code was written with AI assistance (Claude by Anthropic, in Claude Code) and reviewed by the team. Every JavaScript file says so in its header. The idea, the choice of place, the safety rules and all decisions were made by the team; the AI helped to implement them and to check the numbers. The S.E.R.A logo (`img/sera-logo.jpg`) is an AI-generated concept image and is marked so on the image itself. The S.E.R.A character poses (`img/sera/`) and the helmet frame (`img/helmet.webp`) are AI-generated images; S.E.R.A is a fictional character, not a real person, and is marked “AI-generated character” in the app. No voices or videos in this project were made by AI. *(Full report added before submission.)*
 
 ## License
 

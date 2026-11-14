@@ -1,9 +1,9 @@
 // S.E.R.A — Safe Exploration & Return Assistant
 // Written with AI assistance (Claude), reviewed by team VAA.
-// assistant.js: SERA, the (fictional, AI-generated) assistant character of the app.
+// assistant.js: S.E.R.A, the (fictional, AI-generated) assistant character of the app.
 //  - First visit: a step-by-step guide. One part of the screen is shown at a time,
-//    everything else is blurred; SERA explains it.
-//  - The SERA button: she explains the current plan (verdict, reason, numbers).
+//    everything else is blurred; S.E.R.A explains it.
+//  - The S.E.R.A button: she explains the current plan (verdict, reason, numbers).
 //  - She reacts: thinking while a plan is checked, thumbs-up for GO, a stop hand for NO-GO,
 //    a welcome back after the walk.
 // The site (index.html) gets the first-visit greeting and the button only.
@@ -24,20 +24,20 @@
     setTimeout(function () { POSES.forEach(function (p) { new Image().src = IMG(p); }); }, 800);
   });
 
-  // ---- The card: SERA + a speech bubble ------------------------------------------------
+  // ---- The card: S.E.R.A + a speech bubble ------------------------------------------------
   var card = document.createElement('div');
   card.className = 'sera-card';
   card.hidden = true;
   card.setAttribute('role', 'dialog');
   card.setAttribute('aria-live', 'polite');
   card.innerHTML =
-    '<img class="sera-pose" alt="SERA, the assistant">' +
+    '<img class="sera-pose" alt="S.E.R.A, the assistant">' +
     '<div class="sera-bubble">' +
-    '  <span class="sera-name">SERA · AI assistant</span>' +
+    '  <span class="sera-name">S.E.R.A · AI assistant</span>' +
     '  <b class="sera-title"></b><p class="sera-text"></p><p class="sera-do"></p>' +
     '  <div class="sera-actions"></div>' +
     '  <div class="sera-timer" aria-hidden="true"><i></i></div>' +
-    '  <small class="sera-credit">SERA is an AI-generated character</small>' +
+    '  <small class="sera-credit">S.E.R.A is an AI-generated character</small>' +
     '  <button type="button" class="sera-x" aria-label="Close">×</button>' +
     '</div>';
   document.body.appendChild(card);
@@ -46,7 +46,7 @@
   var timerBar = card.querySelector('.sera-timer');
   var hideTimer = 0, hideAt = 0, hideLeft = 0;
 
-  // ---- Spotlight: SERA stays in her corner, but lights up what she is talking about ----
+  // ---- Spotlight: S.E.R.A stays in her corner, but lights up what she is talking about ----
   // A ring around the thing and a dashed line from her bubble to it.
   var spot = document.createElement('div');
   spot.className = 'sera-spot';
@@ -178,13 +178,13 @@
   });
   card.querySelector('.sera-x').addEventListener('click', function () { if (guide) endGuide(); else hide(); });
 
-  // ---- The SERA button -----------------------------------------------------------------
+  // ---- The S.E.R.A button -----------------------------------------------------------------
   var btn = document.createElement('button');
   btn.type = 'button';
   btn.id = 'sera-ai';
   btn.className = 'sera-ai';
-  btn.title = 'Ask SERA';
-  btn.innerHTML = '<img src="' + IMG('listening') + '" alt=""><span>SERA</span>';
+  btn.title = 'Ask S.E.R.A';
+  btn.innerHTML = '<img src="' + IMG('listening') + '" alt=""><span>S.E.R.A</span>';
   (onPlanner ? document.querySelector('.map-wrap') : document.body).appendChild(btn);
   btn.addEventListener('click', function (e) {
     e.stopPropagation();
@@ -218,7 +218,7 @@
   }
   var num = function (txt, re) { var m = re.exec(txt); return m ? m[1] : ''; };
 
-  // The first worst factor of the verdict decides what SERA says.
+  // The first worst factor of the verdict decides what S.E.R.A says.
   function advise() {
     var p = S.plan, r = p.risk, b = p.budget;
     if (!r || !b) return null;
@@ -301,7 +301,7 @@
     return a;
   }
 
-  // What SERA says about the current state.
+  // What S.E.R.A says about the current state.
   function explainNow() {
     if (!onPlanner) {
       say({ pose: 'explain', title: 'I plan safe walks on Mars',
@@ -410,7 +410,7 @@
 
   function steps() {
     return [
-      { pose: 'welcome', title: 'Hi, I’m SERA', text: 'Your assistant for walks on Mars. In 7 short steps I’ll show how to plan an EVA that always brings you home.' },
+      { pose: 'welcome', title: 'Hi, I’m S.E.R.A', text: 'Your assistant for walks on Mars. In 7 short steps I’ll show how to plan an EVA that always brings you home.' },
       { target: '#planner-globe', pose: 'explain', title: '1 · Start on Mars',
         text: 'The real planet from NASA data. Turn it and pick Gale Crater: our EVA zone is there. Zoom in close and the flat map opens.',
         enter: function () { if (S.globe) S.globe.show(true); } },
@@ -463,7 +463,7 @@
       actions.push({ label: 'Skip', run: endGuide });
     }
     say({ pose: st.pose, title: st.title, text: st.text + (guide.i ? '' : ''), actions: actions, place: 'guide' });
-    card.querySelector('.sera-name').textContent = 'SERA · ' + (guide.i + 1) + ' / ' + n;
+    card.querySelector('.sera-name').textContent = 'S.E.R.A · ' + (guide.i + 1) + ' / ' + n;
     // Let the page settle (globe, demo plan), then light the target.
     setTimeout(place, 60);
     setTimeout(place, 450);
@@ -526,7 +526,7 @@
   } else if (!store(KEY_HELLO)) {
     setTimeout(function () {
       store(KEY_HELLO, '1');
-      say({ pose: 'welcome', title: 'Hi, I’m SERA', place: 'corner',
+      say({ pose: 'welcome', title: 'Hi, I’m S.E.R.A', place: 'corner',
         text: 'Your assistant for safe walks on Mars. I plan the route on real terrain and always keep the way home.',
         actions: [
           { label: 'Launch Mission', primary: true, run: function () { location.href = 'planner.html?demo=1'; } },

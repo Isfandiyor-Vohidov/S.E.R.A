@@ -2,7 +2,7 @@
 # Written with AI assistance (Claude), reviewed by team VAA.
 # prep_logo.py: takes the parts of our real logo (img/sera-logo.jpg) without its black background,
 # so the logo itself is not changed:
-#   img/sera-word.png  the "SERA" letters of the logo, white on transparent (used as a CSS mask)
+#   img/sera-word.png  the "SERA" letters of the logo with dots, S.E.R.A, white on transparent (CSS mask)
 #   img/mark.png       the logo planet without the letters, round, on transparent (header icon, browser tab)
 #
 # Usage:  python tools/prep_logo.py      (needs Pillow)
@@ -35,6 +35,31 @@ for y in range(ch):
         a = max(0.0, min(1.0, (b - 70) / 150.0))     # planet blue is under ~70
         wp[x, y] = (255, 255, 255, int(a * 255))
 word = word.crop(word.getchannel("A").point(lambda v: 255 if v > 90 else 0).getbbox())
+
+# 3. The team's choice: the name is written S.E.R.A, like an acronym. A round dot (the size of a
+#    stroke) goes on the baseline after S, E and R; the letters themselves are not changed.
+def dotted(word):
+    from PIL import ImageDraw
+    w, h = word.size
+    al = word.getchannel('A').load()
+    cols = [any(al[x, y] > 40 for y in range(h)) for x in range(w)]
+    letters, start = [], None
+    for x, on in enumerate(cols + [False]):
+        if on and start is None: start = x
+        if not on and start is not None: letters.append((start, x - 1)); start = None
+    G, D, S = 24, 16, 4                  # space each side of a dot, dot size, supersampling
+    big = Image.new('L', (D * S, D * S), 0)
+    ImageDraw.Draw(big).ellipse((0, 0, D * S - 1, D * S - 1), fill=255)
+    dot = Image.new('RGBA', (D, D), (255, 255, 255, 255)); dot.putalpha(big.resize((D, D), Image.LANCZOS))
+    width = sum(b - a + 1 for a, b in letters) + (len(letters) - 1) * (2 * G + D)
+    out = Image.new('RGBA', (width, h), (255, 255, 255, 0))
+    x = 0
+    for i, (a, b) in enumerate(letters):
+        out.alpha_composite(word.crop((a, 0, b + 1, h)), (x, 0)); x += b - a + 1
+        if i < len(letters) - 1:
+            out.alpha_composite(dot, (x + G, h - D)); x += 2 * G + D
+    return out
+word = dotted(word)
 word.save(os.path.join(IMG, 'sera-word.png'), optimize=True)
 print('img/sera-word.png', word.size)
 

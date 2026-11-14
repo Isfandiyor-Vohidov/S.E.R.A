@@ -83,7 +83,7 @@
     if (window.SERA_REMS) document.getElementById('rems-sols').textContent = window.SERA_REMS.sols.toLocaleString('en-US');
   }
 
-  // Hero: the real Mars (NASA Viking colour, MOLA relief) turning behind the SERA name.
+  // Hero: the real Mars (NASA Viking colour, MOLA relief) turning behind the S.E.R.A name.
   var heroEl = document.getElementById('hero-globe');
   if (heroEl && window.SeraGlobe) {
     var hero = SeraGlobe.create(heroEl, { places: [], stars: false, hero: true, zoom: 0.78, textureHi: false });

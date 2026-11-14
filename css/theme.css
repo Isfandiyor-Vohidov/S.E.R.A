@@ -68,14 +68,14 @@ body {
 
 a { color: inherit; }
 
-/* Logo: the planet and the SERA letters are cut from our real logo (tools/prep_logo.py).
+/* Logo: the planet and the S.E.R.A letters are cut from our real logo (tools/prep_logo.py).
    The letters are a mask, so they take the text colour of the theme. */
 .logo { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); }
 .logo-mark { width: 34px; height: 34px; flex: none; }
 .logo-word, .sera-word {
-  display: inline-block; flex: none; aspect-ratio: 641 / 95; height: 15px;
+  display: inline-block; flex: none; aspect-ratio: 705 / 95; height: 15px;
   background: currentColor; font-size: 0; color: inherit;
-  -webkit-mask: url(../img/sera-word.png?v=2) center / contain no-repeat; mask: url(../img/sera-word.png?v=2) center / contain no-repeat;
+  -webkit-mask: url(../img/sera-word.png?v=3) center / contain no-repeat; mask: url(../img/sera-word.png?v=3) center / contain no-repeat;
 }
 
 /* Theme toggle */
@@ -117,9 +117,9 @@ a { color: inherit; }
 .globe { position: relative; overflow: hidden; background: #04080A; touch-action: none; }
 .globe-stars { position: absolute; inset: 0; display: block; pointer-events: none; }
 .globe-canvas { position: absolute; inset: 0; display: block; cursor: grab; }
-/* Hero: the turning planet with the SERA name, on the page background, never blocks scrolling */
+/* Hero: the turning planet with the S.E.R.A name, on the page background, never blocks scrolling */
 .globe.globe-hero { background: transparent; touch-action: auto; aspect-ratio: 1 / 1; }
-/* Same layout as the logo (1254 px): planet centre at 43 % height, Ø 78 %; SERA 51 % wide on it;
+/* Same layout as the logo (1254 px): planet centre at 43 % height, Ø 78 %; S.E.R.A 51 % wide on it;
    the full name under the planet. */
 .globe-hero .globe-canvas { pointer-events: none; transform: translateY(-7%); }   /* same NASA colours as the globe below */
 .hero-name { position: absolute; inset: 0; pointer-events: none; text-align: center; color: #fff; container-type: inline-size; }
@@ -165,7 +165,7 @@ a { color: inherit; }
 .globe-hint { position: absolute; right: 14px; top: 12px; z-index: 2; font-size: 11.5px; color: #9FB2AC; }
 .globe-nogl::after { content: "3D needs WebGL"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #9FB2AC; }
 
-/* ---- SERA, the assistant character (js/assistant.js) ---- */
+/* ---- S.E.R.A, the assistant character (js/assistant.js) ---- */
 .sera-card {
   position: fixed; z-index: 4500; display: flex; align-items: flex-end; gap: 0;
   left: 16px; bottom: 16px; max-width: min(560px, calc(100vw - 32px)); pointer-events: none;
@@ -204,7 +204,7 @@ a { color: inherit; }
   border: 2px solid #E78F67; border-radius: 12px; box-shadow: 0 0 0 4px rgba(231,143,103,.25), 0 0 30px rgba(231,143,103,.35); }
 .guide .g-ring[hidden] { display: none; }
 
-/* The SERA button */
+/* The S.E.R.A button */
 .sera-ai {
   position: absolute; left: 12px; bottom: 34px; z-index: 1150; display: flex; align-items: center; gap: 8px;
   padding: 4px 14px 4px 4px; border-radius: 999px; border: 1px solid #E78F67; background: #142329; color: #EDF2EA;
@@ -227,7 +227,7 @@ body > .sera-ai { position: fixed; left: auto; right: 18px; bottom: 18px; z-inde
 }
 .sera-actions button { width: auto; flex: 1 1 auto; }
 
-/* SERA points at what she talks about: a ring, a dashed line from her bubble, the colour of the verdict */
+/* S.E.R.A points at what she talks about: a ring, a dashed line from her bubble, the colour of the verdict */
 .sera-spot { position: fixed; z-index: 4490; pointer-events: none; border: 2px solid #E78F67; border-radius: 12px;
   box-shadow: 0 0 0 4px rgba(231,143,103,.22), 0 0 26px rgba(231,143,103,.4); animation: sera-pulse 1.8s ease-in-out infinite; }
 .sera-spot[hidden] { display: none; }

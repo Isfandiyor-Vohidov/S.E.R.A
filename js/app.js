@@ -515,7 +515,7 @@
     factorsEl.innerHTML = '';
     result.factors.forEach(function (f) {
       var li = document.createElement('li');
-      li.setAttribute('data-f', f.id);              // SERA points at the factor she talks about
+      li.setAttribute('data-f', f.id);              // S.E.R.A points at the factor she talks about
       li.innerHTML = '<span class="lv' + f.level + '">' + MARKS[f.level] + '</span>' +
         '<span class="txt"><b></b> <span class="tag">' + f.tag + '</span><br><span class="t"></span></span>';
       li.querySelector('b').textContent = f.label;
