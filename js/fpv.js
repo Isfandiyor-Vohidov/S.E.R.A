@@ -56,7 +56,7 @@
     'precision highp float;' +
     'varying vec3 vNor; varying vec3 vPos; varying float vSlope;' +
     // uKind: 0 = far plain, 1 = terrain (with hazard tint), 2 = rocks (vSlope carries the rock's shade)
-    'uniform vec3 uSun; uniform vec3 uCam; uniform vec3 uFog; uniform float uKind;' +
+    'uniform vec3 uSun; uniform vec3 uCam; uniform vec3 uFog; uniform float uKind; uniform vec2 uZone;' +
     'float h(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }' +
     'float n(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f);' +
     '  return mix(mix(h(i),h(i+vec2(1,0)),f.x), mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x), f.y); }' +
@@ -100,7 +100,9 @@
     '  vec3 col = alb * (vec3(1.0, 0.9, 0.78) * 1.0 * ndl + sky);' +
     '  col = mix(vec3(dot(col, vec3(0.3, 0.55, 0.15))), col, 0.82);' +       // a bit less saturated, dusty
     '  float f = 1.0 - exp(-d * 0.00085);' +
-    '  gl_FragColor = vec4(mix(col, uFog, clamp(f, 0.0, uKind > 0.5 ? 0.92 : 1.0)), 1.0);' +
+    '  vec2 ez = min(vPos.xz, uZone - vPos.xz);' +                            // the zone edge melts into the haze
+    '  float edge = smoothstep(0.0, 250.0, min(ez.x, ez.y));' +
+    '  gl_FragColor = vec4(mix(col, uFog, clamp(f, 0.0, uKind > 0.5 ? mix(1.0, 0.92, edge) : 1.0)), 1.0);' +
     '}';
   var VS_FLAT =
     'attribute vec3 aPos; attribute vec4 aCol; uniform mat4 uMVP; varying vec4 vCol; varying vec3 vPos;' +
@@ -390,7 +392,9 @@
       canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
     }
     gl.viewport(0, 0, canvas.width, canvas.height);
-    gl.clearColor(0, 0, 0, 0);
+    // Clear to the haze colour (still transparent): edge pixels of the far plain blend with it,
+    // not with black, so the horizon has no dark line.
+    gl.clearColor(SKY_HORIZON[0], SKY_HORIZON[1], SKY_HORIZON[2], 0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.DEPTH_TEST);
 
@@ -409,6 +413,7 @@
     gl.uniform3fv(L.uSun, sun);
     gl.uniform3fv(L.uCam, eye);
     gl.uniform3fv(L.uFog, SKY_HORIZON);
+    gl.uniform2f(L.uZone, terrain.cols * terrain.cellM, terrain.rows * terrain.cellM);
     [plane, land].forEach(function (m) {
       gl.uniform1f(L.uKind, m === land ? 1 : 0);
       attrib(L.aPos, m.pos, 3); attrib(L.aNor, m.nor, 3); attrib(L.aSlope, m.slope, 1);

@@ -291,13 +291,49 @@
     var d = ((b - a + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
     return a + d * k;
   }
+  // The head turns smoothly: it looks at a spot ~15 m ahead on the path (not at the next 5 m cell,
+  // whose zigzag made the view jerk), and every turn eases in over about a second.
+  var lastRender = 0, settleRaf = 0, wantYaw = 0, wantPitch = 0;
   function render3d(st) {
     syncScene();
-    if (st.heading !== null && st.heading !== undefined) yaw = angleTo(yaw, st.heading, playing ? 0.12 : 1);
-    if (playing && !looking && performance.now() - lastLookAt > 2500) { lookYaw *= 0.93; lookPitch *= 0.93; }
+    var now = performance.now(), dt = Math.min(0.1, Math.max(0.001, (now - lastRender) / 1000));
+    lastRender = now;
+    var target = st.heading;
+    if (st.seg && st.seg.cells && st.k !== undefined) {
+      var ahead = st.seg.cells[Math.min(st.seg.cells.length - 1, st.k + 3)];
+      if (ahead && Math.hypot(ahead.r - st.r, ahead.c - st.c) > 0.5) target = Math.atan2(ahead.c - st.c, st.r - ahead.r);
+    }
+    if (target !== null && target !== undefined) yaw = angleTo(yaw, target, playing ? 1 - Math.exp(-dt / 0.9) : 1);
+    if (playing && !looking && now - lastLookAt > 2500) {          // after a look-around, slowly face ahead again
+      var back = Math.exp(-dt / 1.6); wantYaw *= back; wantPitch *= back;
+    }
+    var ease = 1 - Math.exp(-dt / 0.14);                           // the look follows your drag softly
+    lookYaw += (wantYaw - lookYaw) * ease; lookPitch += (wantPitch - lookPitch) * ease;
     SeraFpv.render({ r: st.r, c: st.c, yaw: yaw + lookYaw, pitch: -0.1 + lookPitch,
       hour: tl.startH + simS / MT.MARS_HOUR_S });
     compass(yaw + lookYaw);
+    placeRadar();
+    // While paused, keep drawing until the look has settled.
+    if (!playing && !settleRaf && (Math.abs(wantYaw - lookYaw) > 0.0005 || Math.abs(wantPitch - lookPitch) > 0.0005)) {
+      settleRaf = requestAnimationFrame(function () { settleRaf = 0; if (!playing && fpvOn && !el.hidden) update(); });
+    }
+  }
+  // The radar sits under the right-hand readouts; if there is no room there, to their left.
+  function placeRadar() {
+    var right = el.querySelector('.hud-right');
+    if (!right || window.innerWidth <= 760) { canvas.style.top = canvas.style.right = canvas.style.width = canvas.style.height = ''; return; }
+    var box = el.getBoundingClientRect(), rr = right.getBoundingClientRect();
+    var status = el.querySelector('.hud-statusline'), floor = status ? status.getBoundingClientRect().top : box.bottom - 120;
+    var size = 150, top = rr.bottom + 14 - box.top;
+    if (floor - box.top - top - 10 >= 110) {
+      size = Math.min(150, floor - box.top - top - 10);
+      canvas.style.right = (box.right - rr.right + (rr.width - size) / 2) + 'px';
+    } else {                                                        // beside the column, at its bottom
+      top = Math.max(rr.top - box.top, rr.bottom - box.top - size);
+      canvas.style.right = (box.right - rr.left + 14) + 'px';
+    }
+    canvas.style.top = top + 'px'; canvas.style.bottom = 'auto';
+    canvas.style.width = canvas.style.height = size + 'px';
   }
   // Compass strip at the top of the visor.
   var compassStrip = q('hud-compass-strip'), PX_DEG = 2.4;
@@ -325,8 +361,8 @@
   });
   view3d.addEventListener('pointermove', function (e) {
     if (!looking) return;
-    lookYaw += (e.clientX - lx) * -0.005;
-    lookPitch = Math.max(-0.7, Math.min(0.6, lookPitch + (e.clientY - ly) * 0.004));
+    wantYaw += (e.clientX - lx) * -0.0022;                          // gentle: ~800 px drag = a half turn
+    wantPitch = Math.max(-0.6, Math.min(0.5, wantPitch + (e.clientY - ly) * 0.0018));
     lx = e.clientX; ly = e.clientY;
     lastLookAt = performance.now();
     if (!playing) update();
@@ -334,11 +370,11 @@
   function stopLook() { looking = false; lastLookAt = performance.now(); }
   view3d.addEventListener('pointerup', stopLook);
   view3d.addEventListener('pointercancel', stopLook);
-  view3d.addEventListener('dblclick', function () { lookYaw = 0; lookPitch = 0; if (!playing) update(); });
+  view3d.addEventListener('dblclick', function () { wantYaw = 0; wantPitch = 0; if (!playing) update(); });
   function setView(on) {
     fpvOn = on && fpvOK;
     el.classList.toggle('fpv', fpvOn);
-    if (!fpvOn) el.style.background = '';
+    if (!fpvOn) { el.style.background = ''; canvas.style.top = canvas.style.right = canvas.style.bottom = canvas.style.width = canvas.style.height = ''; }
     q('hud-view').textContent = fpvOn ? 'Map view' : '3D view';
     sceneKey = '';
   }
@@ -375,7 +411,7 @@
     q('hud-preeva').textContent = verdict;
     el.hidden = false;
     document.body.classList.add('hud-open');
-    lookYaw = 0; lookPitch = 0; sceneKey = '';
+    lookYaw = 0; lookPitch = 0; wantYaw = 0; wantPitch = 0; sceneKey = '';
     var first = plan.legs[0] && plan.legs[0].cells;
     if (first && first.length > 1) yaw = Math.atan2(first[1].c - first[0].c, first[0].r - first[1].r);
     setView(fpvOK && !mapPreferred);
