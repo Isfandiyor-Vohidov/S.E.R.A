@@ -3,13 +3,13 @@
 // i18n.js: English / Русский / O'zbekcha. The pages are written in English; this module swaps
 // the visible text for Russian or Uzbek (Latin) with a phrase dictionary, also for text the app
 // writes later (plan, verdict, helmet view, popups), and keeps the English original to switch
-// back. The choice is saved in the browser ('sera-lang'); ?lang=ru|uz|en also works.
+// back. The choice is saved in the browser ('sera-lang'); ?lang=ru|en also works.
 // Translations were drafted by AI: the team checks the Russian and the Uzbek.
 
 (function (root) {
   'use strict';
 
-  var LANGS = ['en', 'ru', 'uz'];
+  var LANGS = ['en', 'ru'];     // Uzbek removed by the team (14.11); its column stays in D for later
   var KEY = 'sera-lang';
 
   // [English, Русский, O'zbekcha]. Phrases of two or more words are replaced inside longer text;
@@ -451,7 +451,7 @@
       var b = document.createElement('button');
       b.type = 'button';
       b.className = 'lang-toggle';
-      b.title = 'EN / RU / UZ';
+      b.title = 'EN / RU';
       b.addEventListener('click', function () { setLang(LANGS[(LANGS.indexOf(lang) + 1) % LANGS.length]); });
       t.parentNode.insertBefore(b, t);
     });

@@ -485,3 +485,14 @@ body.hud-open { overflow: hidden; }
 .zoom-steps .globe-btn { border-color: var(--secondary); }
 .zoom-steps .globe-btn[aria-pressed="true"] { background: var(--secondary); color: var(--on-secondary); }
 @media (max-width: 760px) { .map-wrap { flex: none; height: 55vh; } .map-wrap #map { height: auto; } }
+
+/* Phone: all map buttons visible (wrap into rows instead of a cut-off strip); small credits */
+@media (max-width: 760px) {
+  .topbar { flex-wrap: wrap; row-gap: 8px; }
+  .top-right { display: contents; }
+  .topbar .theme-toggle, .topbar .lang-toggle { order: 1; }
+  .topbar .logo { margin-right: auto; }
+  .zoom-steps { order: 2; flex: 1 1 100%; flex-wrap: wrap; overflow: visible; gap: 6px; }
+  .zoom-steps button { flex: 1 1 auto; padding: 7px 10px; font-size: 12.5px; }
+  .leaflet-control-attribution { font-size: 9px; line-height: 1.3; max-width: 100%; }
+}

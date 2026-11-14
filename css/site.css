@@ -46,7 +46,7 @@ h1 {
 }
 .accent { color: var(--primary); }
 .lead { margin: 24px 0 0; font-size: 17px; line-height: 1.65; color: var(--muted); max-width: 470px; }
-.lead b { color: var(--text); }
+.lead b, .lead strong { color: var(--text); }
 .cta { display: flex; gap: 12px; margin-top: 30px; flex-wrap: wrap; }
 .facts { display: grid; grid-template-columns: repeat(3, auto); justify-content: start; margin: 34px 0 0; }
 .facts div { padding: 0 22px; border-left: 1px solid var(--line); }
@@ -216,4 +216,17 @@ td a:hover { text-decoration: underline; }
   .rc-go { grid-column: 1 / -1; }
   .globe-card { left: 10px; right: 10px; bottom: 10px; max-width: none; }
   .globe-hint { display: none; }
+}
+
+/* Phone: the data table becomes one card per row (no sideways scroll, nothing cut) */
+@media (max-width: 760px) {
+  .table-wrap { overflow: visible; }
+  .table-wrap table, .table-wrap tbody, .table-wrap tr, .table-wrap td { display: block; width: auto; }
+  .table-wrap thead { display: none; }
+  .table-wrap tr { padding: 14px 16px; border-bottom: 1px solid var(--line); }
+  .table-wrap tbody tr:last-child { border-bottom: 0; }
+  .table-wrap td { padding: 0; border: 0; white-space: normal; }
+  .table-wrap td:first-child { font: 700 15px var(--font-head); margin-bottom: 4px; }
+  .table-wrap td + td { font-size: 13.5px; line-height: 1.5; }
+  .table-wrap td:last-child { margin-top: 4px; font-size: 12.5px; letter-spacing: .02em; }
 }
