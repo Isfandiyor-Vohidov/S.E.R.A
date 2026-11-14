@@ -97,6 +97,7 @@
     if (!same) draw(B, '#7CC4FF', '2 0');
     layer.addTo(map);
     dlg.hidden = false;
+    if (window.SeraAssistant) SeraAssistant.hide();          // her card would cover the table
     // Fit both routes into the part of the map the card does not cover.
     var b = L.latLngBounds([]);
     layer.eachLayer(function (l) { if (l.getBounds) b.extend(l.getBounds()); });

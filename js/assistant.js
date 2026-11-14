@@ -334,7 +334,10 @@
 
   // ---- Reactions -----------------------------------------------------------------------
   var lastKey = '', lastLevel = -1, thinkTimer = 0, hudDone = false, verdictToast = false;
-  function quiet() { return guide || (window.SeraTour && SeraTour.isOn && SeraTour.isOn()); }
+  // She keeps quiet while the guide, the tour or Mission Twin is on screen (the twin card already
+  // has her advice in it, and her card would cover the table).
+  function twinOpen() { var t = document.getElementById('twin'); return !!(t && !t.hidden); }
+  function quiet() { return guide || twinOpen() || (window.SeraTour && SeraTour.isOn && SeraTour.isOn()); }
   function watch() {
     if (!onPlanner || quiet()) return;
     var p = S.plan;

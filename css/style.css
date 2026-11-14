@@ -546,10 +546,9 @@ body.hud-open { overflow: hidden; }
 @media (max-width: 760px) {
   .twin { left: 6px; right: 6px; bottom: 6px; max-width: none; }
   .twin-sera { display: none; }
-  .twin-body { padding: 10px; max-height: 58%; overflow-y: auto; }
-  .twin { top: auto; max-height: 58%; }
-  .twin-body { max-height: none; }
-  .twin { overflow-y: auto; border-radius: 14px; }
+  /* the card scrolls inside itself, so its top (title, point picker) is never cut off */
+  .twin { top: auto; max-height: 58%; align-items: stretch; overflow: hidden; border-radius: 14px; }
+  .twin-body { padding: 10px; flex: 1; min-width: 0; max-height: 100%; overflow-y: auto; }
   .twin-note { display: none; }
 }
 
