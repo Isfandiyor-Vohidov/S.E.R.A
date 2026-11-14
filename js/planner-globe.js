@@ -66,6 +66,12 @@
     lastZoom = z;
   });
 
+  S.globe = {
+    show: show,
+    select: function (id) { if (globe) globe.select(id); },
+    isOpen: function () { return !pane.hidden; }
+  };
+
   // Start on the globe unless a link asked for the demo or a place.
-  if (!/[?&](demo|at)=/.test(location.search)) show(true);
+  if (!/[?&](demo|at|tour)=/.test(location.search)) show(true);
 })();

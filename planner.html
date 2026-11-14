@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap">
   <link rel="stylesheet" href="lib/leaflet/leaflet.css">
   <link rel="stylesheet" href="css/theme.css?v=3">
-  <link rel="stylesheet" href="css/style.css?v=20">
+  <link rel="stylesheet" href="css/style.css?v=22">
 </head>
 <body>
   <header class="topbar t-surface">
@@ -31,6 +31,7 @@
         <button type="button" id="btn-radio" class="msl-toggle radio-toggle" aria-pressed="false" title="Show where the base radio cannot reach">Radio</button>
         <button type="button" id="btn-crism" class="msl-toggle crism-toggle" aria-pressed="false" title="Mineral signals from MRO CRISM">Minerals</button>
         <button type="button" id="btn-demo-top" class="demo-top">Demo</button>
+        <button type="button" id="btn-tour" class="demo-top" title="One-minute guided tour">Tour</button>
       </nav>
       <button type="button" class="theme-toggle" data-theme-toggle aria-label="Switch theme">
         <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
@@ -90,6 +91,7 @@
         <b>GO</b>, <b>CAUTION</b> or <b>NO-GO</b> with the reason, and always knows the way home.</p>
       <button type="button" id="btn-demo" class="btn-primary">Show demo plan</button>
       <button type="button" id="btn-own" class="btn-secondary">Plan my own EVA</button>
+      <button type="button" id="btn-tour-welcome" class="btn-secondary">1-minute tour</button>
     </div>
   </div>
 
@@ -146,14 +148,15 @@
   <script src="js/risk.js?v=5"></script>
   <script src="js/demo-plan.js?v=2"></script>
   <script src="js/radio.js?v=2"></script>
-  <script src="js/app.js?v=16"></script>
+  <script src="js/app.js?v=17"></script>
   <script src="data/msl.js?v=2"></script>
   <script src="js/curiosity.js?v=2"></script>
   <script src="data/crism.js?v=1"></script>
   <script src="js/crism.js?v=2"></script>
   <script src="js/globe.js?v=5"></script>
-  <script src="js/planner-globe.js?v=2"></script>
+  <script src="js/planner-globe.js?v=3"></script>
   <script src="js/relief.js?v=2"></script>
-  <script src="js/hud.js?v=7"></script>
+  <script src="js/hud.js?v=8"></script>
+  <script src="js/tour.js?v=1"></script>
 </body>
 </html>

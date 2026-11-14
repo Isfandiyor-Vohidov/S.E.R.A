@@ -381,6 +381,31 @@ body.hud-open { overflow: hidden; }
 /* Radio shadow layer */
 .zoom-steps .radio-toggle[aria-pressed="false"], .zoom-steps .crism-toggle[aria-pressed="false"] { text-decoration: none; opacity: 1; }
 .zoom-steps .radio-toggle[aria-pressed="true"], .zoom-steps .crism-toggle[aria-pressed="true"] { background: var(--secondary); color: var(--on-secondary); border-color: var(--secondary); opacity: 1; }
+/* One-minute tour: a caption card above everything, the HUD included (always dark). */
+.tour {
+  position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 4000;
+  width: min(560px, calc(100vw - 32px)); padding: 14px 16px; border-radius: 14px;
+  background: #142329; color: #EDF2EA; border: 1px solid #E78F67; box-shadow: 0 8px 30px rgba(0, 0, 0, .45);
+  font-family: var(--font-body, sans-serif);
+}
+.tour[hidden] { display: none; }
+.tour-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.tour-step { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: #E78F67; font-weight: 700; }
+.tour-dots { display: flex; gap: 4px; }
+.tour-dots i { width: 14px; height: 4px; border-radius: 2px; background: rgba(237, 242, 234, .25); }
+.tour-dots i.on { background: #E78F67; }
+.tour-title { display: block; margin-top: 6px; font: 700 19px var(--font-head); }
+.tour-text { margin: 4px 0 10px; font-size: 14px; line-height: 1.45; color: #C9D4CC; }
+.tour-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.tour-actions button {
+  padding: 7px 12px; border-radius: 8px; border: 1px solid rgba(237, 242, 234, .3);
+  background: transparent; color: #EDF2EA; font: 600 13px var(--font-body, sans-serif); cursor: pointer;
+}
+.tour-actions .tour-next { background: #E78F67; border-color: #E78F67; color: #0C171A; }
+.tour-flash { outline: 3px solid #E78F67; outline-offset: 3px; border-radius: 10px; transition: outline-color 1.5s; }
+.hud:not([hidden]) ~ .tour { bottom: auto; top: 64px; }
+@media (max-width: 760px) { .tour { bottom: 12px; padding: 12px; } .tour-title { font-size: 17px; } }
+
 /* CRISM mineral spots: a small diamond in the class colour */
 .crism-spot { width: 14px; height: 14px; transform: rotate(45deg); border: 2px solid #0C171A; border-radius: 2px; }
 .legend-crism { margin-top: 0; }

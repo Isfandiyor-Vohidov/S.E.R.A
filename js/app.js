@@ -233,12 +233,13 @@
 
   // Science points are named by what is there (CRISM signal, Curiosity stop), if a layer knows.
   var namers = [];
-  function stopName(s, idx) {
+  function stopName(s, idx, namedOnly) {
     var ll = cellLatLng(s);
     for (var i = 0; i < namers.length; i++) {
       var n = namers[i](ll[0], ll[1]);
       if (n) return n;
     }
+    if (namedOnly) return null;
     return (window.SeraI18n ? SeraI18n.t('Science point') : 'Science point') + ' ' + (idx + 1);
   }
 

@@ -60,7 +60,8 @@
   function buildTimeline() {
     var segs = [], t = 0, workS = PL.WORK_MIN_PER_STOP * 60;
     plan.stops.forEach(function (s, i) {
-      var name = (i + 1) + ' · ' + window.SERA.stopName(s, i);
+      var named = window.SERA.stopName(s, i, true);
+      var name = named ? (i + 1) + ' · ' + named : 'Point ' + (i + 1);
       var w = walkSeg(plan.legs[i].cells, t, 'To ' + name, { cell: s, name: name });
       segs.push(w); t = w.t1;
       segs.push({ type: 'work', cell: s, t0: t, t1: t + workS, label: 'Science work · ' + name, stop: i });
