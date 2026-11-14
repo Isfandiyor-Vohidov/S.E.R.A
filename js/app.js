@@ -230,6 +230,7 @@
     if (!plan.base) {
       setHint('Click inside the EVA zone to place the base (habitat).');
       summaryEl.hidden = true;
+      renderProfile();
       return;
     }
 
@@ -279,7 +280,99 @@
         (b.fits ? fmtMin(b.marginS) : 'over by ' + fmtMin(-b.marginS)) + '</span>';
       renderVerdict(broken);
     }
+    renderProfile();
   }
+
+  // Elevation profile of the whole route (out legs + way home) as inline SVG.
+  var profileEl = document.getElementById('profile');
+  function renderProfile() {
+    var legs = plan.legs.filter(Boolean);
+    if (!plan.base || !legs.length || !plan.home) {
+      if (!profileEl.hidden) { profileEl.hidden = true; map.invalidateSize(); }
+      return;
+    }
+    var wasHidden = profileEl.hidden;
+    profileEl.hidden = false;
+    if (wasHidden) map.invalidateSize();
+
+    // Samples: distance along the route, elevation, part (0 = out, 1 = home), slope class.
+    var pts = [], marks = [], d = 0;
+    function addLeg(leg, part) {
+      for (var i = 0; i < leg.cells.length; i++) {
+        if (i > 0) {
+          var a = leg.cells[i - 1], b = leg.cells[i];
+          d += terrain.cellM * ((a.r !== b.r && a.c !== b.c) ? Math.SQRT2 : 1);
+        } else if (pts.length) {
+          continue; // same cell as the end of the previous leg
+        }
+        var idx = cellIndex(leg.cells[i]);
+        pts.push({ d: d, z: terrain.elev[idx], part: part, steep: terrain.slopeDeg[idx] >= T.SLOPE_CAUTION_DEG });
+      }
+    }
+    legs.forEach(function (leg, i) {
+      addLeg(leg, 0);
+      marks.push({ d: d, z: pts[pts.length - 1].z, label: String(i + 1) });
+    });
+    addLeg(plan.home, 1);
+
+    var W = Math.max(320, profileEl.clientWidth), H = 130;
+    var padL = 54, padR = 14, padT = 20, padB = 22;
+    var zMin = Infinity, zMax = -Infinity;
+    pts.forEach(function (p) { if (p.z < zMin) zMin = p.z; if (p.z > zMax) zMax = p.z; });
+    if (zMax - zMin < 10) { zMax += 5; zMin -= 5; }
+    function X(dist) { return padL + (dist / d) * (W - padL - padR); }
+    function Y(z) { return padT + (1 - (z - zMin) / (zMax - zMin)) * (H - padT - padB); }
+
+    // Consecutive samples with the same style become one polyline.
+    var lines = '', run = [], runKey = null;
+    function flush() {
+      if (run.length > 1) {
+        var k = runKey.split('|');
+        lines += '<polyline fill="none" stroke="' + (k[1] === '1' ? '#e6b93c' : (k[0] === '1' ? '#5ab0ff' : '#e2703a')) +
+          '" stroke-width="' + (k[1] === '1' ? 4 : 2.5) + '"' + (k[0] === '1' && k[1] !== '1' ? ' stroke-dasharray="6 4"' : '') +
+          ' points="' + run.join(' ') + '"/>';
+      }
+    }
+    pts.forEach(function (p) {
+      var key = p.part + '|' + (p.steep ? 1 : 0);
+      var xy = X(p.d).toFixed(1) + ',' + Y(p.z).toFixed(1);
+      if (key !== runKey) {
+        flush();
+        run = run.length ? [run[run.length - 1]] : [];
+        runKey = key;
+      }
+      run.push(xy);
+    });
+    flush();
+
+    var floor = H - padB;
+    var area = 'M' + X(0).toFixed(1) + ',' + floor + ' ' +
+      pts.map(function (p) { return 'L' + X(p.d).toFixed(1) + ',' + Y(p.z).toFixed(1); }).join(' ') +
+      ' L' + X(d).toFixed(1) + ',' + floor + ' Z';
+
+    function baseMark(x, z) {
+      return '<rect x="' + (x - 7).toFixed(1) + '" y="' + (Y(z) - 7).toFixed(1) + '" width="14" height="14" rx="3" fill="#e6e9ef"/>' +
+        '<text class="num" text-anchor="middle" x="' + x.toFixed(1) + '" y="' + (Y(z) + 4).toFixed(1) + '">H</text>';
+    }
+    var marksSvg = baseMark(X(0), pts[0].z);
+    marks.forEach(function (m) {
+      marksSvg += '<circle cx="' + X(m.d).toFixed(1) + '" cy="' + Y(m.z).toFixed(1) + '" r="8" fill="#e2703a"/>' +
+        '<text class="num" text-anchor="middle" x="' + X(m.d).toFixed(1) + '" y="' + (Y(m.z) + 4).toFixed(1) + '">' + m.label + '</text>';
+    });
+    marksSvg += baseMark(X(d), pts[pts.length - 1].z);
+
+    profileEl.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img">' +
+      '<path d="' + area + '" fill="rgba(226,112,58,0.10)"/>' +
+      '<line x1="' + padL + '" y1="' + floor + '" x2="' + (W - padR) + '" y2="' + floor + '" stroke="#2a3342"/>' +
+      lines + marksSvg +
+      '<text x="6" y="' + (padT + 4) + '">' + zMax.toFixed(0) + ' m</text>' +
+      '<text x="6" y="' + floor + '">' + zMin.toFixed(0) + ' m</text>' +
+      '<text x="' + padL + '" y="' + (H - 6) + '">0</text>' +
+      '<text text-anchor="end" x="' + (W - padR) + '" y="' + (H - 6) + '">' + fmtDist(d) + '</text>' +
+      '<text text-anchor="middle" x="' + ((padL + W - padR) / 2) + '" y="' + (H - 6) + '">Elevation along the route · 1 m DEM</text>' +
+      '</svg>';
+  }
+  window.addEventListener('resize', function () { if (!profileEl.hidden) renderProfile(); });
 
   // Metres of the planned route on 15-25 degree slopes.
   function cautionMetres() {
