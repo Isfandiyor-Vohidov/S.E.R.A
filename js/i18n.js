@@ -105,6 +105,38 @@
     ['over by', 'не хватает', 'yetmaydi:'],
     ['Base (home) · habitat', 'База (дом) · жилой модуль', 'Baza (uy) · yashash moduli'],
     ['Your base', 'Ваша база', 'Sizning bazangiz'],
+    ['Show', 'Показать', 'Show'],
+    ['Remove the farthest point', 'Убрать самую дальнюю точку', 'Remove the farthest point'],
+    ['Remove this point', 'Убрать эту точку', 'Remove this point'],
+    ['Compare routes', 'Сравнить маршруты', 'Compare routes'],
+    ['Start at 09:00', 'Начать в 09:00', 'Start at 09:00'],
+    ['Show radio map', 'Показать карту связи', 'Show radio map'],
+    ['GO · all checks passed', 'GO · все проверки пройдены', 'GO · all checks passed'],
+    ['CAUTION · steep ground', 'CAUTION · крутые склоны', 'CAUTION · steep ground'],
+    ['NO-GO · too long for one suit', 'NO-GO · слишком долго для одного скафандра', 'NO-GO · too long for one suit'],
+    ['CAUTION · little spare air', 'CAUTION · мало запаса воздуха', 'CAUTION · little spare air'],
+    ['NO-GO · start before sunrise', 'NO-GO · старт до восхода', 'NO-GO · start before sunrise'],
+    ['NO-GO · back after dark', 'NO-GO · возвращение в темноте', 'NO-GO · back after dark'],
+    ['CAUTION · close to sunset', 'CAUTION · близко к закату', 'CAUTION · close to sunset'],
+    ['NO-GO · solar storm', 'NO-GO · солнечная буря', 'NO-GO · solar storm'],
+    ['CAUTION · solar flare', 'CAUTION · солнечная вспышка', 'CAUTION · solar flare'],
+    ['CAUTION · no space weather data', 'CAUTION · нет данных о космической погоде', 'CAUTION · no space weather data'],
+    ['CAUTION · radio gaps', 'CAUTION · пропуски связи', 'CAUTION · radio gaps'],
+    ['Ready? Walk it in the helmet view.', 'Готовы? Пройдите его в шлеме.', 'Ready? Walk it in the helmet view.'],
+    ['Every way there crosses slopes over 25° (red on the map).', 'Любой путь туда идёт через склоны круче 25° (красные на карте).', 'Every way there crosses slopes over 25° (red on the map).'],
+    ['Move the point to grey or yellow ground, or remove it.', 'Перенесите точку на серую или жёлтую землю или уберите её.', 'Move the point to grey or yellow ground, or remove it.'],
+    ['You can go, slowly. Mission Twin looks for a gentler way.', 'Идти можно, но медленно. Mission Twin поищет путь положе.', 'You can go, slowly. Mission Twin looks for a gentler way.'],
+    ['Start at 09:00 or later.', 'Начните в 09:00 или позже.', 'Start at 09:00 or later.'],
+    ['Start earlier, or remove a point.', 'Начните раньше или уберите точку.', 'Start earlier, or remove a point.'],
+    ['Solar particle event (simulated). Outside, the radiation dose is too high.', 'Поток солнечных частиц (симуляция). Снаружи доза радиации слишком высокая.', 'Solar particle event (simulated). Outside, the radiation dose is too high.'],
+    ['Stay in the base. Stop the simulation to see the normal verdict.', 'Оставайтесь на базе. Остановите симуляцию, чтобы увидеть обычный вердикт.', 'Stay in the base. Stop the simulation to see the normal verdict.'],
+    ['Stay in the base until 48 h after the event.', 'Оставайтесь на базе 48 ч после события.', 'Stay in the base until 48 h after the event.'],
+    ['Go only with the shelter close, and watch for new alerts.', 'Выходите только недалеко от укрытия и следите за новыми тревогами.', 'Go only with the shelter close, and watch for new alerts.'],
+    ['I could not load live NASA and NOAA data.', 'Не получилось загрузить живые данные NASA и NOAA.', 'I could not load live NASA and NOAA data.'],
+    ['Check space weather before going out.', 'Проверьте космическую погоду перед выходом.', 'Check space weather before going out.'],
+    ['Walk in pairs and keep your buddy in sight: the buddy relays.', 'Идите парой и держите напарника в поле зрения: он передаёт связь.', 'Walk in pairs and keep your buddy in sight: the buddy relays.'],
+    ['Follow the mint line home, now.', 'Идите по мятной линии домой, сейчас.', 'Follow the mint line home, now.'],
+    ['Follow the new line on the map.', 'Идите по новой линии на карте.', 'Follow the new line on the map.'],
     ['Back to the S.E.R.A site', 'Назад на сайт S.E.R.A', 'Back to the S.E.R.A site'],
     ['Site', 'Сайт', 'Site'],
     ['Mission Twin · compare 2 routes', 'Mission Twin · сравнить 2 маршрута', 'Mission Twin · compare 2 routes'],
@@ -443,6 +475,9 @@
       [/Gale Crater · Sol (\d+)/, 'Geyl krateri · sol $1'], [/^(\s*)ETA(\s*)$/, '$1Yetib borish$2']]
   };
 
+  // Whole sentences with numbers (SERA's advice): matched before the phrase list, so no phrase cuts them.
+  var WHOLE = { ru: [[/^(\d+) science points, EVA (.+?), (.+?) of spare suit time\.$/, 'Научных точек: $1, выход $2, запас скафандра $3.'], [/^NO-GO · no safe way to (.+)$/, 'NO-GO · нет безопасного пути: $1'], [/^(\d+) m of the route is on 15–25° slopes \(yellow on the map\)\. Walking there takes twice as long\.$/, '$1 м маршрута идут по склонам 15–25° (жёлтые на карте). Там идти вдвое дольше.'], [/^The plan needs (.+?) more than the suit allows with the 15 % reserve\.$/, 'Плану нужно на $1 больше, чем позволяет скафандр с резервом 15 %.'], [/^Remove the farthest point \((.+?)\) or walk it as (\d+) EVAs\.$/, 'Уберите самую дальнюю точку ($1) или разбейте план на выходы: $2.'], [/^Remove the farthest point \((.+?)\) to keep more air for surprises\.$/, 'Уберите самую дальнюю точку ($1), чтобы остался воздух на неожиданности.'], [/^Remove the farthest point \((.+?)\)\.$/, 'Уберите самую дальнюю точку ($1).'], [/^Only (.+?) of spare suit time before the reserve\.$/, 'До резерва остаётся всего $1 запаса скафандра.'], [/^Start (\d\d:\d\d) is before sunrise \((\d\d:\d\d)\)\.$/, 'Старт в $1 — ещё до восхода ($2).'], [/^You would be back at (\S+), after sunset \((\S+)\)\.$/, 'Вы вернётесь в $1, уже после заката ($2).'], [/^Back at (\S+), less than 1 h before sunset \((\S+)\)\.$/, 'Возвращение в $1, меньше чем за 1 ч до заката ($2).'], [/^Solar particle event (\d+) h ago \(NASA DONKI\)\. Outside, the radiation dose is too high\.$/, 'Поток солнечных частиц $1 ч назад (NASA DONKI). Снаружи доза радиации слишком высокая.'], [/^X-class solar flare (\d+) h ago\.$/, 'Солнечная вспышка класса X $1 ч назад.'], [/^For (.+?) in a row the base mast is out of sight\.$/, '$1 подряд мачта базы вне прямой видимости.']], uz: [] };
+
   var lang = 'en';
   var phrases = { ru: [], uz: [] }, exact = { ru: {}, uz: {} };
   D.forEach(function (row) {
@@ -460,6 +495,14 @@
     var trimmed = en.trim();
     if (exact[to][trimmed] !== undefined) return en.replace(trimmed, exact[to][trimmed]);
     var out = en.replace(/\s+/g, ' ');           // HTML source line breaks inside a sentence
+    for (var k = 0; k < WHOLE[to].length; k++) {
+      if (WHOLE[to][k][0].test(out)) {
+        out = out.replace(WHOLE[to][k][0], WHOLE[to][k][1]);
+        phrases[to].forEach(function (ph) { if (out.indexOf(ph[0]) !== -1) out = out.split(ph[0]).join(ph[1]); });
+        RULES[to].forEach(function (r) { out = out.replace(r[0], r[1]); });
+        return out;
+      }
+    }
     var list = phrases[to];
     for (var i = 0; i < list.length; i++) {
       if (out.indexOf(list[i][0]) !== -1) out = out.split(list[i][0]).join(list[i][1]);

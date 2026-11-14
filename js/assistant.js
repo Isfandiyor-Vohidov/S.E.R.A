@@ -34,24 +34,103 @@
     '<img class="sera-pose" alt="SERA, the assistant">' +
     '<div class="sera-bubble">' +
     '  <span class="sera-name">SERA · AI assistant</span>' +
-    '  <b class="sera-title"></b><p class="sera-text"></p>' +
+    '  <b class="sera-title"></b><p class="sera-text"></p><p class="sera-do"></p>' +
     '  <div class="sera-actions"></div>' +
+    '  <div class="sera-timer" aria-hidden="true"><i></i></div>' +
     '  <small class="sera-credit">SERA is an AI-generated character</small>' +
     '  <button type="button" class="sera-x" aria-label="Close">×</button>' +
     '</div>';
   document.body.appendChild(card);
   var poseEl = card.querySelector('.sera-pose');
-  var hideTimer = 0;
+  var doEl = card.querySelector('.sera-do');
+  var timerBar = card.querySelector('.sera-timer');
+  var hideTimer = 0, hideAt = 0, hideLeft = 0;
 
-  // say({pose, title, text, actions:[{label, primary, run}], autoHide: ms, place: 'left'|'right'|'bottom'})
+  // ---- Spotlight: SERA stays in her corner, but lights up what she is talking about ----
+  // A ring around the thing and a dashed line from her bubble to it.
+  var spot = document.createElement('div');
+  spot.className = 'sera-spot';
+  spot.hidden = true;
+  document.body.appendChild(spot);
+  var NS = 'http://www.w3.org/2000/svg';
+  var linkSvg = document.createElementNS(NS, 'svg');
+  linkSvg.setAttribute('class', 'sera-link');
+  linkSvg.setAttribute('aria-hidden', 'true');
+  var linkLine = document.createElementNS(NS, 'line');
+  linkSvg.appendChild(linkLine);
+  document.body.appendChild(linkSvg);
+  var spotGet = null;                  // function () -> element, or null
+
+  function visible(el) {
+    if (!el || !el.getClientRects().length) return false;
+    var b = el.getBoundingClientRect();
+    var cx = b.left + b.width / 2, cy = b.top + b.height / 2;
+    if (cx < 0 || cy < 0 || cx > window.innerWidth || cy > window.innerHeight) return false;
+    // Not scrolled out of its panel and not under another layer (the 3D globe, a dialog).
+    var hit = document.elementFromPoint(cx, cy);
+    return !hit || el === hit || el.contains(hit) || hit.contains(el) || !!hit.closest('.sera-card');
+  }
+  function closest(r, x, y) {          // the point of rectangle r nearest to (x, y)
+    return [Math.max(r.left, Math.min(x, r.right)), Math.max(r.top, Math.min(y, r.bottom))];
+  }
+  function placeSpot() {
+    var el = spotGet && !card.hidden && !guide ? spotGet() : null;
+    if (!visible(el)) { spot.hidden = true; linkSvg.style.display = 'none'; return; }
+    var b = el.getBoundingClientRect(), pad = 6;
+    var r = { left: b.left - pad, top: b.top - pad, right: b.right + pad, bottom: b.bottom + pad };
+    spot.style.cssText = 'left:' + r.left + 'px;top:' + r.top + 'px;width:' + (r.right - r.left) + 'px;height:' + (r.bottom - r.top) + 'px';
+    spot.hidden = false;
+    var bub = card.querySelector('.sera-bubble').getBoundingClientRect();
+    var a = closest(bub, (r.left + r.right) / 2, (r.top + r.bottom) / 2);
+    var z = closest(r, (bub.left + bub.right) / 2, (bub.top + bub.bottom) / 2);
+    var far = Math.hypot(z[0] - a[0], z[1] - a[1]) > 24;
+    linkSvg.style.display = far ? '' : 'none';
+    linkLine.setAttribute('x1', a[0]); linkLine.setAttribute('y1', a[1]);
+    linkLine.setAttribute('x2', z[0]); linkLine.setAttribute('y2', z[1]);
+  }
+  setInterval(placeSpot, 250);
+  window.addEventListener('scroll', placeSpot, true);
+  window.addEventListener('resize', placeSpot);
+  if (S && S.map) S.map.on('move zoom', placeSpot);
+
+  // "Show": bring the thing into view and flash the ring.
+  function showSpot(getEl, onMap) {
+    var el = getEl();
+    if (!el) return;
+    if (onMap && S.map) {
+      var wrap = document.querySelector('.map-wrap');
+      if (wrap) wrap.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      if (S.globe && S.globe.show) S.globe.show(false);
+    } else if (window.innerWidth < 761) {
+      // Phone: the card covers the bottom of the screen, so put the thing in the middle of what is left.
+      if (!card.hidden) document.body.style.paddingBottom = Math.round(card.getBoundingClientRect().height + 16) + 'px';
+      el.scrollIntoView({ block: 'center' });
+      if (!card.hidden) window.scrollBy(0, card.getBoundingClientRect().height / 2 + 8);
+    } else {
+      el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }
+    spot.classList.remove('flash');
+    void spot.offsetWidth;             // restart the animation
+    spot.classList.add('flash');
+    setTimeout(placeSpot, 350);
+    setTimeout(placeSpot, 700);
+  }
+
+  // say({pose, title, text, do, level, spot, spotOnMap, actions:[{label, primary, run}], autoHide: ms, place, toast})
   function say(o) {
+    verdictToast = false;
     clearTimeout(hideTimer);
+    hideTimer = 0;
     poseEl.src = IMG(o.pose || 'explain');
     card.querySelector('.sera-title').textContent = o.title || '';
     card.querySelector('.sera-text').textContent = o.text || '';
+    doEl.textContent = o.do || '';
+    doEl.hidden = !o.do;
     var act = card.querySelector('.sera-actions');
     act.innerHTML = '';
-    (o.actions || []).forEach(function (a) {
+    var list = (o.actions || []).slice();
+    if (o.spot) list.push({ label: 'Show', run: function () { showSpot(o.spot, o.spotOnMap); } });
+    list.forEach(function (a) {
       var b = document.createElement('button');
       b.type = 'button';
       b.className = a.primary ? 'btn-primary' : 'btn-secondary';
@@ -59,11 +138,44 @@
       b.addEventListener('click', a.run);
       act.appendChild(b);
     });
-    card.className = 'sera-card' + (o.place ? ' at-' + o.place : '') + (o.toast ? ' toast' : '');
+    var lv = o.level === undefined ? '' : ' lv' + o.level;
+    card.className = 'sera-card' + (o.place ? ' at-' + o.place : '') + (o.toast ? ' toast' : '') + lv;
+    spot.className = 'sera-spot' + lv;
+    linkSvg.setAttribute('class', 'sera-link' + lv);
+    spotGet = o.spot || null;
     card.hidden = false;
-    if (o.autoHide) hideTimer = setTimeout(hide, o.autoHide);
+    // Short messages go away by themselves (the bar shows how long); hovering keeps them.
+    timerBar.hidden = !o.autoHide;
+    if (o.autoHide) {
+      var bar = timerBar.firstChild;
+      bar.style.animation = 'none';
+      void bar.offsetWidth;
+      bar.style.animation = 'sera-timer ' + o.autoHide + 'ms linear forwards';
+      hideAt = Date.now() + o.autoHide;
+      hideTimer = setTimeout(hide, o.autoHide);
+    }
+    placeSpot();
   }
-  function hide() { card.hidden = true; clearTimeout(hideTimer); }
+  function hide() {
+    card.hidden = true;
+    document.body.style.paddingBottom = '';     // room made on a phone by "Show"
+    clearTimeout(hideTimer);
+    hideTimer = 0;
+    spotGet = null;
+    placeSpot();
+  }
+  card.addEventListener('mouseenter', function () {
+    if (!hideTimer) return;
+    clearTimeout(hideTimer);
+    hideTimer = 0;
+    hideLeft = Math.max(1500, hideAt - Date.now());
+  });
+  card.addEventListener('mouseleave', function () {
+    if (!hideLeft || card.hidden) return;
+    hideAt = Date.now() + hideLeft;
+    hideTimer = setTimeout(hide, hideLeft);
+    hideLeft = 0;
+  });
   card.querySelector('.sera-x').addEventListener('click', function () { if (guide) endGuide(); else hide(); });
 
   // ---- The SERA button -----------------------------------------------------------------
@@ -84,6 +196,109 @@
   function fmtMin(s) {
     var m = Math.round(s / 60);
     return m < 60 ? m + ' min' : Math.floor(m / 60) + ' h ' + (m % 60) + ' min';
+  }
+
+  // ---- Advice: what happened, what to do, and where to look ------------------------------
+  function factorRow(id) { return function () { return document.querySelector('#factors li[data-f="' + id + '"]'); }; }
+  function byId(id) { return function () { return document.getElementById(id); }; }
+  function marker(i) {                 // the numbered marker of a science point on the map
+    return function () { return document.querySelectorAll('#map .stop-icon:not(.base)')[i] || null; };
+  }
+  function click(id) { var b = document.getElementById(id); if (b && !b.disabled) b.click(); }
+  function removeStop(i) { var d = document.querySelector('#stops .del[data-i="' + i + '"]'); if (d) d.click(); }
+  function farthestStop() {
+    var best = -1, far = -1;
+    S.plan.stops.forEach(function (s, i) { if (isFinite(s.homeS) && s.homeS > far) { far = s.homeS; best = i; } });
+    return best;
+  }
+  function setStart(v) {
+    var el = document.getElementById('start-time');
+    el.value = v;
+    el.dispatchEvent(new Event('input'));
+  }
+  var num = function (txt, re) { var m = re.exec(txt); return m ? m[1] : ''; };
+
+  // The first worst factor of the verdict decides what SERA says.
+  function advise() {
+    var p = S.plan, r = p.risk, b = p.budget;
+    if (!r || !b) return null;
+    var f = null;
+    r.factors.forEach(function (x) { if (!f && r.level > 0 && x.level === r.level) f = x; });
+    var pose = ['success', 'explain', 'alert'][r.level];
+    var a = { level: r.level, pose: pose, key: r.level + (f ? f.id : '') };
+    var fi = farthestStop(), fname = fi >= 0 ? S.stopName(p.stops[fi], fi) : '';
+    var removeFar = { label: 'Remove the farthest point', primary: true, run: function () { removeStop(fi); } };
+    var times = f ? (f.text.match(/\d\d:\d\d/g) || []) : [];
+    var start = document.getElementById('start-time').value;
+
+    if (!f) {
+      a.title = 'GO · all checks passed';
+      a.text = p.stops.length + ' science points, EVA ' + fmtMin(b.totalS) + ', ' + fmtMin(b.marginS) + ' of spare suit time.';
+      a.do = 'Ready? Walk it in the helmet view.';
+      a.spot = byId('btn-hud');
+      a.actions = [{ label: 'Start EVA · helmet view', primary: true, run: function () { hide(); click('btn-hud'); } }];
+    } else if (f.id === 'slopes' && f.level === 2) {
+      var bad = 0;
+      p.stops.forEach(function (s, i) { if (!p.legs[i] || !isFinite(s.homeS)) bad = bad || i + 1; });
+      var bi = Math.max(0, bad - 1);
+      a.title = 'NO-GO · no safe way to ' + S.stopName(p.stops[bi], bi);
+      a.text = 'Every way there crosses slopes over 25° (red on the map).';
+      a.do = 'Move the point to grey or yellow ground, or remove it.';
+      a.spot = marker(bi); a.spotOnMap = true;
+      a.actions = [{ label: 'Remove this point', primary: true, run: function () { removeStop(bi); } }];
+    } else if (f.id === 'slopes') {
+      a.title = 'CAUTION · steep ground';
+      a.text = num(f.text, /^(\d+)/) + ' m of the route is on 15–25° slopes (yellow on the map). Walking there takes twice as long.';
+      a.do = 'You can go, slowly. Mission Twin looks for a gentler way.';
+      a.spot = factorRow('slopes');
+      a.actions = [{ label: 'Compare routes', primary: true, run: function () { if (window.SeraTwin) SeraTwin.open(fi >= 0 ? fi : 0); } }];
+    } else if (f.id === 'suit' && f.level === 2) {
+      a.title = 'NO-GO · too long for one suit';
+      a.text = 'The plan needs ' + fmtMin(-b.marginS) + ' more than the suit allows with the 15 % reserve.';
+      a.do = 'Remove the farthest point (' + fname + ')' + (p.sorties ? ' or walk it as ' + p.sorties.length + ' EVAs.' : '.');
+      a.spot = byId('stops');
+      a.actions = [removeFar];
+    } else if (f.id === 'suit') {
+      a.title = 'CAUTION · little spare air';
+      a.text = 'Only ' + fmtMin(b.marginS) + ' of spare suit time before the reserve.';
+      a.do = 'Remove the farthest point (' + fname + ') to keep more air for surprises.';
+      a.spot = byId('stops');
+      a.actions = [removeFar];
+    } else if (f.id === 'daylight') {
+      var dark = /before sunrise/.test(f.text);
+      a.title = dark ? 'NO-GO · start before sunrise' : f.level === 2 ? 'NO-GO · back after dark' : 'CAUTION · close to sunset';
+      a.text = dark ? 'Start ' + times[0] + ' is before sunrise (' + times[1] + ').'
+        : f.level === 2 ? 'You would be back at ' + times[0] + ', after sunset (' + times[1] + ').'
+        : 'Back at ' + times[0] + ', less than 1 h before sunset (' + times[1] + ').';
+      a.do = dark ? 'Start at 09:00 or later.' : 'Start earlier, or remove a point.';
+      a.spot = byId('start-time');
+      a.actions = start !== '09:00' ? [{ label: 'Start at 09:00', primary: true, run: function () { setStart('09:00'); } }] : [removeFar];
+    } else if (f.id === 'space' && f.level === 2) {
+      var sim = document.getElementById('btn-storm').getAttribute('aria-pressed') === 'true';
+      a.title = 'NO-GO · solar storm';
+      a.text = sim ? 'Solar particle event (simulated). Outside, the radiation dose is too high.'
+        : 'Solar particle event ' + num(f.text, /(\d+) h ago/) + ' h ago (NASA DONKI). Outside, the radiation dose is too high.';
+      a.do = sim ? 'Stay in the base. Stop the simulation to see the normal verdict.' : 'Stay in the base until 48 h after the event.';
+      a.spot = sim ? byId('btn-storm') : factorRow('space');
+      a.actions = sim ? [{ label: 'Stop storm simulation', primary: true, run: function () { click('btn-storm'); } }] : [];
+    } else if (f.id === 'space') {
+      var flare = /flare/.test(f.text);
+      a.title = flare ? 'CAUTION · solar flare' : 'CAUTION · no space weather data';
+      a.text = flare ? 'X-class solar flare ' + num(f.text, /(\d+) h ago/) + ' h ago.' : 'I could not load live NASA and NOAA data.';
+      a.do = flare ? 'Go only with the shelter close, and watch for new alerts.' : 'Check space weather before going out.';
+      a.spot = factorRow('space');
+      a.actions = [];
+    } else if (f.id === 'radio') {
+      a.title = 'CAUTION · radio gaps';
+      a.text = 'For ' + num(f.text, /^(\d+ (?:h \d+ )?min)/) + ' in a row the base mast is out of sight.';
+      a.do = 'Walk in pairs and keep your buddy in sight: the buddy relays.';
+      a.spot = factorRow('radio');
+      var on = document.getElementById('btn-radio').getAttribute('aria-pressed') === 'true';
+      a.actions = on ? [] : [{ label: 'Show radio map', primary: true, run: function () { click('btn-radio'); } }];
+    } else {
+      a.title = r.verdict; a.text = r.reason + '.'; a.spot = factorRow(f.id); a.actions = [];
+    }
+    return a;
   }
 
   // What SERA says about the current state.
@@ -111,44 +326,41 @@
         actions: [guideBtn] });
       return;
     }
-    var r = p.risk, b = p.budget;
-    var pose = !r ? 'thinking' : ['success', 'explain', 'alert'][r.level];
-    var farthest = 0;
-    p.stops.forEach(function (s) { if (isFinite(s.homeS) && s.homeS > farthest) farthest = s.homeS; });
-    var text = (r ? r.reason + '. ' : '') +
-      'EVA ' + fmtMin(b.totalS) + ', ' + p.stops.length + ' science points, farthest point ' + fmtMin(farthest) + ' from home.' +
-      (b.fits ? ' Spare suit time ' + fmtMin(b.marginS) + '.' : ' Too long for one suit: split into several EVAs.');
-    say({ pose: pose, title: r ? r.verdict : 'Checking…', text: text,
-      actions: [
-        { label: 'Start EVA · helmet view', primary: true, run: function () { hide(); document.getElementById('btn-hud').click(); } },
-        guideBtn
-      ] });
+    var a = advise();
+    if (!a) { say({ pose: 'thinking', title: 'Checking the plan…', text: 'Slopes, suit time, daylight, space weather.' }); return; }
+    say({ pose: a.pose, level: a.level, title: a.title, text: a.text, do: a.do, spot: a.spot, spotOnMap: a.spotOnMap,
+      actions: a.actions.concat(a.level === 0 ? [guideBtn] : []) });
   }
 
   // ---- Reactions -----------------------------------------------------------------------
-  var lastKey = '', lastLevel = -1, thinkTimer = 0, hudDone = false;
+  var lastKey = '', lastLevel = -1, thinkTimer = 0, hudDone = false, verdictToast = false;
   function quiet() { return guide || (window.SeraTour && SeraTour.isOn && SeraTour.isOn()); }
   function watch() {
     if (!onPlanner || quiet()) return;
     var p = S.plan;
-    var key = p.base ? p.stops.map(function (s) { return s.r + ',' + s.c; }).join(';') + '|' + (p.risk ? p.risk.level : '') : '';
-    if (p.base && p.stops.length && p.risk && key !== lastKey) {
-      var level = p.risk.level, changed = level !== lastLevel;
-      lastKey = key;
-      if (changed) {
-        lastLevel = level;
-        // Think for a moment, then the answer.
-        clearTimeout(thinkTimer);
-        say({ pose: 'thinking', title: 'Checking the plan…', text: 'Slopes, suit time, daylight, space weather.', toast: true, place: 'corner' });
-        thinkTimer = setTimeout(function () {
-          var r = S.plan.risk;
-          if (!r) return;
-          say({ pose: ['success', 'explain', 'alert'][r.level], title: r.verdict, text: r.reason + '.',
-            toast: true, place: 'corner', autoHide: r.level === 2 ? 9000 : 5000 });
-        }, 900);
-      }
+    // She speaks only when the verdict or its reason changes, not on every click.
+    var adv = p.base && p.stops.length && p.risk ? advise() : null;
+    if (adv && adv.key !== lastKey) {
+      lastKey = adv.key;
+      lastLevel = adv.level;
+      // Think for a moment, then the answer.
+      clearTimeout(thinkTimer);
+      say({ pose: 'thinking', title: 'Checking the plan…', text: 'Slopes, suit time, daylight, space weather.', toast: true, place: 'corner' });
+      thinkTimer = setTimeout(function () {
+        var a = advise();
+        if (!a || quiet()) return;
+        // GO and CAUTION go away by themselves; a NO-GO stays until it is handled or closed.
+        say({ pose: a.pose, level: a.level, title: a.title, text: a.text, do: a.do, spot: a.spot, spotOnMap: a.spotOnMap,
+          actions: a.actions, toast: true, place: 'corner', autoHide: [7000, 11000, 0][a.level] });
+        verdictToast = true;
+      }, 900);
     }
-    if (!p.base || !p.stops.length) { lastKey = ''; lastLevel = -1; }
+    if (!p.base || !p.stops.length) {
+      lastKey = ''; lastLevel = -1;
+      clearTimeout(thinkTimer);
+      if (verdictToast && !card.hidden) hide();      // the plan she talked about is gone
+      verdictToast = false;
+    }
     // Back from the walk in the helmet view.
     if (window.SeraHud && SeraHud._state) {
       var h = SeraHud._state();
@@ -166,9 +378,9 @@
   document.addEventListener('click', function (e) {
     var id = e.target && e.target.id;
     if (id === 'hud-storm') {
-      say({ pose: 'alert', title: 'NO-GO: turn back now', text: 'Solar particle alert. I rebuilt the fastest safe way home from where you stand.', toast: true, place: 'corner', autoHide: 8000 });
+      say({ pose: 'alert', title: 'NO-GO: turn back now', level: 2, text: 'Solar particle alert. I rebuilt the fastest safe way home from where you stand.', do: 'Follow the mint line home, now.', toast: true, place: 'corner', autoHide: 9000 });
     } else if (id === 'hud-drift') {
-      say({ pose: 'explain', title: 'You left the route', text: 'No problem: here is a new safe path to the next point. The rest of the plan stays.', toast: true, place: 'corner', autoHide: 6000 });
+      say({ pose: 'explain', title: 'You left the route', level: 1, text: 'No problem: here is a new safe path to the next point. The rest of the plan stays.', do: 'Follow the new line on the map.', toast: true, place: 'corner', autoHide: 7000 });
     }
   }, true);
 
@@ -292,5 +504,5 @@
     }, 1200);
   }
 
-  window.SeraAssistant = { say: say, hide: hide, guide: startGuide, explain: explainNow };
+  window.SeraAssistant = { say: say, hide: hide, guide: startGuide, explain: explainNow, advise: onPlanner ? advise : null };
 })();
