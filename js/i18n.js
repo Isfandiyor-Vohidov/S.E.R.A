@@ -17,6 +17,10 @@
   var D = [
     // ---- header, map buttons, legend ----
     ['Mission Planner', 'Планировщик миссии', 'Missiya rejalashtiruvchisi'],
+    ['Find a place on Mars', 'Найти место на Марсе', 'Marsda joy topish'],
+    ['Our EVA zone', 'Наша зона EVA', 'Bizning EVA hududimiz'],
+    ['Rover position in our data', 'Положение марсохода в наших данных', 'Ma\'lumotlarimizdagi marsoxod joyi'],
+    ['Mars turning, made from NASA Viking and MOLA data, with the name SERA', 'Вращающийся Марс по данным NASA Viking и MOLA с названием SERA', 'NASA Viking va MOLA ma\'lumotlaridan aylanayotgan Mars, SERA nomi bilan'],
     ['Mars 3D', 'Марс 3D', 'Mars 3D'],
     ['Gale Crater', 'Кратер Гейл', 'Geyl krateri'],
     ['EVA zone', 'Зона EVA', 'EVA hududi'],

@@ -108,8 +108,18 @@ a { color: inherit; }
 :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 
 /* 3D Mars globe (js/globe.js): always on a dark sky, labels readable in both themes */
-.globe { position: relative; overflow: hidden; background: #0C171A; touch-action: none; }
+.globe { position: relative; overflow: hidden; background: #04080A; touch-action: none; }
+.globe-stars { position: absolute; inset: 0; display: block; pointer-events: none; }
 .globe-canvas { position: absolute; inset: 0; display: block; cursor: grab; }
+/* Hero: the turning planet with the SERA name, on the page background, never blocks scrolling */
+.globe.globe-hero { background: transparent; touch-action: auto; aspect-ratio: 1 / 1; }
+.globe-hero .globe-canvas { pointer-events: none; }
+.hero-name {
+  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 10px; pointer-events: none; text-align: center; color: #fff;
+}
+.hero-name b { font: 600 clamp(48px, 9vw, 96px)/1 var(--font-head); letter-spacing: .28em; margin-right: -.28em; text-shadow: 0 2px 18px rgba(0, 0, 0, .55); }
+.hero-name span { font: 500 clamp(12px, 1.5vw, 15px) var(--font-body); letter-spacing: .06em; text-shadow: 0 1px 8px rgba(0, 0, 0, .8); }
 .globe-canvas:active { cursor: grabbing; }
 .globe-marks { position: absolute; inset: 0; pointer-events: none; }
 .globe-mark {

@@ -103,6 +103,35 @@
   function create(container, opts) {
     opts = opts || {};
     var places = opts.places || PLACES;
+    // Star field behind the planet (off for the hero, which sits on the page background).
+    var stars = null;
+    if (opts.stars !== false) {
+      stars = document.createElement('canvas');
+      stars.className = 'globe-stars';
+      stars.setAttribute('aria-hidden', 'true');
+      container.appendChild(stars);
+    }
+    function drawStars() {
+      if (!stars) return;
+      var dpr = Math.min(window.devicePixelRatio || 1, 2);
+      var w = container.clientWidth, h = container.clientHeight;
+      stars.width = Math.round(w * dpr); stars.height = Math.round(h * dpr);
+      stars.style.width = w + 'px'; stars.style.height = h + 'px';
+      var g = stars.getContext('2d');
+      g.scale(dpr, dpr);
+      var seed = 7;
+      function rnd() { seed = (seed * 16807) % 2147483647; return seed / 2147483647; }
+      var n = Math.round(w * h / 1400);
+      for (var i = 0; i < n; i++) {
+        var big = rnd() < 0.06;
+        g.globalAlpha = 0.25 + rnd() * (big ? 0.75 : 0.5);
+        g.fillStyle = rnd() < 0.15 ? '#F3D9C8' : '#EDF2EA';
+        g.beginPath();
+        g.arc(rnd() * w, rnd() * h, big ? 1.2 + rnd() * 0.6 : 0.4 + rnd() * 0.5, 0, Math.PI * 2);
+        g.fill();
+      }
+    }
+
     var canvas = document.createElement('canvas');
     canvas.className = 'globe-canvas';
     canvas.setAttribute('aria-label', '3D globe of Mars. Drag to turn, use the place buttons to visit.');
@@ -158,7 +187,7 @@
     });
 
     // View state
-    var view = { lat: 10, lon: 120, zoom: 0.82 };
+    var view = { lat: opts.hero ? 18 : 10, lon: 120, zoom: opts.zoom || 0.82 };
     var target = null, dirty = true, spinning = !opts.noSpin, lastT = 0, selected = null;
 
     // Place markers (HTML, positioned each frame)
@@ -221,6 +250,7 @@
       canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
       canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
       gl.viewport(0, 0, canvas.width, canvas.height);
+      drawStars();
       dirty = true;
     }
 
@@ -279,10 +309,17 @@
       view.lat = Math.max(-85, Math.min(85, drag.lat + dy * s));
       dirty = true;
     });
-    function endDrag() { drag = null; }
+    // After a drag the planet turns again by itself, unless a place is open.
+    var resume = 0;
+    function endDrag() {
+      drag = null;
+      clearTimeout(resume);
+      resume = setTimeout(function () { if (!selected && !drag && !opts.noSpin) spinning = true; }, 4000);
+    }
     canvas.addEventListener('pointerup', endDrag);
     canvas.addEventListener('pointercancel', endDrag);
     canvas.addEventListener('wheel', function (e) {
+      if (opts.hero) return;        // the hero must not stop the page from scrolling
       e.preventDefault();
       target = null;
       view.zoom = Math.max(0.6, Math.min(3, view.zoom * Math.exp(-e.deltaY * 0.0015)));

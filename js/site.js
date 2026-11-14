@@ -83,6 +83,15 @@
     if (window.SERA_REMS) document.getElementById('rems-sols').textContent = window.SERA_REMS.sols.toLocaleString('en-US');
   }
 
+  // Hero: the real Mars (NASA Viking colour, MOLA relief) turning behind the SERA name.
+  var heroEl = document.getElementById('hero-globe');
+  if (heroEl && window.SeraGlobe) {
+    var hero = SeraGlobe.create(heroEl, { places: [], stars: false, hero: true, zoom: 0.96, textureHi: false });
+    var nameEl = heroEl.querySelector('.hero-name');
+    if (nameEl) heroEl.appendChild(nameEl);     // the name stays above the planet
+    if (!hero) heroEl.classList.add('hero-fallback');
+  }
+
   // 3D globe: a place opens the planner there; Gale Crater opens the demo EVA.
   var globeEl = document.getElementById('site-globe');
   if (globeEl && window.SeraGlobe) {
