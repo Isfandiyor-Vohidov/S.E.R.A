@@ -67,6 +67,11 @@ body { display: flex; flex-direction: column; }
   font: 700 12px var(--font-body);
 }
 .stop-icon.base { border-radius: 6px; background: #EDF2EA; }
+/* Draggable markers: grab cursor, lifted while dragging, red where they cannot stand */
+.leaflet-marker-draggable .stop-icon { cursor: grab; transition: transform .12s, box-shadow .12s; }
+.stop-icon.dragging { cursor: grabbing; transform: scale(1.35); box-shadow: 0 6px 14px rgba(0,0,0,.5); }
+.stop-icon.bad { background: #FF7A66; border-color: #fff; }
+@media (pointer: coarse) { .leaflet-marker-draggable .stop-icon { width: 30px; height: 30px; margin: -3px; } }
 
 /* Elevation profile */
 .profile { background: var(--panel); border-top: 1px solid var(--line); height: 130px; }

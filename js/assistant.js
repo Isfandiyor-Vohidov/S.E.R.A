@@ -384,6 +384,19 @@
     }
   }, true);
 
+  // A marker dropped where it cannot stand went back: she says why.
+  document.addEventListener('sera:refused', function (e) {
+    if (quiet()) return;
+    var d = e.detail || {};
+    var text = d.why === 'steep' ? 'Too steep there: ' + Math.round(d.deg) + '° (the limit is 25°).'
+      : d.why === 'outside' ? 'That is outside the dashed 2 × 2 km EVA zone.'
+      : 'There is no safe way home from that spot.';
+    say({ pose: 'explain', level: 1, title: d.stop < 0 ? 'The base stays where it was' : 'The point stays where it was',
+      text: text, do: 'Drop it on grey or yellow ground inside the zone.',
+      spot: d.stop < 0 ? function () { return document.querySelector('#map .stop-icon.base'); } : marker(d.stop),
+      spotOnMap: true, toast: true, place: 'corner', autoHide: 7000 });
+  });
+
   // ---- The guide: one part at a time, the rest blurred -----------------------------------
   var guide = null;
   var shade = document.createElement('div');
@@ -399,7 +412,7 @@
         text: 'The real planet from NASA data. Turn it and pick Gale Crater: our EVA zone is there. Zoom in close and the flat map opens.',
         enter: function () { if (S.globe) S.globe.show(true); } },
       { target: '.map-wrap', pose: 'explain', title: '2 · Base and science points',
-        text: 'Inside the dashed 2 × 2 km zone the first click places the base (H), every next click a science point. Red slopes are too steep. Here is a demo plan.',
+        text: 'Inside the dashed 2 × 2 km zone the first click places the base (H), every next click a science point. Missed a bit? Drag the marker. Red slopes are too steep. Here is a demo plan.',
         enter: function () { if (S.globe) S.globe.show(false); S.runDemo(); } },
       { target: '.place-search', pose: 'listening', title: '3 · Find a place',
         text: 'Type a crater name, “Curiosity” or “base”: the map flies there.' },

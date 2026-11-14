@@ -13,7 +13,7 @@ S.E.R.A plans an EVA (a walk outside the habitat) on the real terrain of Gale Cr
 ## How to use
 
 1. Open the site and press **Launch Mission** — the Mission Planner opens with a ready demo plan.
-2. Or open the planner and press **Plan my own EVA**: the first click inside the dashed 2 × 2 km zone places the base, every next click adds a science point.
+2. Or open the planner and press **Plan my own EVA**: the first click inside the dashed 2 × 2 km zone places the base, every next click adds a science point. Any marker can be dragged to a new spot; dropped on ground over 25°, outside the zone or with no safe way home, it goes back and SERA says why.
 3. Press **Start EVA · helmet view** to play the walk as a simulation and try **Emergency · home**.
 4. Read the verdict at the top of the panel. Change the **EVA start time** or press **Simulate solar storm** to see how the verdict changes.
 5. Press **Mission Twin** to compare the fastest and the gentle route to one point. Press the **SERA** button any time: the assistant explains the current plan.

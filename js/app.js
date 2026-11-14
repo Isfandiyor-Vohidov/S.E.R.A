@@ -282,7 +282,7 @@
       L.polyline(homePts, { color: MAP_COLORS.home, weight: 3, dashArray: '8 6', interactive: false }).addTo(routeLayer);
     }
 
-    L.marker(cellLatLng(plan.base), { icon: icon('H', true), interactive: false }).addTo(routeLayer);
+    dragMarker(L.marker(cellLatLng(plan.base), { icon: icon('H', true), draggable: true, title: 'Drag to move the base', keyboard: false }), -1).addTo(routeLayer);
     // The plan reads as a route (Mars-now card style): stop, the walk to the next one, ... home.
     function legRow(text, home) {
       var r = document.createElement('li');
@@ -298,7 +298,7 @@
     stopsEl.appendChild(li);
 
     plan.stops.forEach(function (s, idx) {
-      L.marker(cellLatLng(s), { icon: icon(idx + 1, false), interactive: false }).addTo(routeLayer);
+      dragMarker(L.marker(cellLatLng(s), { icon: icon(idx + 1, false), draggable: true, title: 'Drag to move this point', keyboard: false }), idx).addTo(routeLayer);
       var leg = plan.legs[idx];
       legRow(leg ? 'Walk ' + fmtDist(leg.distM) + ' · ' + fmtMin(leg.timeS) : 'No safe path', false);
       var item = document.createElement('li');
@@ -601,6 +601,57 @@
     }).catch(function () {
       if (cachedData) applySpaceWeather(cachedData, true);
     });
+  }
+
+  // Why a spot cannot take a point (null = it can). For a science point it also needs a safe way home.
+  function spotProblem(cell, forBase) {
+    if (!cell) return { why: 'outside' };
+    var i = cell.r * terrain.cols + cell.c;
+    if (terrain.slopeDeg[i] > T.SLOPE_BLOCK_DEG) return { why: 'steep', deg: terrain.slopeDeg[i] };
+    if (!forBase && plan.field && !isFinite(plan.field.timeS[i])) return { why: 'nohome' };
+    return null;
+  }
+
+  // Markers can be dragged: a point placed a little wrong is moved, not deleted and placed again.
+  // While dragging, the marker turns red over ground where it cannot stand; dropped there, it goes back.
+  function dragMarker(m, idx) {
+    var isBase = idx < 0;
+    var from = m.getLatLng();
+    function badge() { var el = m.getElement(); return el && el.querySelector('.stop-icon'); }
+    m.on('dragstart', function () {
+      var b = badge();
+      if (b) b.classList.add('dragging');
+    });
+    m.on('drag', function () {
+      var ll = m.getLatLng(), b = badge();
+      var bad = spotProblem(T.latLonToCell(terrain, ll.lat, ll.lng), isBase);
+      if (b) b.classList.toggle('bad', !!bad);
+    });
+    m.on('dragend', function () {
+      var ll = m.getLatLng();
+      var cell = T.latLonToCell(terrain, ll.lat, ll.lng);
+      var bad = spotProblem(cell, isBase);
+      var b = badge();
+      if (b) b.classList.remove('dragging', 'bad');
+      if (bad) {
+        m.setLatLng(from);
+        setHint(bad.why === 'outside' ? 'Click inside the dashed EVA zone.'
+          : bad.why === 'steep' ? 'Too steep here (' + bad.deg.toFixed(0) + '°, limit ' + T.SLOPE_BLOCK_DEG + '°). Pick another spot.'
+          : 'No safe way home from this spot. Pick another one.', true);
+        document.dispatchEvent(new CustomEvent('sera:refused', { detail: { why: bad.why, deg: bad.deg, stop: idx } }));
+        return;
+      }
+      if (isBase) {
+        plan.base = cell;
+        plan.field = P.homeField(terrain, cell);
+        plan.baseOut = P.travelField(terrain, cell);
+      } else {
+        plan.stops[idx] = { r: cell.r, c: cell.c, field: P.travelField(terrain, cell) };
+      }
+      recompute();
+      render();
+    });
+    return m;
   }
 
   map.on('click', function (e) {
