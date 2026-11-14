@@ -161,6 +161,59 @@
     return { timeS: timeS, next: next, base: base };
   }
 
+  // "From here" field: fastest time to walk FROM the source cell to every cell.
+  // Forward Dijkstra; prev[] points back towards the source.
+  function travelField(t, src) {
+    var rows = t.rows, cols = t.cols, n = rows * cols;
+    var timeS = new Float64Array(n).fill(Infinity);
+    var prev = new Int32Array(n).fill(-1);
+    var done = new Uint8Array(n);
+    var s = src.r * cols + src.c;
+    var heap = new Heap();
+    if (!isBlocked(t, s)) {
+      timeS[s] = 0;
+      heap.push(0, s);
+    }
+    while (heap.p.length) {
+      var cur = heap.pop();
+      if (done[cur]) continue;
+      done[cur] = 1;
+      var r = (cur / cols) | 0, c = cur - r * cols;
+      for (var k = 0; k < 8; k++) {
+        var nr = r + NEIGH[k][0], nc = c + NEIGH[k][1];
+        if (nr < 0 || nc < 0 || nr >= rows || nc >= cols) continue;
+        var ni = nr * cols + nc;
+        if (done[ni]) continue;
+        var w = stepTime(t, r, c, nr, nc, NEIGH[k][2]);
+        if (w === Infinity) continue;
+        var cand = timeS[cur] + w;
+        if (cand < timeS[ni]) {
+          timeS[ni] = cand;
+          prev[ni] = cur;
+          heap.push(cand, ni);
+        }
+      }
+    }
+    return { timeS: timeS, prev: prev, src: src };
+  }
+
+  // Path from the field's source to a cell. Returns {cells, timeS, distM} or null.
+  function pathTo(t, field, to) {
+    var cols = t.cols, i = to.r * cols + to.c;
+    if (field.timeS[i] === Infinity) return null;
+    var cells = [], distM = 0, total = field.timeS[i];
+    while (i !== -1) {
+      var r = (i / cols) | 0;
+      cells.push({ r: r, c: i - r * cols });
+      i = field.prev[i];
+    }
+    cells.reverse();
+    for (var j = 1; j < cells.length; j++) {
+      distM += t.cellM * ((cells[j].r !== cells[j - 1].r && cells[j].c !== cells[j - 1].c) ? Math.SQRT2 : 1);
+    }
+    return { cells: cells, timeS: total, distM: distM };
+  }
+
   // Way home from a cell using the field. Returns {cells, timeS, distM} or null.
   function pathHome(t, field, from) {
     var cols = t.cols, i = from.r * cols + from.c;
@@ -184,6 +237,8 @@
     stepTime: stepTime,
     findPath: findPath,
     homeField: homeField,
+    travelField: travelField,
+    pathTo: pathTo,
     pathHome: pathHome
   };
 

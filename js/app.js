@@ -146,7 +146,8 @@
   // ---- EVA plan: base + science points by click, route and way home ----
 
   var P = SeraPath;
-  var plan = { base: null, stops: [], field: null, legs: [], home: null };
+  var PL = SeraPlanner;
+  var plan = { base: null, stops: [], field: null, baseOut: null, legs: [], home: null, budget: null };
   var routeLayer = L.layerGroup().addTo(map);
   var hintEl = document.getElementById('hint');
   var stopsEl = document.getElementById('stops');
@@ -168,19 +169,36 @@
     hintEl.classList.toggle('warn', !!warn);
   }
 
-  // Recomputes all legs: base -> stops in order -> base (way home from the last stop).
+  function cellIndex(cell) { return cell.r * terrain.cols + cell.c; }
+
+  // Recomputes the plan: fastest visiting order, legs, way home and suit budget.
+  // Each stop keeps its own "from here" field, so adding a point costs one field.
   function recompute() {
     plan.legs = [];
     plan.home = null;
+    plan.budget = null;
     if (!plan.base) return;
-    var from = plan.base;
+    var nodes = [plan.base].concat(plan.stops);
+    var fields = [plan.baseOut].concat(plan.stops.map(function (s) { return s.field; }));
+    var matrix = nodes.map(function (a, i) {
+      return nodes.map(function (b) { return fields[i].timeS[cellIndex(b)]; });
+    });
+    var homeS = nodes.map(function (n) { return plan.field.timeS[cellIndex(n)]; });
+    var order = PL.bestOrder(matrix);
+    plan.budget = PL.evaluate(matrix, order, homeS);
+    plan.stops = order.map(function (k) { return nodes[k]; });
+
+    var fromField = plan.baseOut;
     for (var i = 0; i < plan.stops.length; i++) {
-      var leg = P.findPath(terrain, from, plan.stops[i]);
-      plan.legs.push(leg);
-      plan.stops[i].homeS = plan.field.timeS[plan.stops[i].r * terrain.cols + plan.stops[i].c];
-      from = plan.stops[i];
+      var s = plan.stops[i];
+      plan.legs.push(P.pathTo(terrain, fromField, s));
+      s.homeS = plan.field.timeS[cellIndex(s)];
+      s.marginS = plan.budget.stops[i].marginS;
+      fromField = s.field;
     }
-    if (plan.stops.length) plan.home = P.pathHome(terrain, plan.field, from);
+    if (plan.stops.length) {
+      plan.home = P.pathHome(terrain, plan.field, plan.stops[plan.stops.length - 1]);
+    }
   }
 
   function icon(label, isBase) {
@@ -235,12 +253,17 @@
       setHint('Base is set. Click to add science points.');
       summaryEl.hidden = true;
     } else {
-      setHint(broken ? 'Some points cannot be reached on safe slopes.' : 'Orange: route out. Blue dashed: way home.', broken);
+      var b = plan.budget;
+      setHint(broken ? 'Some points cannot be reached on safe slopes.'
+        : 'Points are visited in the fastest order. Orange: route out. Blue dashed: way home.', broken);
       summaryEl.hidden = false;
       summaryEl.innerHTML =
-        '<span>Walking time <span class="tag">MODEL</span></span><span class="big">' + fmtMin(totalS) + '</span>' +
-        '<span>Distance</span><span>' + fmtDist(totalM) + '</span>' +
-        '<span>Way home from last point</span><span>' + (plan.home ? fmtMin(plan.home.timeS) : '—') + '</span>';
+        '<span>EVA time <span class="tag">MODEL</span></span><span class="big">' + fmtMin(b.totalS) + '</span>' +
+        '<span>Walking · ' + fmtDist(totalM) + '</span><span>' + fmtMin(b.walkS) + '</span>' +
+        '<span>Science work · ' + plan.stops.length + ' × ' + PL.WORK_MIN_PER_STOP + ' min</span><span>' + fmtMin(b.workS) + '</span>' +
+        '<span>Suit limit · ' + PL.SUIT_HOURS + ' h − ' + Math.round(PL.RESERVE_SHARE * 100) + ' % reserve</span><span>' + fmtMin(b.usableS) + '</span>' +
+        '<span>Margin <span class="tag">MODEL</span></span><span class="' + (b.fits ? 'ok' : 'bad') + '">' +
+        (b.fits ? fmtMin(b.marginS) : 'over by ' + fmtMin(-b.marginS)) + '</span>';
     }
   }
 
@@ -258,12 +281,13 @@
     if (!plan.base) {
       plan.base = cell;
       plan.field = P.homeField(terrain, cell);
+      plan.baseOut = P.travelField(terrain, cell);
     } else {
       if (!isFinite(plan.field.timeS[i])) {
         setHint('No safe way home from this spot. Pick another one.', true);
         return;
       }
-      plan.stops.push({ r: cell.r, c: cell.c });
+      plan.stops.push({ r: cell.r, c: cell.c, field: P.travelField(terrain, cell) });
     }
     recompute();
     render();
@@ -278,7 +302,7 @@
   });
 
   document.getElementById('btn-clear').addEventListener('click', function () {
-    plan.base = null; plan.stops = []; plan.field = null;
+    plan.base = null; plan.stops = []; plan.field = null; plan.baseOut = null;
     recompute();
     render();
   });

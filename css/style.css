@@ -120,6 +120,8 @@ body {
   font-variant-numeric: tabular-nums;
 }
 .summary .big { font-size: 20px; font-weight: 700; }
+.summary .ok { color: var(--go); font-weight: 700; }
+.summary .bad { color: var(--nogo); font-weight: 700; }
 .tag { font-size: 10px; border: 1px solid var(--line); border-radius: 3px; padding: 0 4px; color: var(--muted); margin-left: 4px; vertical-align: middle; }
 
 .panel-actions { margin-top: auto; position: sticky; bottom: 0; background: var(--panel); padding-top: 8px; }
