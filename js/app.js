@@ -283,21 +283,40 @@
     }
 
     L.marker(cellLatLng(plan.base), { icon: icon('H', true), interactive: false }).addTo(routeLayer);
+    // The plan reads as a route (Mars-now card style): stop, the walk to the next one, ... home.
+    function legRow(text, home) {
+      var r = document.createElement('li');
+      r.className = 'leg' + (home ? ' leg-home' : '');
+      r.innerHTML = '<span class="rail"></span><span class="leg-text">' + text + '</span>';
+      stopsEl.appendChild(r);
+    }
+    var elevBase = terrain.elev[plan.base.r * terrain.cols + plan.base.c].toFixed(0);
     var li = document.createElement('li');
-    li.innerHTML = '<span class="badge base">H</span><span class="name">Base</span><span></span>' +
-      '<span class="meta">start and finish · elev ' + terrain.elev[plan.base.r * terrain.cols + plan.base.c].toFixed(0) + ' m</span>';
+    li.className = 'stop';
+    li.innerHTML = '<span class="badge base">H</span><span class="name">Base · start</span>' +
+      '<span class="val">' + (startEl.value || '') + '</span><span class="meta">habitat · elev ' + elevBase + ' m</span>';
     stopsEl.appendChild(li);
 
     plan.stops.forEach(function (s, idx) {
       L.marker(cellLatLng(s), { icon: icon(idx + 1, false), interactive: false }).addTo(routeLayer);
       var leg = plan.legs[idx];
+      legRow(leg ? 'Walk ' + fmtDist(leg.distM) + ' · ' + fmtMin(leg.timeS) : 'No safe path', false);
       var item = document.createElement('li');
+      item.className = 'stop';
       item.innerHTML = '<span class="badge">' + (idx + 1) + '</span><span class="name">' + stopName(s, idx) + '</span>' +
-        '<button type="button" class="del" title="Remove" data-i="' + idx + '">×</button>' +
-        '<span class="meta">' + (leg ? 'leg ' + fmtDist(leg.distM) + ' · ' + fmtMin(leg.timeS) : 'no safe path') +
-        ' · home from here ' + (isFinite(s.homeS) ? fmtMin(s.homeS) : '—') + '</span>';
+        '<span class="val" title="Time home from here">⌂ ' + (isFinite(s.homeS) ? fmtMin(s.homeS) : '—') + '</span>' +
+        '<span class="meta">' + PL.WORK_MIN_PER_STOP + ' min science work · home from here</span>' +
+        '<button type="button" class="del" title="Remove" data-i="' + idx + '">×</button>';
       stopsEl.appendChild(item);
     });
+    if (plan.home) {
+      legRow('Way home ' + fmtDist(plan.home.distM) + ' · ' + fmtMin(plan.home.timeS), true);
+      var fin = document.createElement('li');
+      fin.className = 'stop';
+      fin.innerHTML = '<span class="badge base">H</span><span class="name">Base · back</span>' +
+        '<span class="val">' + (plan.budget ? fmtMin(plan.budget.totalS) : '') + '</span><span class="meta">whole EVA</span>';
+      stopsEl.appendChild(fin);
+    }
 
     if (!plan.stops.length) {
       setHint('Base is set. Click to add science points.');

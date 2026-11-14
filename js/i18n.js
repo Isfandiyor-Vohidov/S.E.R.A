@@ -105,6 +105,13 @@
     ['over by', 'не хватает', 'yetmaydi:'],
     ['Base (home) · habitat', 'База (дом) · жилой модуль', 'Baza (uy) · yashash moduli'],
     ['Your base', 'Ваша база', 'Sizning bazangiz'],
+    ['Base · start', 'База · старт', 'Baza · start'],
+    ['Base · back', 'База · возвращение', 'Baza · qaytish'],
+    ['habitat · elev', 'жилой модуль · высота', 'yashash moduli · balandlik'],
+    ['min science work · home from here', 'мин научной работы · отсюда домой', 'daq ilmiy ish · bu yerdan uyga'],
+    ['whole EVA', 'весь выход', 'butun EVA'],
+    ['Time home from here', 'Время до дома отсюда', 'Bu yerdan uyga vaqt'],
+    ['No safe path', 'Нет безопасного пути', 'Xavfsiz yo'l yo'q'],
     ['map files saved. Saving cancelled.', 'файлов карты сохранено. Сохранение отменено.', 'xarita fayli saqlandi. Saqlash bekor qilindi.'],
     ['Click to cancel', 'Нажмите, чтобы отменить', 'Bekor qilish uchun bosing'],
     ['Cancel', 'Отмена', 'Bekor qilish'],
@@ -358,7 +365,7 @@
 
   // Numbers with units and patterns, after the phrases.
   var RULES = {
-    ru: [[/^To (.+)$/, 'К: $1'], [/^Science work · (.+)$/, 'Научная работа · $1'], [/\bPoint (\d+)\b/g, 'Точка $1'],
+    ru: [[/^To (.+)$/, 'К: $1'], [/^Walk (.+)$/, 'Идти $1'], [/^Way home (.+)$/, 'Домой $1'], [/^Science work · (.+)$/, 'Научная работа · $1'], [/\bPoint (\d+)\b/g, 'Точка $1'],
       [/(\d+) h (\d+) min/g, '$1 ч $2 мин'], [/(\d+) h\b/g, '$1 ч'], [/(\d+) min\b/g, '$1 мин'], [/(\d) km\b/g, '$1 км'],
       [/(\d) m\b/g, '$1 м'], [/^Split into (\d+) EVAs/, 'Разбить на выходы: $1'], [/^EVA (\d+) · points (.+)$/, 'Выход $1 · точки $2'], [/Gale Crater · Sol (\d+)/, 'Кратер Гейл · сол $1'], [/^(\s*)ETA(\s*)$/, '$1Прибытие$2']],
     uz: [[/^To (.+)$/, 'Tomon: $1'], [/^Science work · (.+)$/, 'Ilmiy ish · $1'], [/\bPoint (\d+)\b/g, '$1-nuqta'],
