@@ -361,3 +361,19 @@ body.hud-open { overflow: hidden; }
   .hud-emergency { margin-left: auto; }
   .hud-msg { display: none; }
 }
+
+/* Curiosity path layer */
+.zoom-steps .msl-toggle[aria-pressed="false"] { opacity: 0.55; text-decoration: line-through; }
+.zoom-steps .msl-toggle[aria-pressed="true"] { border-color: var(--secondary); }
+.sw-msl { height: 0; width: 18px; border-top: 2px dotted var(--text); }
+.sw-msl-photo { width: 10px; height: 10px; border-radius: 50%; background: #A7F1C2; border: 2px solid #0C171A; }
+.msl-pop { display: flex; flex-direction: column; gap: 6px; font-family: var(--font-body); }
+.msl-pop b { font: 700 15px var(--font-head); }
+.msl-pop span { font-size: 12px; color: var(--muted); line-height: 1.4; }
+.leaflet-popup-content-wrapper, .leaflet-popup-tip { background: var(--panel); color: var(--text); border: 1px solid var(--line); }
+.leaflet-container a.leaflet-popup-close-button { color: var(--muted); }
+.msl-pop img { display: block; width: 260px; height: 260px; object-fit: cover; border-radius: 8px; background: #222; }
+.msl-add {
+  margin-top: 2px; background: #CC6946; color: #FFFAF2; border: 0; border-radius: 999px;
+  padding: 8px 12px; font: 600 13px var(--font-body); cursor: pointer;
+}

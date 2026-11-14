@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap">
   <link rel="stylesheet" href="lib/leaflet/leaflet.css">
   <link rel="stylesheet" href="css/theme.css?v=1">
-  <link rel="stylesheet" href="css/style.css?v=12">
+  <link rel="stylesheet" href="css/style.css?v=13">
 </head>
 <body>
   <header class="topbar t-surface">
@@ -27,6 +27,7 @@
         <button type="button" data-view="mars">Mars</button>
         <button type="button" data-view="gale">Gale Crater</button>
         <button type="button" data-view="eva">EVA zone</button>
+        <button type="button" id="btn-msl" class="msl-toggle" aria-pressed="true" title="Show the real path of the Curiosity rover">Curiosity</button>
         <button type="button" id="btn-demo-top" class="demo-top">Demo</button>
       </nav>
       <button type="button" class="theme-toggle" data-theme-toggle aria-label="Switch theme">
@@ -48,6 +49,7 @@
         <li><span class="sw sw-zone"></span>EVA zone 2 × 2 km</li>
         <li><span class="sw sw-base">H</span>Base</li>
         <li><span class="sw sw-stop">1</span>Science point</li>
+        <li><span class="sw sw-msl"></span>Curiosity path · <span class="sw sw-msl-photo"></span>photo</li>
       </ul>
     </div>
     <aside class="panel t-surface" aria-label="EVA plan">
@@ -136,6 +138,8 @@
   <script src="js/risk.js?v=3"></script>
   <script src="js/demo-plan.js?v=1"></script>
   <script src="js/app.js?v=12"></script>
+  <script src="data/msl.js?v=1"></script>
+  <script src="js/curiosity.js?v=1"></script>
   <script src="js/relief.js?v=1"></script>
   <script src="js/hud.js?v=4"></script>
 </body>

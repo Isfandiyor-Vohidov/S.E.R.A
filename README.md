@@ -31,6 +31,7 @@ SARA plans an EVA (a walk outside the habitat) on the real terrain of Gale Crate
 | Space weather | Live solar particle events (NASA DONKI) and X-ray flares (NOAA GOES) |
 | Verdict | GO / CAUTION / NO-GO from the worst factor, with the reason |
 | Elevation profile and legend | Under the map |
+| Curiosity path and photos | The real rover path through the zone (144 stops, sols 4464–4989) with Navcam photos; a rover stop can be added as a science point |
 | Light and dark theme | Toggle in the top bar, remembered in the browser |
 | Helmet view (simulation) | Plays the EVA along the route: suit time left, time home from where you stand, next target, slope under feet. **Emergency · home** leads back by the fastest safe way from the current spot. Always dark |
 
@@ -65,7 +66,8 @@ The radiation dose of the EVA and the dust season are shown for information.
 | --- | --- | --- |
 | Map tiles | [NASA Mars Trek](https://trek.nasa.gov/mars/) WMTS: Viking MDIM 2.1, `Gale_CTX_BlockAdj_dd`, `curiosity_hirise_mosaic` | Viking, MRO CTX, MRO HiRISE |
 | Terrain 1 m | [Mars MSL Gale Merged DEM 1m v3](https://astrogeology.usgs.gov/search/map/mars_msl_gale_merged_dem_1m), USGS Astrogeology (Calef & Parker 2016) | MRO HiRISE, MRO CTX, **ESA Mars Express HRSC**, MGS MOLA |
-| Curiosity traverse (zone choice and check) | NASA/JPL MMGIS `MSL_waypoints.json` | MSL |
+| Curiosity path (zone choice, map layer) | NASA/JPL MMGIS `MSL_waypoints.json`, `MSL_traverse.json` | MSL |
+| Rover photos | [NASA raw images](https://mars.nasa.gov/msl/multimedia/raw-images/) API, Navcam (linked, not copied) | MSL Navcam |
 | Weather | [Curiosity REMS weather feed](https://mars.nasa.gov/rss/api/?feed=weather&category=msl&feedtype=json) | MSL REMS (NASA/JPL-Caltech, CAB) |
 | Solar particle events | [NASA DONKI](https://api.nasa.gov/) | NASA CCMC |
 | X-ray flares | [NOAA SWPC GOES flare list](https://services.swpc.noaa.gov/json/goes/primary/xray-flares-7-day.json) | NOAA GOES |
@@ -98,6 +100,7 @@ cd tools
 npm install
 node prep_dem.mjs
 node prep_rems.mjs
+node prep_msl.mjs
 ```
 
 `prep_dem.mjs` reads about 130 MB of the 3.6 GB DEM with HTTP range requests.
@@ -113,11 +116,13 @@ node prep_rems.mjs
 | `js/risk.js` | GO / CAUTION / NO-GO |
 | `js/app.js` | Mission Planner: map, panel, profile, demo (`planner.html`) |
 | `js/site.js` | Project site: live demo route on shaded relief (`index.html`) |
-| `js/theme.js`, `css/theme.css` | Light and dark theme |
+| `js/theme.js`, `css/theme.css` | Curiosity path and photos | The real rover path through the zone (144 stops, sols 4464–4989) with Navcam photos; a rover stop can be added as a science point |
+| Light and dark theme |
 | `js/hud.js` | Helmet view: EVA simulation and emergency return |
+| `js/curiosity.js` | Curiosity path and photos layer |
 | `js/relief.js` | Shaded relief of the terrain grid |
 | `js/demo-plan.js` | The demo plan, shared by the site and the planner |
-| `tools/prep_dem.mjs`, `tools/prep_rems.mjs` | Data preparation |
+| `tools/prep_dem.mjs`, `tools/prep_rems.mjs`, `tools/prep_msl.mjs` | Data preparation |
 
 The core modules are pure functions without the DOM, so they also run in Node.js.
 
