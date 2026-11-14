@@ -635,3 +635,34 @@ body.hud-open { overflow: hidden; }
 }
 .hud-helmet { z-index: 1; }
 .hud.fpv .hud-map { z-index: 2; }
+
+/* ---- Helmet 3D on phones: a visor drawn in CSS (the helmet photo would stretch), compact controls ---- */
+.hud-look .t-touch { display: none; }
+@media (pointer: coarse) { .hud-look .t-mouse { display: none; } .hud-look .t-touch { display: inline; } }
+@media (max-width: 760px) {
+  .hud.fpv .hud-helmet { display: none; }
+  .hud.fpv::after { content: ""; position: absolute; inset: 5px; border-radius: 44px / 38px; pointer-events: none; z-index: 0;
+    box-shadow: 0 0 0 30px #15191a, inset 0 0 0 2px rgba(205,215,210,.35), inset 0 0 0 7px rgba(18,22,23,.92),
+      inset 0 0 36px 14px rgba(10,12,12,.55); }
+  .hud.fpv::before { content: ""; position: absolute; inset: 5px; border-radius: 44px / 38px; pointer-events: none; z-index: 0;
+    background: linear-gradient(115deg, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 22%), linear-gradient(295deg, rgba(167,241,194,.06) 0%, rgba(167,241,194,0) 30%); }
+  .hud.fpv .hud-sim { top: 16px; left: 18px; }
+  .hud.fpv #hud-exit { top: 14px; right: 18px; }
+  .hud.fpv .hud-top { top: 50px; left: 16px; right: 16px; }
+  .hud.fpv .hud-top .hud-cell { flex: 1; }
+  .hud.fpv .hud-top .hud-cell { min-width: 0; }
+  .hud.fpv .hud-top .hud-cell span { font-size: 8.5px; letter-spacing: .5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hud.fpv .hud-compass { top: 96px; }
+  .hud.fpv .hud-map { width: 84px; height: 84px; right: 16px; top: 138px; }
+  .hud.fpv .hud-look { top: 140px; left: 18px; right: 112px; }
+  .hud.fpv .hud-left { left: 16px; right: 16px; bottom: calc(var(--ctrl-h, 150px) + 62px); }
+  .hud.fpv .hud-box > span { font-size: 8.5px; }
+  .hud.fpv .hud-statusline { bottom: calc(var(--ctrl-h, 150px) + 16px); max-width: calc(100% - 32px); padding: 5px 8px; }
+  .hud.fpv .hud-task { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .hud.fpv .hud-bottom { left: 12px; right: 12px; bottom: 12px; }
+  .hud.fpv .hud-controls { border-radius: 18px; gap: 6px; padding: 8px; }
+  .hud.fpv .hud-total { display: none; }
+  .hud.fpv .hud-controls input[type="range"] { order: 3; }
+  .hud.fpv .hud-test { order: 4; padding: 5px 7px; font-size: 10.5px; }
+  .hud.fpv .hud-emergency { order: 5; padding: 7px 11px; font-size: 12px; margin-left: auto; }
+}

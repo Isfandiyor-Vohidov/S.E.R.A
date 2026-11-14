@@ -320,7 +320,7 @@
     if (gl) return true;
     canvas = cv; terrain = terr; T = Tmod; labelBox = labelLayer;
     try {
-      gl = cv.getContext('webgl', { antialias: true, alpha: true, premultipliedAlpha: false }) ||
+      gl = cv.getContext('webgl', { antialias: true, alpha: true, premultipliedAlpha: true }) ||
         cv.getContext('experimental-webgl');
       if (!gl) return false;
       progLand = compile(VS_LAND, FS_LAND);
@@ -392,17 +392,22 @@
       canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
     }
     gl.viewport(0, 0, canvas.width, canvas.height);
-    // Clear to the haze colour (still transparent): edge pixels of the far plain blend with it,
-    // not with black, so the horizon has no dark line.
-    gl.clearColor(SKY_HORIZON[0], SKY_HORIZON[1], SKY_HORIZON[2], 0);
+    // Premultiplied alpha everywhere: every browser composites it the same way, and the soft edge
+    // of the far plain at the horizon blends into the sky without a dark (or white) line.
+    gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.DEPTH_TEST);
 
     var x = (cam.c + 0.5) * terrain.cellM, z = (cam.r + 0.5) * terrain.cellM;
     var eye = [x, elevAt(x, z) + EYE_M, z];
-    var cp = Math.cos(cam.pitch);
-    var at = [eye[0] + Math.sin(cam.yaw) * cp, eye[1] + Math.sin(cam.pitch), eye[2] - Math.cos(cam.yaw) * cp];
-    var mvp = mul(perspective(FOV, w / Math.max(1, h), NEAR, FAR), lookAt(eye, at, [0, 1, 0]));
+    var aspect = w / Math.max(1, h), fovY = FOV, pitch = cam.pitch;
+    if (aspect < 1) {                                // phone upright: keep ~58-70 deg across, look lower
+      fovY = Math.min(100, Math.max(FOV, 2 * Math.atan(Math.tan(37.5 * Math.PI / 180) / aspect) * 180 / Math.PI));
+      pitch -= 0.2;
+    }
+    var cp = Math.cos(pitch);
+    var at = [eye[0] + Math.sin(cam.yaw) * cp, eye[1] + Math.sin(pitch), eye[2] - Math.cos(cam.yaw) * cp];
+    var mvp = mul(perspective(fovY, aspect, NEAR, FAR), lookAt(eye, at, [0, 1, 0]));
     var sun = sunDir(cam.hour);
 
     if (!rockAt || Math.hypot(rockAt[0] - x, rockAt[1] - z) > 45) buildRocks(x, z);
@@ -433,7 +438,7 @@
     gl.uniform3fv(F.uCam, eye);
     gl.uniform3fv(F.uFog, SKY_HORIZON);
     gl.enable(gl.BLEND);
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     gl.enable(gl.POLYGON_OFFSET_FILL);
     gl.polygonOffset(-2, -2);
     gl.uniform1f(F.uNear, 10);

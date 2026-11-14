@@ -354,7 +354,13 @@
   // Look around: drag on the view.
   var looking = false, lx = 0, ly = 0;
   var view3d = q('hud-3d');
+  var lastTap = 0;
   view3d.addEventListener('pointerdown', function (e) {
+    if (e.pointerType === 'touch') {                     // double-tap = straight ahead (like double-click)
+      var t = performance.now();
+      if (t - lastTap < 320) { wantYaw = 0; wantPitch = 0; lastTap = 0; if (!playing) update(); return; }
+      lastTap = t;
+    }
     looking = true; lx = e.clientX; ly = e.clientY;
     view3d.setPointerCapture(e.pointerId);
     el.classList.add('looked');

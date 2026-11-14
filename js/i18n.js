@@ -107,6 +107,7 @@
     ['Your base', 'Ваша база', 'Sizning bazangiz'],
     ['Map view', 'Вид карты', 'Map view'],
     ['3D view', '3D-вид', '3D view'],
+    ['Swipe to look around · double-tap: straight ahead', 'Проведите пальцем, чтобы осмотреться · двойное касание: вперёд', 'Swipe to look around · double-tap: straight ahead'],
     ['Drag to look around · double-click: straight ahead', 'Тяните, чтобы осмотреться · двойной клик: вперёд', 'Drag to look around · double-click: straight ahead'],
     ['3D: real terrain, 5 m grid (MODEL) · rocks are drawn for the look, not from the data', '3D: настоящий рельеф, сетка 5 м (МОДЕЛЬ) · камни нарисованы для вида, их нет в данных', '3D: real terrain, 5 m grid (MODEL) · rocks are drawn for the look, not from the data'],
     ['1 s = 10 s', '1 с = 10 с', '1 s = 10 s'],
