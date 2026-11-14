@@ -19,8 +19,8 @@
   var plan = S.plan;
 
   var VIEW_M = 800;                 // width of the visor map in metres
-  var SPEEDS = [60, 240, 600];      // simulation speed: sim seconds per real second
-  var SPEED_TEXT = ['1 s = 1 min', '1 s = 4 min', '1 s = 10 min'];
+  var SPEEDS = [10, 60, 240, 600];  // simulation speed: sim seconds per real second (10 = walk pace in 3D)
+  var SPEED_TEXT = ['1 s = 10 s', '1 s = 1 min', '1 s = 4 min', '1 s = 10 min'];
   var OFF_ROUTE_M = 20;             // further than this from the planned path = off route
   var CAUTION_MARGIN_S = 30 * 60;   // same 30 min rule as risk.js
 
@@ -295,7 +295,8 @@
     syncScene();
     if (st.heading !== null && st.heading !== undefined) yaw = angleTo(yaw, st.heading, playing ? 0.12 : 1);
     if (playing && !looking && performance.now() - lastLookAt > 2500) { lookYaw *= 0.93; lookPitch *= 0.93; }
-    SeraFpv.render({ r: st.r, c: st.c, yaw: yaw + lookYaw, pitch: -0.1 + lookPitch });
+    SeraFpv.render({ r: st.r, c: st.c, yaw: yaw + lookYaw, pitch: -0.1 + lookPitch,
+      hour: tl.startH + simS / MT.MARS_HOUR_S });
     compass(yaw + lookYaw);
   }
   // Compass strip at the top of the visor.
@@ -378,6 +379,8 @@
     var first = plan.legs[0] && plan.legs[0].cells;
     if (first && first.length > 1) yaw = Math.atan2(first[1].c - first[0].c, first[0].r - first[1].r);
     setView(fpvOK && !mapPreferred);
+    speedIdx = fpvOn ? 0 : 1;                       // 3D starts at walk pace, the map at 1 s = 1 min
+    q('hud-speed').textContent = SPEED_TEXT[speedIdx];
     update();
     q('hud-play').focus();
   }
