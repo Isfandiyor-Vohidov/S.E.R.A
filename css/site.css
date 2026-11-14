@@ -189,3 +189,18 @@ td a:hover { text-decoration: underline; }
 .hero-logo { display: block; width: 112px; height: 112px; border-radius: 20px; margin: 0 0 22px; object-fit: cover; }
 .hero-logo[hidden] { display: none; }
 @media (max-width: 760px) { .hero-logo { width: 88px; height: 88px; border-radius: 16px; } }
+
+/* Hero art: the SERA logo; the live map is its own wide section below */
+.hero-art { margin: 0; justify-self: end; width: 100%; max-width: 520px; }
+.hero-art img { display: block; width: 100%; height: auto; border-radius: 24px; border: 1px solid var(--line); }
+.preview-wide .preview-map { aspect-ratio: 1.7 / 1; }
+.preview-wide .route-card { grid-template-columns: minmax(0, 1.6fr) repeat(3, minmax(0, 1fr)) auto; padding: 18px 12px 8px; }
+.preview-wide .rc-title { grid-column: auto; }
+@media (max-width: 980px) {
+  .hero-art { justify-self: center; max-width: 440px; }
+}
+@media (max-width: 760px) {
+  .preview-wide .preview-map { aspect-ratio: 1 / 1.05; }
+  .preview-wide .route-card { grid-template-columns: repeat(3, 1fr); }
+  .preview-wide .rc-title { grid-column: 1 / -1; }
+}
