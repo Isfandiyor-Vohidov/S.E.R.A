@@ -11,7 +11,7 @@ var CORE = VERSION + '-core';
 var TILES = VERSION + '-tiles';
 var MAX_TILES = 3000;
 var PRECACHE = ['./', 'index.html', 'planner.html', 'lib/leaflet/leaflet.js', 'lib/leaflet/leaflet.css',
-  'img/logo.svg', 'img/sera-logo.jpg', 'img/mars-2k.jpg'];
+  'img/logo.svg', 'img/sera-logo.jpg', 'img/mark.png', 'img/sera-word.png', 'img/mars-2k.jpg'];
 
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CORE).then(function (c) { return c.addAll(PRECACHE); }).then(function () { return self.skipWaiting(); }));

@@ -130,7 +130,7 @@ node prep_msl.mjs
 python prep_globe.py   # needs Pillow
 python prep_crism.py   # needs Pillow
 python prep_places.py
-python prep_mark.py    # header icon from the globe texture
+python prep_logo.py    # SERA letters and planet icon cut from our logo
 ```
 
 `prep_dem.mjs` reads about 130 MB of the 3.6 GB DEM with HTTP range requests.
