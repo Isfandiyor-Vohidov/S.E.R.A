@@ -1,0 +1,9 @@
+{
+  "name": "sera-tools",
+  "private": true,
+  "type": "module",
+  "description": "Data preparation scripts for S.E.R.A (not needed to run the site)",
+  "dependencies": {
+    "geotiff": "^2.1.3"
+  }
+}

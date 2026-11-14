@@ -6,12 +6,11 @@
   'use strict';
 
   var MARS_RADIUS_M = 3396190; // IAU mean equatorial radius of Mars
-  var M_PER_DEG_LAT = Math.PI * MARS_RADIUS_M / 180;
 
-  // PROVISIONAL centre of the 2 x 2 km EVA zone (lower Mount Sharp, Gale Crater).
-  // To be confirmed by the team against the Curiosity traverse.
-  var EVA_CENTER = { lat: -4.74, lon: 137.39 };
-  var EVA_SIZE_M = 2000;
+  // Real terrain of the 2 x 2 km EVA zone (boxwork area on Mount Sharp, Gale Crater),
+  // cut from the USGS 1 m DEM by tools/prep_dem.mjs.
+  var T = SeraTerrain;
+  var terrain = T.createTerrain(window.SERA_TERRAIN);
 
   var GALE_CENTER = [-5.1, 137.8];
 
@@ -62,22 +61,39 @@
     attribution: 'MRO HiRISE mosaic (NASA/JPL/University of Arizona)'
   }).addTo(map);
 
+  // EVA zone rectangle = exact frame of the terrain grid.
+  function evaBounds() {
+    return L.latLngBounds([terrain.south, terrain.west], [terrain.north, terrain.east]);
+  }
+
+  // Slope layer: one canvas pixel per terrain cell, yellow = caution, red = no-go.
+  function buildSlopeLayer() {
+    var canvas = document.createElement('canvas');
+    canvas.width = terrain.cols;
+    canvas.height = terrain.rows;
+    var g = canvas.getContext('2d');
+    var img = g.createImageData(terrain.cols, terrain.rows);
+    var s = terrain.slopeDeg;
+    for (var i = 0; i < s.length; i++) {
+      var p = i * 4;
+      if (s[i] > T.SLOPE_BLOCK_DEG) {
+        img.data[p] = 229; img.data[p + 1] = 72; img.data[p + 2] = 77; img.data[p + 3] = 190;
+      } else if (s[i] >= T.SLOPE_CAUTION_DEG) {
+        img.data[p] = 230; img.data[p + 1] = 185; img.data[p + 2] = 60; img.data[p + 3] = 140;
+      }
+    }
+    g.putImageData(img, 0, 0);
+    return L.imageOverlay(canvas.toDataURL(), evaBounds(), { interactive: false, className: 'slope-layer' });
+  }
+  var slopes = buildSlopeLayer().addTo(map);
+
   L.control.layers(null, {
     'CTX · Gale Crater (6 m)': ctx,
-    'HiRISE · Curiosity site (25 cm)': hirise
+    'HiRISE · Curiosity site (25 cm)': hirise,
+    'Slopes · 1 m DEM (15° / 25°)': slopes
   }, { collapsed: true }).addTo(map);
 
   L.control.scale({ imperial: false, maxWidth: 160 }).addTo(map);
-
-  // EVA zone rectangle, EVA_SIZE_M on each side.
-  function evaBounds() {
-    var dLat = (EVA_SIZE_M / 2) / M_PER_DEG_LAT;
-    var dLon = dLat / Math.cos(EVA_CENTER.lat * Math.PI / 180);
-    return L.latLngBounds(
-      [EVA_CENTER.lat - dLat, EVA_CENTER.lon - dLon],
-      [EVA_CENTER.lat + dLat, EVA_CENTER.lon + dLon]
-    );
-  }
 
   var evaRect = L.rectangle(evaBounds(), {
     color: '#e2703a',
@@ -96,7 +112,13 @@
   };
   coords.addTo(map);
   map.on('mousemove', function (e) {
-    coords._div.textContent = 'lat ' + e.latlng.lat.toFixed(4) + '°  lon ' + e.latlng.lng.toFixed(4) + '°E';
+    var text = 'lat ' + e.latlng.lat.toFixed(4) + '°  lon ' + e.latlng.lng.toFixed(4) + '°E';
+    var elev = T.elevationAt(terrain, e.latlng.lat, e.latlng.lng);
+    if (elev !== null) {
+      text += '  elev ' + elev.toFixed(0) + ' m  slope ' +
+        T.slopeAt(terrain, e.latlng.lat, e.latlng.lng).toFixed(0) + '°';
+    }
+    coords._div.textContent = text;
   });
 
   // View switching: Mars -> Gale Crater -> EVA zone.
@@ -122,5 +144,5 @@
   setActive('mars');
 
   // Exposed for the next modules and for testing in the console.
-  window.SERA = { map: map, evaBounds: evaBounds, EVA_CENTER: EVA_CENTER, EVA_SIZE_M: EVA_SIZE_M };
+  window.SERA = { map: map, terrain: terrain, evaBounds: evaBounds };
 })();

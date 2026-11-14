@@ -69,6 +69,8 @@ body {
 .leaflet-control-attribution { background: rgba(13, 17, 23, 0.8) !important; color: var(--muted); }
 .leaflet-control-attribution a { color: var(--text); }
 
+.slope-layer { image-rendering: pixelated; }
+
 .coords {
   background: rgba(13, 17, 23, 0.8);
   color: var(--text);
