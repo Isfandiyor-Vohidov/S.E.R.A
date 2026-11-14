@@ -4,7 +4,9 @@
 // the modelled speed, works at each point) and shows what the visor would show: suit time left,
 // time to get home from where you stand, the next target, the slope under your feet.
 // "Emergency · home" drops the plan and leads home by the fastest safe way from the current spot.
-// The HUD is always dark.
+// It also watches the walk: off the route -> a warning and a new path to the next point;
+// conditions change (storm alert) -> NO-GO and the way home is rebuilt at once.
+// Seen from inside the helmet (visor frame image). The HUD is always dark.
 
 (function () {
   'use strict';
@@ -16,6 +18,8 @@
 
   var VIEW_M = 800;                 // width of the visor map in metres
   var SPEEDS = [60, 240, 600];      // simulation speed: sim seconds per real second
+  var SPEED_TEXT = ['1 s = 1 min', '1 s = 4 min', '1 s = 10 min'];
+  var OFF_ROUTE_M = 20;             // further than this from the planned path = off route
   var CAUTION_MARGIN_S = 30 * 60;   // same 30 min rule as risk.js
 
   var el = document.getElementById('hud');
@@ -29,6 +33,7 @@
   var playing = false, speedIdx = 0, lastFrame = 0, raf = 0;
   var emergency = null;   // {fromS, segs} once the emergency return started
   var homeNow = null;     // fastest way home from the current cell
+  var notice = null;      // {atS, forS, level, text}: off route, shown for a while
 
   function cellIndex(c) { return c.r * terrain.cols + c.c; }
   function fmtClock(s) {
@@ -183,13 +188,15 @@
     var level = 0, msg = 'On plan';
     if (marginS < 0) { level = 2; msg = 'Turn back now: the way home needs the suit reserve'; }
     else if (marginS < CAUTION_MARGIN_S) { level = 1; msg = 'Less than 30 min of spare suit time'; }
-    if (emergency) { level = Math.max(level, 1); msg = 'Emergency return: fastest safe way home'; }
+    if (notice && simS - notice.atS < notice.forS) { level = Math.max(level, notice.level); msg = notice.text; }
+    if (emergency) { level = Math.max(level, emergency.level || 1); msg = emergency.text || 'Emergency return: fastest safe way home'; }
     if (done) { level = 0; msg = emergency ? 'Back at base after emergency return' : 'EVA complete, back at base'; }
     var labels = ['GO', 'CAUTION', 'NO-GO'];
     var stEl = q('hud-status');
     stEl.className = 'hud-status lv' + level;
     stEl.textContent = labels[level];
     q('hud-msg').textContent = msg;
+    q('hud-msg').classList.toggle('alert', level === 2 && !done);
 
     q('hud-clock').textContent = hhmm(tl.startH + simS / MT.MARS_HOUR_S);
     q('hud-elapsed').textContent = fmtClock(simS);
@@ -228,6 +235,8 @@
     } else radioEl.textContent = '—';
     q('hud-progress').value = Math.round(simS / Math.max(tl.totalS, endS()) * 1000);
     q('hud-emergency').disabled = !!emergency || done;
+    q('hud-drift').disabled = !!emergency || done;
+    q('hud-storm').disabled = !!emergency || done;
     q('hud-play').textContent = playing ? 'Pause' : (done ? 'Replay' : 'Play');
     draw(st);
   }
@@ -242,7 +251,7 @@
     if (playing) raf = requestAnimationFrame(frame);
   }
   function play() {
-    if (simS >= endS() - 0.5) { emergency = null; simS = 0; }
+    if (simS >= endS() - 0.5) { emergency = null; notice = null; simS = 0; tl = buildTimeline(); }
     playing = true; lastFrame = 0;
     cancelAnimationFrame(raf); raf = requestAnimationFrame(frame);
     update();
@@ -253,8 +262,8 @@
     if (!plan.base || !plan.stops.length || !plan.home) return;
     if (!relief) relief = SeraRelief.build(terrain, T);
     tl = buildTimeline();
-    emergency = null; simS = 0; speedIdx = 0; lastCellKey = '';
-    q('hud-speed').textContent = '×' + SPEEDS[speedIdx];
+    emergency = null; notice = null; simS = 0; speedIdx = 0; lastCellKey = '';
+    q('hud-speed').textContent = SPEED_TEXT[speedIdx];
     q('hud-plan-total').textContent = fmtMin(tl.totalS);
     var verdict = plan.risk ? ['GO', 'CAUTION', 'NO-GO'][plan.risk.level] : '—';
     q('hud-preeva').textContent = verdict;
@@ -270,24 +279,113 @@
     openBtn.focus();
   }
 
-  function startEmergency() {
+  function startEmergency(level, text) {
     var st = stateAt(simS);
     var cell = nearestCell(st);
     var path = P.pathHome(terrain, plan.field, cell);
     if (!path) return;
-    emergency = { fromS: simS, segs: [walkSeg(path.cells, simS, 'Emergency return', { cell: plan.base, name: 'Base' })] };
+    emergency = { fromS: simS, level: typeof level === 'number' ? level : 1, text: typeof text === 'string' ? text : null,
+      segs: [walkSeg(path.cells, simS, 'Emergency return', { cell: plan.base, name: 'Base' })] };
     lastCellKey = '';
     if (!playing) play(); else update();
   }
 
+  // --- Watching the walk -------------------------------------------------------------
+  // Conditions change: a (simulated) solar particle alert -> NO-GO, the way home from here.
+  function stormAlert() {
+    startEmergency(2, 'Solar particle alert (test): NO-GO, new fastest way home from here');
+  }
+
+  // Off the route: the astronaut steps 40-60 m aside (around a rock, say). S.E.R.A notices it,
+  // warns, and rebuilds the path from where they are to the next point; the rest of the plan stays.
+  function lineCells(a, b) {
+    var n = Math.max(1, Math.abs(b.r - a.r), Math.abs(b.c - a.c)), out = [];
+    for (var i = 0; i <= n; i++) out.push({ r: Math.round(a.r + (b.r - a.r) * i / n), c: Math.round(a.c + (b.c - a.c) * i / n) });
+    return out;
+  }
+  function distToPlanM(cell) {
+    var best = Infinity;
+    tl.segs.forEach(function (sg) {
+      if (sg.type !== 'walk') return;
+      sg.cells.forEach(function (c) { var d = Math.hypot(c.r - cell.r, c.c - cell.c); if (d < best) best = d; });
+    });
+    return best * terrain.cellM;
+  }
+  function stepOffRoute() {
+    if (emergency || simS >= endS() - 0.5) return;
+    var st = stateAt(simS), here = nearestCell(st);
+    var h = (st.heading !== null && st.heading !== undefined) ? st.heading : 0;
+    var off = null;
+    for (var d = 8; d <= 12 && !off; d++) {
+      for (var side = 1; side >= -1 && !off; side -= 2) {
+        var a = h + side * Math.PI / 2;
+        var c = { r: Math.round(here.r - Math.cos(a) * d), c: Math.round(here.c + Math.sin(a) * d) };
+        if (c.r < 1 || c.c < 1 || c.r >= terrain.rows - 1 || c.c >= terrain.cols - 1) continue;
+        var k = cellIndex(c);
+        if (terrain.slopeDeg[k] < T.SLOPE_CAUTION_DEG && isFinite(plan.field.timeS[k])) off = c;
+      }
+    }
+    if (!off) return;
+    var offM = Math.round(distToPlanM(off));
+    // Which point is next from here?
+    var seg = st.seg, next = plan.stops.length;
+    if (seg.type === 'work') next = seg.stop + 1;
+    else if (seg.target && seg.target.cell !== plan.base) next = plan.stops.indexOf(seg.target.cell);
+    if (next < 0) next = plan.stops.length;
+    // Keep the past, walk aside, then a new path to the next point and the rest of the plan.
+    var workS = PL.WORK_MIN_PER_STOP * 60, name;
+    var past = tl.segs.filter(function (sg) { return sg.t1 <= simS; });
+    var segs = past, t0 = simS;
+    if (seg.type === 'work') {        // the science work in progress is finished first
+      segs = segs.concat([{ type: 'work', cell: seg.cell, t0: seg.t0, t1: seg.t1, label: seg.label, stop: seg.stop }]);
+      t0 = seg.t1;
+    }
+    var aside = walkSeg(lineCells(here, off), t0, 'Off route', null);
+    segs = segs.concat([aside]);
+    var t = aside.t1;
+    if (next < plan.stops.length) {
+      var target = plan.stops[next];
+      var back = P.pathHome(terrain, P.homeField(terrain, target), off);
+      if (!back) return;
+      name = 'Point ' + (next + 1);
+      var w = walkSeg(back.cells, t, 'New path to ' + name, { cell: target, name: name });
+      segs.push(w); t = w.t1;
+      segs.push({ type: 'work', cell: target, t0: t, t1: t + workS, label: 'Science work · ' + name, stop: next });
+      t += workS;
+      for (var j = next + 1; j < plan.stops.length; j++) {
+        var nm = 'Point ' + (j + 1);
+        var lw = walkSeg(plan.legs[j].cells, t, 'To ' + nm, { cell: plan.stops[j], name: nm });
+        segs.push(lw); t = lw.t1;
+        segs.push({ type: 'work', cell: plan.stops[j], t0: t, t1: t + workS, label: 'Science work · ' + nm, stop: j });
+        t += workS;
+      }
+      var hw = walkSeg(plan.home.cells, t, 'Back to base', { cell: plan.base, name: 'Base' });
+      segs.push(hw); t = hw.t1;
+    } else {
+      name = 'Base';
+      var hb = P.pathHome(terrain, plan.field, off);
+      var hw2 = walkSeg(hb.cells, t, 'Back to base', { cell: plan.base, name: 'Base' });
+      segs.push(hw2); t = hw2.t1;
+    }
+    var added = t - tl.totalS;
+    tl.segs = segs; tl.totalS = t;
+    q('hud-plan-total').textContent = fmtMin(t);
+    notice = { atS: simS, forS: 20 * 60, level: offM > OFF_ROUTE_M ? 1 : 0,
+      text: 'Off route by ' + offM + ' m: new safe path to ' + name + (added > 30 ? ' (+' + fmtMin(added) + ')' : '') };
+    lastCellKey = '';
+    update();
+  }
+
   openBtn.addEventListener('click', open);
+  q('hud-drift').addEventListener('click', stepOffRoute);
+  q('hud-storm').addEventListener('click', stormAlert);
   q('hud-exit').addEventListener('click', close);
   q('hud-play').addEventListener('click', function () { if (playing) pause(); else play(); });
   q('hud-speed').addEventListener('click', function () {
     speedIdx = (speedIdx + 1) % SPEEDS.length;
-    this.textContent = '×' + SPEEDS[speedIdx];
+    this.textContent = SPEED_TEXT[speedIdx];
   });
-  q('hud-emergency').addEventListener('click', startEmergency);
+  q('hud-emergency').addEventListener('click', function () { startEmergency(); });
   q('hud-progress').addEventListener('input', function () {
     if (emergency) { emergency = null; lastCellKey = ''; }
     simS = this.value / 1000 * tl.totalS;
@@ -307,6 +405,6 @@
   setInterval(syncButton, 500);
   syncButton();
 
-  window.SeraHud = { open: open, close: close, emergency: startEmergency,
+  window.SeraHud = { open: open, close: close, emergency: startEmergency, offRoute: stepOffRoute, storm: stormAlert,
     _state: function () { return { simS: simS, totalS: tl && tl.totalS, emergency: !!emergency }; } };
 })();

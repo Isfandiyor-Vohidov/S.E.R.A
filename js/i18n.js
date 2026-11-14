@@ -105,6 +105,10 @@
     ['over by', 'не хватает', 'yetmaydi:'],
     ['Base (home) · habitat', 'База (дом) · жилой модуль', 'Baza (uy) · yashash moduli'],
     ['Your base', 'Ваша база', 'Sizning bazangiz'],
+    ['Test · off route', 'Тест · сход с маршрута', 'Test · yo'ldan chiqish'],
+    ['Test · storm alert', 'Тест · тревога бури', 'Test · bo'ron xavfi'],
+    ['Solar particle alert (test): NO-GO, new fastest way home from here', 'Тревога солнечных частиц (тест): NO-GO, новый быстрейший путь домой отсюда', 'Quyosh zarralari xavfi (test): NO-GO, bu yerdan uyga yangi yo'l'],
+    ['Off route', 'Сход с маршрута', 'Yo'ldan chiqish'],
     ['Base · start', 'База · старт', 'Baza · start'],
     ['Base · back', 'База · возвращение', 'Baza · qaytish'],
     ['habitat · elev', 'жилой модуль · высота', 'yashash moduli · balandlik'],
@@ -365,7 +369,7 @@
 
   // Numbers with units and patterns, after the phrases.
   var RULES = {
-    ru: [[/^To (.+)$/, 'К: $1'], [/^Walk (.+)$/, 'Идти $1'], [/^Way home (.+)$/, 'Домой $1'], [/^Science work · (.+)$/, 'Научная работа · $1'], [/\bPoint (\d+)\b/g, 'Точка $1'],
+    ru: [[/^1 s = (\d+) min$/, '1 с = $1 мин'], [/^Off route by (\d+) m: new safe path to (.+)$/, 'Сход с маршрута на $1 м: новый безопасный путь к $2'], [/^New path to (.+)$/, 'Новый путь к $1'], [/^To (.+)$/, 'К: $1'], [/^Walk (.+)$/, 'Идти $1'], [/^Way home (.+)$/, 'Домой $1'], [/^Science work · (.+)$/, 'Научная работа · $1'], [/\bPoint (\d+)\b/g, 'Точка $1'],
       [/(\d+) h (\d+) min/g, '$1 ч $2 мин'], [/(\d+) h\b/g, '$1 ч'], [/(\d+) min\b/g, '$1 мин'], [/(\d) km\b/g, '$1 км'],
       [/(\d) m\b/g, '$1 м'], [/^Split into (\d+) EVAs/, 'Разбить на выходы: $1'], [/^EVA (\d+) · points (.+)$/, 'Выход $1 · точки $2'], [/Gale Crater · Sol (\d+)/, 'Кратер Гейл · сол $1'], [/^(\s*)ETA(\s*)$/, '$1Прибытие$2']],
     uz: [[/^To (.+)$/, 'Tomon: $1'], [/^Science work · (.+)$/, 'Ilmiy ish · $1'], [/\bPoint (\d+)\b/g, '$1-nuqta'],
