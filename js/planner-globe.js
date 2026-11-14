@@ -88,7 +88,7 @@
   // on the globe instead of running the same thing again (the language choice is kept).
   window.addEventListener('load', function () {
     setTimeout(function () {
-      var lang = /[?&]lang=(en|ru)/.exec(location.search);
+      var lang = /[?&]lang=(en|ru)\b/.exec(location.search);
       if (location.search && history.replaceState) {
         history.replaceState(null, '', location.pathname + (lang ? '?lang=' + lang[1] : '') + location.hash);
       }

@@ -560,3 +560,78 @@ body.hud-open { overflow: hidden; }
 .topbar .logo { margin-right: auto; }
 .back-site:hover, .back-site:focus-visible { border-color: #E78F67; color: #E78F67; }
 @media (max-width: 760px) { .back-site { padding: 6px 10px; } .topbar .brand-sub { display: none; } }
+
+/* ---- Helmet view in 3D: first person, readouts on the visor glass ---- */
+.hud-3d { position: absolute; inset: 0; width: 100%; height: 100%; display: none; touch-action: none; cursor: grab; }
+.hud-3d:active { cursor: grabbing; }
+.fpv-labels, .hud-compass, .hud-look, .hud-model { display: none; }
+.hud.fpv { background: linear-gradient(to bottom, #8a6650 0%, #b98f6f 30%, #d4b08d 52%, #dbb894 100%); }
+.hud.fpv .hud-3d { display: block; }
+.hud.fpv .fpv-labels { display: block; position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.fpv-label { position: absolute; left: 0; top: 0; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  font: 600 11px var(--font-body); color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.8); white-space: nowrap; }
+.fpv-label b { background: #E78F67; color: #0C171A; border-radius: 10px; padding: 2px 9px; font: 700 12px var(--font-body); text-shadow: none; }
+.fpv-label.base b { background: #A7F1C2; }
+
+/* Radar: the old top-down map, small and round, low on the right of the visor */
+.hud.fpv .hud-map { inset: auto; right: 12%; bottom: 23%; width: 150px; height: 150px; border-radius: 50%; z-index: 1;
+  border: 1px solid rgba(167,241,194,.55); box-shadow: 0 0 22px rgba(167,241,194,.22); background: rgba(8,16,18,.35); }
+
+/* Compass strip at the top of the visor */
+.hud.fpv .hud-compass { display: block; position: absolute; top: 7.5%; left: 50%; width: 280px; margin-left: -140px; height: 34px;
+  overflow: hidden; z-index: 1; pointer-events: none;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 22%, #000 78%, transparent); mask-image: linear-gradient(90deg, transparent, #000 22%, #000 78%, transparent); }
+.hud-compass-strip { position: absolute; left: 0; top: 0; height: 18px; }
+.hud-compass-strip span { position: absolute; top: 0; transform: translateX(-50%); font: 600 11px var(--font-body); color: rgba(233,255,242,.7);
+  text-shadow: 0 0 6px rgba(0,0,0,.6); }
+.hud-compass-strip span.cardinal { color: #E9FFF2; font-weight: 800; font-size: 13px; }
+.hud-compass i { position: absolute; left: 50%; top: 17px; width: 0; height: 0; margin-left: -5px;
+  border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 6px solid #A7F1C2; }
+.hud-compass b { position: absolute; left: 0; right: 0; top: 22px; text-align: center; font: 700 10px var(--font-body); color: #A7F1C2; }
+
+.hud.fpv .hud-look { display: block; position: absolute; top: 25%; left: 0; right: 0; text-align: center; margin: 0; z-index: 1;
+  font: 600 12px var(--font-body); color: rgba(233,255,242,.85); text-shadow: 0 1px 4px rgba(0,0,0,.7); pointer-events: none; transition: opacity .6s; }
+.hud.fpv.looked .hud-look { opacity: 0; }
+.hud.fpv .hud-model { display: block; position: absolute; left: 0; right: 0; bottom: calc(var(--ctrl-h, 56px) + 24px); margin: 0; text-align: center; z-index: 1;
+  font: 500 10.5px var(--font-body); color: rgba(233,255,242,.6); text-shadow: 0 1px 3px rgba(0,0,0,.8); pointer-events: none; }
+
+/* Readouts: light text on the glass, no boxes; the side groups follow the curve of the visor */
+.hud.fpv .hud-cell, .hud.fpv .hud-box {
+  background: linear-gradient(90deg, rgba(8,18,20,.42), rgba(8,18,20,.12)); border: 0; border-left: 2px solid rgba(167,241,194,.6);
+  border-radius: 3px; padding: 5px 12px; text-shadow: 0 0 10px rgba(167,241,194,.35), 0 1px 2px rgba(0,0,0,.6); }
+.hud.fpv .hud-cell span, .hud.fpv .hud-box > span, .hud.fpv .hud-box small { color: rgba(205,245,222,.82); }
+.hud.fpv .hud-cell b, .hud.fpv .hud-box b { color: #EFFFF5; }
+.hud.fpv .hud-box b { font-size: 21px; }
+.hud.fpv .hud-box b.warn, .hud.fpv .hud-cell b.warn { color: #FFD27A; }
+.hud.fpv .hud-box b.neg { color: #FF8A7A; }
+.hud.fpv .hud-top { top: 15%; left: 14%; right: 14%; justify-content: center; gap: 8px; }
+.hud.fpv .hud-top .hud-cell { padding: 3px 10px; }
+.hud.fpv .hud-top .hud-cell b { font-size: 14px; }
+.hud.fpv .hud-sim { position: fixed; top: 14px; left: 14px; }
+.hud.fpv #hud-exit { position: fixed; top: 12px; right: 14px; margin: 0; }
+.hud.fpv .hud-top .hud-cell:nth-child(n+2) { display: flex; }
+.hud.fpv .hud-left { left: 8.5%; width: 175px; transform: translateY(-50%) perspective(700px) rotateY(18deg); transform-origin: left center; }
+.hud.fpv .hud-right { right: 8.5%; width: 175px; top: 42%; transform: translateY(-50%) perspective(700px) rotateY(-18deg); transform-origin: right center; }
+.hud.fpv .hud-arrow { border-color: rgba(167,241,194,.5); }
+.hud.fpv .hud-statusline { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(var(--ctrl-h, 56px) + 44px); max-width: 64%;
+  background: rgba(8,18,20,.5); border: 0; border-radius: 8px; padding: 6px 10px; flex-wrap: nowrap; }
+.hud.fpv .hud-msg { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #DDEDE6; }
+.hud.fpv .hud-controls { background: rgba(10,20,22,.86); }
+
+@media (max-width: 760px) {
+  .hud.fpv .hud-map { width: 96px; height: 96px; right: 10px; bottom: auto; top: 128px; }
+  .hud.fpv .hud-compass { top: 92px; width: 180px; margin-left: -90px; }
+  .hud.fpv .hud-top { top: 46px; left: 10px; right: 10px; }
+  .hud.fpv .hud-top .hud-cell:nth-child(n+4) { display: none; }
+  .hud.fpv .hud-left { left: 10px; right: 10px; width: auto; transform: none; top: auto; bottom: calc(var(--ctrl-h, 160px) + 64px); }
+  .hud.fpv .hud-box { padding: 4px 8px; }
+  .hud.fpv .hud-box b { font-size: 16px; }
+  .hud.fpv .hud-statusline { bottom: calc(var(--ctrl-h, 160px) + 18px); max-width: calc(100% - 20px); }
+  .hud.fpv .hud-look { top: 160px; left: 14px; right: 120px; text-align: left; font-size: 11px; }
+  .hud.fpv .hud-model { display: none; }
+  .hud.fpv .hud-controls { gap: 6px; padding: 6px 8px; }
+  .hud.fpv .hud-btn { padding: 6px 10px; font-size: 12.5px; }
+  .hud.fpv .hud-emergency { padding: 8px 14px; font-size: 13.5px; }
+}
+.hud-helmet { z-index: 1; }
+.hud.fpv .hud-map { z-index: 2; }

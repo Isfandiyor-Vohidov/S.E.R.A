@@ -772,7 +772,7 @@
   // Exposed for the next modules and for testing in the console.
   // planner.html?at=lat,lon (from the 3D globe on the site) opens the map at that place.
   var at = /[?&]at=(-?[\d.]+),(-?[\d.]+)/.exec(location.search);
-  if (at && !/[?&]demo=1/.test(location.search)) {
+  if (at && !/[?&]demo=1\b/.test(location.search)) {
     welcomeEl.hidden = true;
     setActive('');
     map.setView([+at[1], +at[2]], 5);

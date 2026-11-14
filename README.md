@@ -40,6 +40,7 @@ At the first visit the assistant SERA shows a short guide: one part of the scree
 | Curiosity path and photos | The real rover path through the zone (144 stops, sols 4464–4989) with Navcam photos; a rover stop can be added as a science point |
 | Light and dark theme | Toggle in the top bar, remembered in the browser |
 | Helmet view (simulation) | Plays the EVA along the route, first person through a helmet frame: suit time left, time home from where you stand, next target, slope under feet. Speed 1 s = 1, 4 or 10 min. **Emergency · home** leads back by the fastest safe way from the current spot |
+| 3D helmet view | First person on the real terrain of the zone (WebGL, no libraries): the route on the ground, beacons for the points and the base, readouts on the visor glass, a round radar and a compass. Drag to look around. MODEL: 5 m grid, so small rocks are not shown. **Map view** switches back to the top-down map |
 | Deviation watch | **Test · off route** moves the walker 40–60 m aside: SERA builds a new safe path to the next point and keeps the rest of the plan. **Test · storm alert** gives NO-GO and the fastest way home from where you stand |
 | Mission Twin | For one science point: Route A (fastest) and Route B (gentle: 15–25° slopes cost 8×), there and back, side by side: distance, steep ground, steepest step, time, spare suit time, and SERA's recommendation. Both drawn on the map |
 | Assistant SERA | A fictional AI assistant character: first-visit guide, reactions (thinking → GO / CAUTION / NO-GO, welcome back), and an explanation of the current plan on request |
@@ -160,6 +161,7 @@ python prep_logo.py    # SERA letters and planet icon cut from our logo
 | `js/offline.js`, `sw.js` | Offline mode |
 | `js/i18n.js` | English / Russian |
 | `js/hud.js` | Helmet view: EVA simulation, deviation and storm tests, emergency return |
+| `js/fpv.js` | 3D first-person view of the terrain for the helmet view (WebGL) |
 | `js/twin.js` | Mission Twin: two routes to one point |
 | `js/assistant.js` | Assistant SERA: guide, reactions, explanation |
 | `js/globe.js`, `js/planner-globe.js` | 3D Mars globe |

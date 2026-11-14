@@ -7,6 +7,8 @@
 // It also watches the walk: off the route -> a warning and a new path to the next point;
 // conditions change (storm alert) -> NO-GO and the way home is rebuilt at once.
 // Seen from inside the helmet (visor frame image). The HUD is always dark.
+// 3D view (fpv.js): first person on the real terrain, look around by dragging; the top-down map
+// becomes a small radar. Without WebGL, or with "Map view", the old top-down map fills the visor.
 
 (function () {
   'use strict';
@@ -34,6 +36,9 @@
   var emergency = null;   // {fromS, segs} once the emergency return started
   var homeNow = null;     // fastest way home from the current cell
   var notice = null;      // {atS, forS, level, text}: off route, shown for a while
+  var fpvOK = false, fpvOn = false;        // 3D view available / shown
+  var yaw = 0, lookYaw = 0, lookPitch = 0, lastLookAt = 0, sceneKey = '';
+  var RADAR_M = 450;                        // the radar shows 450 m around you
 
   function cellIndex(c) { return c.r * terrain.cols + c.c; }
   function fmtClock(s) {
@@ -117,7 +122,12 @@
     var g = canvas.getContext('2d');
     g.setTransform(dpr, 0, 0, dpr, 0, 0);
     g.fillStyle = '#0C171A'; g.fillRect(0, 0, w, h);
-    var scale = w / (VIEW_M / terrain.cellM);              // px per cell
+    var radar = fpvOn;
+    if (radar) {                                           // round radar in the corner of the visor
+      g.clearRect(0, 0, w, h);
+      g.save(); g.beginPath(); g.arc(w / 2, h / 2, w / 2, 0, Math.PI * 2); g.clip();
+    }
+    var scale = w / ((radar ? RADAR_M : VIEW_M) / terrain.cellM);   // px per cell
     var ox = w / 2 - (st.c + 0.5) * scale, oy = h / 2 - (st.r + 0.5) * scale;
     g.imageSmoothingEnabled = true;
     g.drawImage(relief, ox, oy, terrain.cols * scale, terrain.rows * scale);
@@ -140,12 +150,12 @@
     if (homeNow) line(homeNow.cells, '#A7F1C2', emergency ? 5 : 3, emergency ? null : [8, 7]);
 
     function marker(c, label, isBase) {
-      var x = X(c), y = Y(c);
+      var x = X(c), y = Y(c), m = radar ? 8 : 12;
       g.fillStyle = isBase ? '#EDF2EA' : '#E78F67'; g.strokeStyle = '#0C171A'; g.lineWidth = 2;
       g.beginPath();
-      if (isBase && g.roundRect) g.roundRect(x - 12, y - 12, 24, 24, 5); else g.arc(x, y, 12, 0, Math.PI * 2);
+      if (isBase && g.roundRect) g.roundRect(x - m, y - m, 2 * m, 2 * m, 4); else g.arc(x, y, m, 0, Math.PI * 2);
       g.fill(); g.stroke();
-      g.fillStyle = '#0C171A'; g.font = '700 12px Inter, system-ui, sans-serif';
+      g.fillStyle = '#0C171A'; g.font = '700 ' + (radar ? 9 : 12) + 'px Inter, system-ui, sans-serif';
       g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(label, x, y + 0.5);
     }
     plan.stops.forEach(function (c, i) { marker(c, String(i + 1), false); });
@@ -156,10 +166,23 @@
     g.strokeStyle = '#EDF2EA'; g.lineWidth = 2.5;
     g.beginPath(); g.arc(cx, cy, 9, 0, Math.PI * 2); g.stroke();
     g.fillStyle = '#EDF2EA'; g.beginPath(); g.arc(cx, cy, 3.5, 0, Math.PI * 2); g.fill();
+    if (radar) {                                           // where you look: a view cone
+      g.save(); g.translate(cx, cy); g.rotate(yaw + lookYaw);
+      g.fillStyle = 'rgba(167,241,194,0.22)';
+      g.beginPath(); g.moveTo(0, 0); g.arc(0, 0, w / 2, -Math.PI / 2 - 0.61, -Math.PI / 2 + 0.61); g.closePath(); g.fill();
+      g.restore();
+      g.fillStyle = '#EDF2EA';
+    }
     if (st.heading !== null && st.heading !== undefined) {
       g.save(); g.translate(cx, cy); g.rotate(st.heading);
       g.beginPath(); g.moveTo(0, -22); g.lineTo(6, -13); g.lineTo(-6, -13); g.closePath(); g.fill();
       g.restore();
+    }
+    if (radar) {
+      g.restore();
+      g.fillStyle = '#EDF2EA'; g.font = '700 11px Inter, system-ui, sans-serif'; g.textAlign = 'center';
+      g.fillText('N', w / 2, 13);
+      return;
     }
     // Scale bar 100 m
     var px100 = 100 / terrain.cellM * scale;
@@ -177,6 +200,7 @@
     if (key !== lastCellKey) {                       // the field gives the way home at once
       homeNow = P.pathHome(terrain, plan.field, cell);
       lastCellKey = key;
+      if (fpvOK && homeNow) SeraFpv.setHome(homeNow.cells, !!emergency);
     }
     var i = cellIndex(cell);
     var homeS = plan.field.timeS[i];
@@ -239,7 +263,86 @@
     q('hud-storm').disabled = !!emergency || done;
     q('hud-play').textContent = playing ? 'Pause' : (done ? 'Replay' : 'Play');
     draw(st);
+    var ctrl = q('hud-play').parentNode.offsetHeight;
+    if (ctrl) el.style.setProperty('--ctrl-h', ctrl + 'px');
+    if (fpvOn) render3d(st);
   }
+
+  // ---- 3D view --------------------------------------------------------------------------
+  // What is on the ground: the route (passed parts fade), science points and the base as beacons.
+  function syncScene() {
+    var passed = tl.segs.filter(function (sg) { return sg.t1 <= simS; }).length;
+    var key = tl.segs.length + '|' + Math.round(tl.totalS) + '|' + passed + '|' + (emergency ? emergency.fromS : '');
+    if (key === sceneKey) return;
+    sceneKey = key;
+    var routeList = tl.segs.filter(function (sg) { return sg.type === 'walk'; }).map(function (sg) {
+      var old = emergency || sg.t1 <= simS;
+      return { cells: sg.cells, color: old ? [0.91, 0.56, 0.4, 0.3] : [0.91, 0.56, 0.4, 0.9], width: old ? 0.4 : 0.55 };
+    });
+    var pts = plan.stops.map(function (c, i) {
+      var named = S.stopName(c, i, true);
+      return { cell: c, color: [0.91, 0.56, 0.4], label: (i + 1) + (named ? ' · ' + named : '') };
+    });
+    pts.push({ cell: plan.base, color: [0.65, 0.95, 0.76], label: 'H · Base', base: true });
+    SeraFpv.setScene(routeList, pts);
+    if (homeNow) SeraFpv.setHome(homeNow.cells, !!emergency);
+  }
+  function angleTo(a, b, k) {                       // turn from a towards b by share k, the short way
+    var d = ((b - a + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
+    return a + d * k;
+  }
+  function render3d(st) {
+    syncScene();
+    if (st.heading !== null && st.heading !== undefined) yaw = angleTo(yaw, st.heading, playing ? 0.12 : 1);
+    if (playing && !looking && performance.now() - lastLookAt > 2500) { lookYaw *= 0.93; lookPitch *= 0.93; }
+    SeraFpv.render({ r: st.r, c: st.c, yaw: yaw + lookYaw, pitch: -0.1 + lookPitch });
+    compass(yaw + lookYaw);
+  }
+  // Compass strip at the top of the visor.
+  var compassStrip = q('hud-compass-strip'), PX_DEG = 2.4;
+  (function buildCompass() {
+    var names = { 0: 'N', 45: 'NE', 90: 'E', 135: 'SE', 180: 'S', 225: 'SW', 270: 'W', 315: 'NW' }, html = '';
+    for (var d = -180; d <= 540; d += 15) {
+      var n = ((d % 360) + 360) % 360;
+      html += '<span style="left:' + ((d + 180) * PX_DEG) + 'px" class="' + (names[n] ? 'cardinal' : '') + '">' + (names[n] || (n % 45 === 0 ? '' : '·')) + '</span>';
+    }
+    compassStrip.innerHTML = html;
+  })();
+  function compass(rad) {
+    var deg = ((rad * 180 / Math.PI) % 360 + 360) % 360;
+    var box = compassStrip.parentNode.clientWidth;
+    compassStrip.style.transform = 'translateX(' + (box / 2 - (deg + 180) * PX_DEG) + 'px)';
+    q('hud-heading').textContent = Math.round(deg) + '°';
+  }
+  // Look around: drag on the view.
+  var looking = false, lx = 0, ly = 0;
+  var view3d = q('hud-3d');
+  view3d.addEventListener('pointerdown', function (e) {
+    looking = true; lx = e.clientX; ly = e.clientY;
+    view3d.setPointerCapture(e.pointerId);
+    el.classList.add('looked');
+  });
+  view3d.addEventListener('pointermove', function (e) {
+    if (!looking) return;
+    lookYaw += (e.clientX - lx) * -0.005;
+    lookPitch = Math.max(-0.7, Math.min(0.6, lookPitch + (e.clientY - ly) * 0.004));
+    lx = e.clientX; ly = e.clientY;
+    lastLookAt = performance.now();
+    if (!playing) update();
+  });
+  function stopLook() { looking = false; lastLookAt = performance.now(); }
+  view3d.addEventListener('pointerup', stopLook);
+  view3d.addEventListener('pointercancel', stopLook);
+  view3d.addEventListener('dblclick', function () { lookYaw = 0; lookPitch = 0; if (!playing) update(); });
+  function setView(on) {
+    fpvOn = on && fpvOK;
+    el.classList.toggle('fpv', fpvOn);
+    if (!fpvOn) el.style.background = '';
+    q('hud-view').textContent = fpvOn ? 'Map view' : '3D view';
+    sceneKey = '';
+  }
+  var mapPreferred = false;
+  q('hud-view').addEventListener('click', function () { mapPreferred = fpvOn; setView(!fpvOn); update(); });
 
   function frame(now) {
     if (!playing) return;
@@ -261,6 +364,8 @@
   function open() {
     if (!plan.base || !plan.stops.length || !plan.home) return;
     if (!relief) relief = SeraRelief.build(terrain, T);
+    if (!fpvOK && window.SeraFpv) fpvOK = SeraFpv.init(q('hud-3d'), terrain, T, q('hud-labels'));
+    q('hud-view').hidden = !fpvOK;
     tl = buildTimeline();
     emergency = null; notice = null; simS = 0; speedIdx = 0; lastCellKey = '';
     q('hud-speed').textContent = SPEED_TEXT[speedIdx];
@@ -269,6 +374,10 @@
     q('hud-preeva').textContent = verdict;
     el.hidden = false;
     document.body.classList.add('hud-open');
+    lookYaw = 0; lookPitch = 0; sceneKey = '';
+    var first = plan.legs[0] && plan.legs[0].cells;
+    if (first && first.length > 1) yaw = Math.atan2(first[1].c - first[0].c, first[0].r - first[1].r);
+    setView(fpvOK && !mapPreferred);
     update();
     q('hud-play').focus();
   }
@@ -287,6 +396,7 @@
     emergency = { fromS: simS, level: typeof level === 'number' ? level : 1, text: typeof text === 'string' ? text : null,
       segs: [walkSeg(path.cells, simS, 'Emergency return', { cell: plan.base, name: 'Base' })] };
     lastCellKey = '';
+    sceneKey = '';
     if (!playing) play(); else update();
   }
 
@@ -370,6 +480,7 @@
     var added = t - tl.totalS;
     tl.segs = segs; tl.totalS = t;
     q('hud-plan-total').textContent = fmtMin(t);
+    sceneKey = '';
     notice = { atS: simS, forS: 20 * 60, level: offM > OFF_ROUTE_M ? 1 : 0,
       text: 'Off route by ' + offM + ' m: new safe path to ' + name + (added > 30 ? ' (+' + fmtMin(added) + ')' : '') };
     lastCellKey = '';
