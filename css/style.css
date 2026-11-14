@@ -83,6 +83,18 @@ body {
   gap: 10px;
 }
 .panel h2 { margin: 0; font-size: 16px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+.clock {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 12px;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+.clock .big { font-size: 22px; font-weight: 700; }
+.clock .night { color: var(--caution); }
+
 .hint { margin: 0; font-size: 14px; line-height: 1.4; }
 .hint.warn { color: var(--caution); }
 

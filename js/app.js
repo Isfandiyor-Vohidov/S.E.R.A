@@ -309,6 +309,28 @@
 
   render();
 
+  // ---- Mars clock at the EVA zone (Mars24 algorithm) ----
+
+  var MT = SeraMarsTime;
+  var clockEl = document.getElementById('clock');
+  var zoneLat = (terrain.north + terrain.south) / 2;
+  var zoneLon = (terrain.west + terrain.east) / 2;
+
+  function renderClock() {
+    var c = MT.localTime(Date.now(), zoneLon, zoneLat);
+    var model = ' <span class="tag">MODEL</span>';
+    clockEl.innerHTML =
+      '<span>Local solar time' + model + '</span><span class="big">' + MT.formatHours(c.ltst) + '</span>' +
+      '<span>Curiosity mission sol</span><span>' + c.mslSol + '</span>' +
+      '<span>Season (L<sub>s</sub>)' + (MT.isDustSeason(c.ls) ? ' · dust season' : '') + '</span><span>' + c.ls.toFixed(1) + '°</span>' +
+      '<span>Sunrise – sunset</span><span>' + MT.formatHours(c.sunriseLtst) + ' – ' + MT.formatHours(c.sunsetLtst) + '</span>' +
+      (c.isDay
+        ? '<span>Daylight left</span><span>' + fmtMin(c.hoursToSunset * MT.MARS_HOUR_S) + '</span>'
+        : '<span class="night">Night at the EVA zone</span><span class="night">Sun ' + c.sunElevationDeg.toFixed(0) + '°</span>');
+  }
+  renderClock();
+  setInterval(renderClock, 15000);
+
   // Exposed for the next modules and for testing in the console.
   window.SERA = { map: map, terrain: terrain, evaBounds: evaBounds, plan: plan };
 })();
