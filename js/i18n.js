@@ -282,6 +282,7 @@
     ['higher chance of dust storms', 'выше вероятность пылевых бурь', 'chang bo\'ronlari ehtimoli yuqori'],
     ['cached', 'из кэша', 'keshdan'],
     ['S.E.R.A AND LOGO: AI-GENERATED CHARACTER · MARS: NASA VIKING + MOLA', 'S.E.R.A И ЛОГОТИП: СОЗДАНЫ ИИ · МАРС: NASA VIKING + MOLA', 'S.E.R.A AND LOGO: AI-GENERATED CHARACTER · MARS: NASA VIKING + MOLA'],
+    ['Load the demo plan (lit while it is on the map)', 'Загрузить демо-план (кнопка горит, пока он на карте)', 'Load the demo plan (lit while it is on the map)'],
     ['Start simulation · helmet view', 'Начать симуляцию · вид из шлема', 'Start simulation · helmet view'],
     ['Start EVA · helmet view', 'Начать EVA · вид из шлема', 'EVA ni boshlash · dubulg\'a ko\'rinishi'],
     ['Simulate solar storm', 'Смоделировать солнечную бурю', 'Quyosh bo\'ronini modellashtirish'],

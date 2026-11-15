@@ -8,13 +8,13 @@
   <meta name="description" content="Plan a safe walk on the real terrain of Gale Crater, Mars: route, way home and a GO / CAUTION / NO-GO verdict.">
   <link rel="icon" href="img/mark.png?v=3" type="image/png">
   <script src="js/theme.js?v=2"></script>
-  <script src="js/i18n.js?v=37"></script>
+  <script src="js/i18n.js?v=38"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&family=Montserrat:wght@400;500&display=swap">
   <link rel="stylesheet" href="lib/leaflet/leaflet.css">
   <link rel="stylesheet" href="css/theme.css?v=16">
-  <link rel="stylesheet" href="css/style.css?v=51">
+  <link rel="stylesheet" href="css/style.css?v=52">
 </head>
 <body>
   <div id="print-head" class="print-head" aria-hidden="true">
@@ -37,7 +37,7 @@
         <button type="button" id="btn-msl" class="msl-toggle" aria-pressed="true" title="Show the real path of the Curiosity rover">Curiosity</button>
         <button type="button" id="btn-radio" class="msl-toggle radio-toggle" aria-pressed="false" title="Show where the base radio cannot reach">Radio</button>
         <button type="button" id="btn-crism" class="msl-toggle crism-toggle" aria-pressed="false" title="Mineral signals from MRO CRISM">Minerals</button>
-        <button type="button" id="btn-demo-top" class="demo-top">Demo</button>
+        <button type="button" id="btn-demo-top" class="demo-top" aria-pressed="false" title="Load the demo plan (lit while it is on the map)">Demo</button>
         <button type="button" id="btn-tour" class="demo-top" title="One-minute guided tour">Tour</button>
       </nav>
       <button type="button" class="theme-toggle" data-theme-toggle aria-label="Switch theme">
@@ -194,7 +194,7 @@
   <script src="js/risk.js?v=5"></script>
   <script src="js/demo-plan.js?v=2"></script>
   <script src="js/radio.js?v=2"></script>
-  <script src="js/app.js?v=28"></script>
+  <script src="js/app.js?v=29"></script>
   <script src="data/msl.js?v=2"></script>
   <script src="js/curiosity.js?v=2"></script>
   <script src="data/crism.js?v=1"></script>

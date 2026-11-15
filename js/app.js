@@ -254,6 +254,7 @@
   }
 
   function render() {
+    syncDemoBtn();
     routeLayer.clearLayers();
     stopsEl.innerHTML = '';
     verdictEl.hidden = true;
@@ -759,6 +760,7 @@
     map.invalidateSize();
     map.fitBounds(evaBounds(), { padding: [20, 20], animate: false });
     plan.demoKey = planKey();
+    syncDemoBtn();
   }
   // The demo plan is a simulation; once the base or a point is moved, added or removed it is your own plan.
   function planKey() {
@@ -766,6 +768,12 @@
     return plan.base.r + ',' + plan.base.c + '|' + plan.stops.map(function (s) { return s.r + ',' + s.c; }).sort().join(';');
   }
   function isDemo() { return !!plan.demoKey && plan.demoKey === planKey(); }
+  // The Demo button is lit while the demo plan is on the map, grey otherwise (cleared or your own plan),
+  // so the demo and a real plan are never mixed up.
+  function syncDemoBtn() {
+    var b = document.getElementById('btn-demo-top');
+    if (b) b.setAttribute('aria-pressed', isDemo() ? 'true' : 'false');
+  }
 
   document.getElementById('btn-demo').addEventListener('click', runDemo);
   document.getElementById('btn-demo-top').addEventListener('click', runDemo);

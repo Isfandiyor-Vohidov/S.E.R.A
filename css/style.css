@@ -32,6 +32,9 @@ body { display: flex; flex-direction: column; }
 .zoom-steps button:hover, .btn-small:hover { border-color: var(--primary); }
 .zoom-steps button.active { background: var(--text); border-color: var(--text); color: var(--bg); }
 .zoom-steps .demo-top { border-color: var(--primary); color: var(--primary); font-weight: 600; }
+/* Demo: lit while the demo plan is on, grey when it is not */
+.zoom-steps #btn-demo-top[aria-pressed="true"] { background: var(--primary); color: var(--on-primary, #fff); border-color: var(--primary); }
+.zoom-steps #btn-demo-top[aria-pressed="false"] { border-color: var(--line); color: var(--muted); font-weight: 500; }
 
 .layout { flex: 1; min-height: 0; display: flex; }
 .map-col { flex: 1; min-width: 0; display: flex; flex-direction: column; }
