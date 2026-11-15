@@ -71,7 +71,8 @@
     '  vec3 nn = normalize(vNor);' +
     '  vec3 alb;' +
     '  if (uKind > 2.5) {' +                                                   // the astronaut: white suit, grey pack, gold visor
-    '    alb = vSlope > 2.5 ? vec3(0.58, 0.58, 0.58) : vSlope > 1.5 ? vec3(0.62, 0.42, 0.14) : vec3(0.90, 0.89, 0.86) * vSlope;' +
+    '    alb = vSlope > 4.5 ? vec3(0.4, 1.4, 1.0) : vSlope > 3.5 ? vec3(0.30, 0.30, 0.31) : vSlope > 2.5 ? vec3(0.80, 0.80, 0.78)' +
+    '      : vSlope > 1.5 ? vec3(0.50, 0.33, 0.10) : vec3(0.93, 0.92, 0.89) * vSlope;' +
     '  } else if (uKind > 1.5) {' +
     '    alb = mix(rock, dark, 0.35) * vSlope * (0.8 + 0.4 * n(p*3.0 + vPos.y*2.0));' +
     '  } else {' +
@@ -100,6 +101,13 @@
     '  float ndl = max(dot(nn, uSun), 0.0);' +
     '  vec3 sky = vec3(0.46, 0.36, 0.31) * (0.65 + 0.35 * nn.y);' +           // light from the dusty sky
     '  vec3 col = alb * (vec3(1.0, 0.9, 0.78) * 1.0 * ndl + sky);' +
+    '  if (uKind > 2.5) {' +
+    '    vec3 vv = normalize(uCam - vPos); float rim = pow(1.0 - max(dot(nn, vv), 0.0), 3.0);' +
+    '    float sp = pow(max(dot(reflect(-uSun, nn), vv), 0.0), vSlope > 1.5 && vSlope < 2.5 ? 60.0 : 12.0);' +
+    '    col += vec3(1.0, 0.92, 0.8) * sp * (vSlope > 1.5 && vSlope < 2.5 ? 1.4 : 0.12) + vec3(0.55, 0.42, 0.34) * rim * 0.35;' +
+    '    col += alb * vec3(0.20, 0.19, 0.18);' +
+    '    if (vSlope > 1.5 && vSlope < 2.5) col += vec3(0.75, 0.55, 0.40) * 0.35 * (0.5 + 0.5 * nn.y);' +
+    '  }' +
     '  col = mix(vec3(dot(col, vec3(0.3, 0.55, 0.15))), col, 0.82);' +       // a bit less saturated, dusty
     '  float f = 1.0 - exp(-d * 0.00085);' +
     '  vec2 ez = min(vPos.xz, uZone - vPos.xz);' +                            // the zone edge melts into the haze
@@ -297,51 +305,102 @@
     return { v: v, f: f };
   })();
   var walker = null;
+  // Built from rounded parts with smooth normals: a white pressure suit, a life-support pack,
+  // a hard helmet with the gold sun visor down (no face), knees and elbows that bend with the step.
+  // Shade codes for the shader: 0..1.2 suit white, 2 gold visor, 3 light grey, 4 dark grey, 5 teal light.
   function buildWalker(o) {
     var P = [], N = [], S = [];
     var fy = Math.sin(o.yaw), fz = -Math.cos(o.yaw), rx = Math.cos(o.yaw), rz = Math.sin(o.yaw);
-    function world(p) { return [o.x + rx * p[0] + fy * p[2], o.y + p[1], o.z + rz * p[0] + fz * p[2]]; }
-    function swing(p, py, a) {                      // turn a point about the hip / shoulder (local x axis)
-      if (!a) return p;
-      var dy = p[1] - py, df = p[2], c = Math.cos(a), s = Math.sin(a);
-      return [p[0], py + dy * c - df * s, dy * s + df * c];
+    function W(p) { return [o.x + rx * p[0] + fy * p[2], o.y + p[1], o.z + rz * p[0] + fz * p[2]]; }
+    function Wn(n) { return [rx * n[0] + fy * n[2], n[1], rz * n[0] + fz * n[2]]; }
+    function quad(grid, shade) {                    // grid[i][j] = [pos, normal] (local) -> triangles
+      for (var i = 0; i < grid.length - 1; i++) for (var j = 0; j < grid[i].length - 1; j++) {
+        var q = [grid[i][j], grid[i + 1][j], grid[i + 1][j + 1], grid[i][j + 1]];
+        [0, 1, 2, 0, 2, 3].forEach(function (k) {
+          var p = W(q[k][0]), n = Wn(q[k][1]);
+          P.push(p[0], p[1], p[2]); N.push(n[0], n[1], n[2]); S.push(shade);
+        });
+      }
     }
-    function tri(a, b, c, center, shade) {
-      var ux = b[0] - a[0], uy = b[1] - a[1], uz = b[2] - a[2], vx = c[0] - a[0], vy = c[1] - a[1], vz = c[2] - a[2];
-      var nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx, l = Math.hypot(nx, ny, nz) || 1;
-      var mx = (a[0] + b[0] + c[0]) / 3 - center[0], my = (a[1] + b[1] + c[1]) / 3 - center[1], mz = (a[2] + b[2] + c[2]) / 3 - center[2];
-      if (nx * mx + ny * my + nz * mz < 0) l = -l;   // normals always point out
-      [a, b, c].forEach(function (p) { P.push(p[0], p[1], p[2]); N.push(nx / l, ny / l, nz / l); S.push(shade); });
+    function sp(v, e) { return (v < 0 ? -1 : 1) * Math.pow(Math.abs(v), e); }
+    // ellipsoid (e = 1) or rounded box (e < 1), centre c, radii r = [x, y, f]
+    function blob(c, r, shade, e, nu, nv) {
+      e = e || 1; nu = nu || 10; nv = nv || 14;
+      var g = [];
+      for (var i = 0; i <= nu; i++) {
+        var u = -Math.PI / 2 + Math.PI * i / nu, row = [];
+        for (var j = 0; j <= nv; j++) {
+          var v = -Math.PI + 2 * Math.PI * j / nv;
+          var cu = Math.cos(u), su = Math.sin(u), cv = Math.cos(v), sv = Math.sin(v);
+          var p = [c[0] + r[0] * sp(cu, e) * sp(cv, e), c[1] + r[1] * sp(su, e), c[2] + r[2] * sp(cu, e) * sp(sv, e)];
+          var n = [sp(cu, 2 - e) * sp(cv, 2 - e) / r[0], sp(su, 2 - e) / r[1], sp(cu, 2 - e) * sp(sv, 2 - e) / r[2]];
+          var l = Math.hypot(n[0], n[1], n[2]) || 1;
+          row.push([p, [n[0] / l, n[1] / l, n[2] / l]]);
+        }
+        g.push(row);
+      }
+      quad(g, shade);
     }
-    // box: centre (x, y, f), size (w, h, d), swing about height py by angle a
-    function box(cx, cy, cf, w, h, d, shade, py, a) {
-      var c = [], i;
-      for (i = 0; i < 8; i++) c.push(world(swing([cx + (i & 1 ? w : -w) / 2, cy + (i & 2 ? h : -h) / 2, cf + (i & 4 ? d : -d) / 2], py, a)));
-      var ctr = world(swing([cx, cy, cf], py, a));
-      [[0, 1, 3, 2], [4, 5, 7, 6], [0, 1, 5, 4], [2, 3, 7, 6], [0, 2, 6, 4], [1, 3, 7, 5]].forEach(function (q) {
-        tri(c[q[0]], c[q[1]], c[q[2]], ctr, shade); tri(c[q[0]], c[q[2]], c[q[3]], ctr, shade);
-      });
+    // capsule from p0 to p1, radius r0 at p0 and r1 at p1 (a limb)
+    function limb(p0, p1, r0, r1, shade) {
+      var d = [p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2]], L = Math.hypot(d[0], d[1], d[2]) || 1;
+      d = [d[0] / L, d[1] / L, d[2] / L];
+      var t = Math.abs(d[0]) < 0.9 ? [1, 0, 0] : [0, 1, 0];
+      var b1 = [d[1] * t[2] - d[2] * t[1], d[2] * t[0] - d[0] * t[2], d[0] * t[1] - d[1] * t[0]], bl = Math.hypot(b1[0], b1[1], b1[2]);
+      b1 = [b1[0] / bl, b1[1] / bl, b1[2] / bl];
+      var b2 = [d[1] * b1[2] - d[2] * b1[1], d[2] * b1[0] - d[0] * b1[2], d[0] * b1[1] - d[1] * b1[0]];
+      var g = [], NV = 12;
+      for (var i = 0; i <= 9; i++) {
+        var top = i <= 4, th = top ? (i / 4) * Math.PI / 2 : Math.PI / 2 + ((i - 5) / 4) * Math.PI / 2;
+        if (i === 5) th = Math.PI / 2;
+        var c = top ? p1 : p0, r = top ? r1 : r0, row = [];
+        for (var j = 0; j <= NV; j++) {
+          var ph = 2 * Math.PI * j / NV, ct = Math.cos(th), st = Math.sin(th), cp = Math.cos(ph), spp = Math.sin(ph);
+          var n = [d[0] * ct + (b1[0] * cp + b2[0] * spp) * st, d[1] * ct + (b1[1] * cp + b2[1] * spp) * st, d[2] * ct + (b1[2] * cp + b2[2] * spp) * st];
+          row.push([[c[0] + n[0] * r, c[1] + n[1] * r, c[2] + n[2] * r], n]);
+        }
+        g.push(row);
+      }
+      quad(g, shade);
     }
-    function ball(cx, cy, cf, rx_, ry, rf, shade) {
-      var ctr = world([cx, cy, cf]);
-      var pts = SPHERE.v.map(function (a) { return world([cx + a[0] * rx_, cy + a[1] * ry, cf + a[2] * rf]); });
-      SPHERE.f.forEach(function (t) { tri(pts[t[0]], pts[t[1]], pts[t[2]], ctr, shade); });
-    }
-    var sw = Math.sin(o.phase) * 0.55 * o.stride, air = o.air ? 0.35 : 0;
-    // legs with boots (swing at the hip), opposite arms (swing at the shoulder)
+    function add(p, v, k) { return [p[0] + v[0] * k, p[1] + v[1] * k, p[2] + v[2] * k]; }
+    function dir(ang, out) { var v = [out || 0, -Math.cos(ang), Math.sin(ang)], l = Math.hypot(v[0], v[1], v[2]); return [v[0] / l, v[1] / l, v[2] / l]; }
+
+    var st = o.stride, air = o.air ? 1 : 0;
     [-1, 1].forEach(function (k) {
-      var a = sw * k + air * (k > 0 ? 0.6 : -0.3);
-      box(0.13 * k, 0.5, 0, 0.19, 0.8, 0.23, 0.95, 0.92, a);
-      box(0.13 * k, 0.07, 0.04, 0.21, 0.14, 0.32, 0.55, 0.92, a);
-      box(0.34 * k, 1.17, 0, 0.13, 0.6, 0.15, 0.95, 1.45, -sw * k * 0.8 - air * 0.4);
-      box(0.34 * k, 0.86, 0.01, 0.12, 0.1, 0.13, 0.55, 1.45, -sw * k * 0.8 - air * 0.4);   // gloves
+      var ph = o.phase + (k > 0 ? Math.PI : 0);
+      // leg: hip swing, knee bends while the foot comes forward; in the air both knees bend
+      var hipA = Math.sin(ph) * 0.48 * st + air * (k > 0 ? 0.45 : 0.15);
+      var knee = (0.08 + 0.75 * Math.max(0, Math.cos(ph)) * st) * (1 - air) + air * 0.7;
+      var hip = [0.125 * k, 0.94, 0], kneeP = add(hip, dir(hipA), 0.44), ank = add(kneeP, dir(hipA - knee), 0.42);
+      limb(hip, kneeP, 0.125, 0.13, 0.97);
+      blob(kneeP, [0.115, 0.1, 0.115], 0.9);                                  // knee joint
+      limb(kneeP, ank, 0.112, 0.1, 0.97);
+      blob([ank[0], ank[1] - 0.005, ank[2] + 0.045], [0.1, 0.075, 0.165], 4, 0.6, 8, 12);   // boot
+      blob([ank[0], ank[1] + 0.045, ank[2] + 0.005], [0.105, 0.035, 0.105], 3);   // ankle ring
+      // arm: swings against the leg on the same side, elbow a little bent
+      var armA = -Math.sin(ph) * 0.42 * st - air * 0.5;
+      var sh = [0.31 * k, 1.49, 0], elb = add(sh, dir(armA, 0.1 * k), 0.29), wr = add(elb, dir(armA + 0.35 + 0.25 * st, 0.03 * k), 0.27);
+      blob(sh, [0.125, 0.12, 0.125], 0.95);                                      // shoulder bearing
+      limb(sh, elb, 0.098, 0.09, 0.97);
+      blob(elb, [0.09, 0.085, 0.09], 0.9);
+      limb(elb, wr, 0.086, 0.075, 0.97);
+      blob([wr[0], wr[1] + 0.02, wr[2]], [0.085, 0.03, 0.085], 3);               // wrist ring
+      blob([wr[0], wr[1] - 0.05, wr[2] + 0.01], [0.06, 0.085, 0.07], 4);         // glove
     });
-    box(0, 1.03, 0, 0.36, 0.26, 0.27, 0.8, 0, 0);       // waist ring
-    box(0, 1.3, 0, 0.52, 0.5, 0.32, 1.0, 0, 0);         // torso
-    box(0, 1.27, 0.165, 0.24, 0.16, 0.04, 0.5, 0, 0);   // chest panel
-    box(0, 1.3, -0.29, 0.46, 0.62, 0.24, 3.0, 0, 0);    // life-support pack
-    ball(0, 1.72, 0, 0.19, 0.2, 0.19, 0.98);            // helmet
-    ball(0, 1.72, 0.06, 0.15, 0.12, 0.15, 2.0);         // gold visor
+    blob([0, 1.02, 0], [0.225, 0.15, 0.175], 0.95);                             // hips / brief
+    blob([0, 1.17, 0], [0.215, 0.04, 0.17], 3);                                 // waist ring
+    blob([0, 1.36, 0], [0.275, 0.26, 0.185], 1.0, 0.55, 12, 16);                 // hard upper torso
+    blob([0, 1.27, 0.185], [0.13, 0.065, 0.055], 3, 0.45, 8, 12);               // chest control box
+    blob([0.055, 1.29, 0.238], [0.016, 0.016, 0.01], 5);                        // its status light
+    blob([0, 1.38, -0.29], [0.25, 0.34, 0.12], 3, 0.4, 12, 16);              // life-support pack
+    blob([0, 1.62, -0.29], [0.21, 0.03, 0.1], 4, 0.5);
+    blob([0, 1.2, -0.405], [0.2, 0.012, 0.012], 4);                              // pack seams
+    blob([0, 1.42, -0.405], [0.2, 0.012, 0.012], 4);                           // pack top
+    blob([0, 1.615, 0], [0.155, 0.035, 0.15], 3);                               // neck ring
+    blob([0, 1.79, -0.005], [0.165, 0.175, 0.175], 1.0, 1, 12, 18);             // helmet shell
+    blob([0, 1.775, 0.035], [0.152, 0.135, 0.155], 2, 1, 12, 18);               // gold visor
+    blob([0, 1.925, 0.02], [0.05, 0.02, 0.06], 3);                              // helmet lights
     if (!walker) walker = { pos: gl.createBuffer(), nor: gl.createBuffer(), slope: gl.createBuffer() };
     gl.bindBuffer(gl.ARRAY_BUFFER, walker.pos); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(P), gl.DYNAMIC_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, walker.nor); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(N), gl.DYNAMIC_DRAW);
