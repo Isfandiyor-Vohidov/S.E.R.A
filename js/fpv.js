@@ -399,7 +399,7 @@
     gl.enable(gl.DEPTH_TEST);
 
     var x = (cam.c + 0.5) * terrain.cellM, z = (cam.r + 0.5) * terrain.cellM;
-    var eye = [x, elevAt(x, z) + EYE_M, z];
+    var eye = [x, (cam.footY !== undefined ? cam.footY : elevAt(x, z)) + EYE_M, z];   // footY: in the air (free walk)
     var aspect = w / Math.max(1, h), fovY = FOV, pitch = cam.pitch;
     if (aspect < 1) {                                // phone upright: keep ~58-70 deg across, look lower
       fovY = Math.min(100, Math.max(FOV, 2 * Math.atan(Math.tan(37.5 * Math.PI / 180) / aspect) * 180 / Math.PI));
@@ -447,7 +447,7 @@
       gl.drawArrays(gl.TRIANGLES, 0, m.count);
     });
     gl.disable(gl.POLYGON_OFFSET_FILL);
-    gl.uniform1f(F.uNear, 9);                      // a beacon ring you stand in fades too
+    gl.uniform1f(F.uNear, 26);                     // a beacon you stand next to fades away (free walk)
     gl.depthMask(false);
     beacons.forEach(function (m) {
       attrib(F.aPos, m.pos, 3); attrib(F.aCol, m.col, 4);

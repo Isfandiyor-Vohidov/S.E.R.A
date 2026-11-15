@@ -8,13 +8,13 @@
   <meta name="description" content="Plan a safe walk on the real terrain of Gale Crater, Mars: route, way home and a GO / CAUTION / NO-GO verdict.">
   <link rel="icon" href="img/mark.png?v=3" type="image/png">
   <script src="js/theme.js?v=2"></script>
-  <script src="js/i18n.js?v=31"></script>
+  <script src="js/i18n.js?v=34"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&family=Montserrat:wght@400;500&display=swap">
   <link rel="stylesheet" href="lib/leaflet/leaflet.css">
   <link rel="stylesheet" href="css/theme.css?v=16">
-  <link rel="stylesheet" href="css/style.css?v=47">
+  <link rel="stylesheet" href="css/style.css?v=50">
 </head>
 <body>
   <div id="print-head" class="print-head" aria-hidden="true">
@@ -133,6 +133,9 @@
       <p>The helmet view is made for landscape, like a real visor.</p>
       <div class="rot-actions"><button type="button" id="hud-upright" class="hud-btn">Stay upright</button><button type="button" id="hud-rot-back" class="hud-btn">Back to the map</button></div>
     </div>
+    <p class="hud-keys"><span class="t-mouse">W A S D or arrows: walk · Shift: run · Space: jump · drag: look</span><span class="t-touch">Joystick: walk (to the edge: run) · ⤒: jump · swipe: look</span> · Mars gravity 0.38 g</p>
+    <div id="hud-stick" class="hud-stick" aria-label="Walk joystick"><i></i></div>
+    <button type="button" id="hud-jump" class="hud-jump" aria-label="Jump">⤒</button>
     <p class="hud-model">3D: real terrain, 5 m grid (MODEL) · rocks are drawn for the look, not from the data</p>
     <div class="hud-top">
       <span class="hud-sim">Simulation</span>
@@ -169,6 +172,7 @@
         <button type="button" id="hud-play" class="hud-btn">Play</button>
         <button type="button" id="hud-speed" class="hud-btn" title="Simulation speed: click to change">1 s = 1 min</button>
         <button type="button" id="hud-view" class="hud-btn" hidden>Map view</button>
+        <button type="button" id="hud-walk" class="hud-btn hud-walk-btn">Walk yourself</button>
         <input type="range" id="hud-progress" min="0" max="1000" value="0" aria-label="EVA timeline">
         <span class="hud-total">Plan <b id="hud-plan-total">—</b></span>
         <button type="button" id="hud-drift" class="hud-btn hud-test" title="Test: the astronaut leaves the route">Test · off route</button>
@@ -196,8 +200,8 @@
   <script src="js/globe.js?v=7"></script>
   <script src="js/planner-globe.js?v=6"></script>
   <script src="js/relief.js?v=2"></script>
-  <script src="js/fpv.js?v=14"></script>
-  <script src="js/hud.js?v=21"></script>
+  <script src="js/fpv.js?v=17"></script>
+  <script src="js/hud.js?v=26"></script>
   <script src="js/tour.js?v=2"></script>
   <script src="data/places.js?v=1"></script>
   <script src="js/search.js?v=2"></script>

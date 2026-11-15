@@ -39,6 +39,11 @@
   var fpvOK = false, fpvOn = false;        // 3D view available / shown
   var yaw = 0, lookYaw = 0, lookPitch = 0, lastLookAt = 0, sceneKey = '';
   var RADAR_M = 450;                        // the radar shows 450 m around you
+  // Free walk: you move yourself (keys or joystick), the clock runs in real time, Mars gravity.
+  var MARS_G = 3.71;                        // m/s2, 0.38 of Earth's
+  var WALK_MS = 2.0, RUN_MS = 5.0;          // walk / run speed on flat ground (sped up for a demo)
+  var JUMP_MS = 2.2;                        // take-off speed: ~0.65 m high, ~1.2 s in the air on Mars
+  var free = { on: false, r: 0, c: 0, footY: 0, vy: 0, last: 0, raf: 0, fwd: 0, side: 0, turn: 0, run: false, jump: false, stickF: 0, stickS: 0, stickRun: false };
 
   function cellIndex(c) { return c.r * terrain.cols + c.c; }
   function fmtClock(s) {
@@ -193,8 +198,22 @@
   }
 
   var lastCellKey = '';
+  // Where you are in free walk: the nearest science point (or the base) is the target.
+  function freeState() {
+    var best = null;
+    plan.stops.forEach(function (c, i) {
+      var d = Math.hypot(c.r - free.r, c.c - free.c);
+      var named = S.stopName(c, i, true);
+      if (!best || d < best.d) best = { d: d, cell: c, name: named || ('Point ' + (i + 1)) };
+    });
+    var db = Math.hypot(plan.base.r - free.r, plan.base.c - free.c);
+    if (!best || db < best.d) best = { d: db, cell: plan.base, name: 'Base' };
+    var seg = { type: 'free', label: 'Free walk', target: { cell: best.cell, name: best.name },
+      t1: simS + best.d * terrain.cellM / WALK_MS };
+    return { r: free.r, c: free.c, seg: seg, heading: null };
+  }
   function update() {
-    var st = stateAt(simS);
+    var st = free.on ? freeState() : stateAt(simS);
     var cell = nearestCell(st);
     var key = cell.r + ',' + cell.c;
     if (key !== lastCellKey) {                       // the field gives the way home at once
@@ -206,10 +225,10 @@
     var homeS = plan.field.timeS[i];
     var suitLeftS = tl.limitS - simS;
     var marginS = tl.usableS - (simS + homeS);
-    var done = simS >= endS() - 0.5;
+    var done = !free.on && simS >= endS() - 0.5;
 
     // Status: the same rule as the planner, applied to where you are now.
-    var level = 0, msg = 'On plan';
+    var level = 0, msg = free.on ? 'Exploring on your own' : 'On plan';
     if (marginS < 0) { level = 2; msg = 'Turn back now: the way home needs the suit reserve'; }
     else if (marginS < CAUTION_MARGIN_S) { level = 1; msg = 'Less than 30 min of spare suit time'; }
     if (notice && simS - notice.atS < notice.forS) { level = Math.max(level, notice.level); msg = notice.text; }
@@ -310,7 +329,7 @@
     var ease = 1 - Math.exp(-dt / 0.14);                           // the look follows your drag softly
     lookYaw += (wantYaw - lookYaw) * ease; lookPitch += (wantPitch - lookPitch) * ease;
     SeraFpv.render({ r: st.r, c: st.c, yaw: yaw + lookYaw, pitch: -0.1 + lookPitch,
-      hour: tl.startH + simS / MT.MARS_HOUR_S });
+      hour: tl.startH + simS / MT.MARS_HOUR_S, footY: free.on ? free.footY : undefined });
     compass(yaw + lookYaw);
     placeRadar();
     // While paused, keep drawing until the look has settled.
@@ -379,6 +398,7 @@
   view3d.addEventListener('dblclick', function () { wantYaw = 0; wantPitch = 0; if (!playing) update(); });
   function setView(on) {
     fpvOn = on && fpvOK;
+    if (!fpvOn && free.on) { free.on = false; el.classList.remove('free'); cancelAnimationFrame(free.raf); q('hud-walk').textContent = 'Walk yourself'; }
     el.classList.toggle('fpv', fpvOn);
     if (!fpvOn) { el.style.background = ''; canvas.style.top = canvas.style.right = canvas.style.bottom = canvas.style.width = canvas.style.height = ''; }
     q('hud-view').textContent = fpvOn ? 'Map view' : '3D view';
@@ -397,6 +417,7 @@
     if (playing) raf = requestAnimationFrame(frame);
   }
   function play() {
+    if (free.on) setFree(false);
     if (simS >= endS() - 0.5) { emergency = null; notice = null; simS = 0; tl = buildTimeline(); }
     playing = true; lastFrame = 0;
     cancelAnimationFrame(raf); raf = requestAnimationFrame(frame);
@@ -409,6 +430,7 @@
     if (!relief) relief = SeraRelief.build(terrain, T);
     if (!fpvOK && window.SeraFpv) fpvOK = SeraFpv.init(q('hud-3d'), terrain, T, q('hud-labels'));
     q('hud-view').hidden = !fpvOK;
+    q('hud-walk').hidden = !fpvOK;
     tl = buildTimeline();
     emergency = null; notice = null; simS = 0; speedIdx = 0; lastCellKey = '';
     q('hud-speed').textContent = SPEED_TEXT[speedIdx];
@@ -429,6 +451,7 @@
     q('hud-play').focus();
   }
   function close() {
+    if (free.on) setFree(false);
     pause();
     el.hidden = true;
     if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(function () {});
@@ -455,8 +478,110 @@
   q('hud-rot-back').addEventListener('click', function () { close(); });
   window.addEventListener('resize', function () { if (!el.hidden && !playing) update(); });
 
+  // ---- Free walk ------------------------------------------------------------------------
+  function groundAt(r, c) { return SeraFpv.elevAt((c + 0.5) * terrain.cellM, (r + 0.5) * terrain.cellM); }
+  function setFree(on) {
+    if (on && !fpvOn) setView(true);
+    if (on) {
+      if (playing) { playing = false; cancelAnimationFrame(raf); }
+      var st = stateAt(simS);
+      emergency = null; notice = null; sceneKey = '';
+      free.r = st.r; free.c = st.c; free.footY = groundAt(st.r, st.c); free.vy = 0; free.last = 0;
+      yaw = yaw + lookYaw; lookYaw = wantYaw = 0;                // walk the way you look
+    }
+    free.on = on;
+    el.classList.toggle('free', on);
+    q('hud-walk').textContent = on ? 'Follow the route' : 'Walk yourself';
+    lastCellKey = '';
+    cancelAnimationFrame(free.raf);
+    if (on) free.raf = requestAnimationFrame(freeFrame);
+    update();
+  }
+  function freeFrame(now) {
+    if (!free.on || el.hidden) return;
+    var dt = free.last ? Math.min(0.05, (now - free.last) / 1000) : 0;
+    free.last = now;
+    simS = Math.min(tl.limitS, simS + dt);                        // the clock runs in real time
+    yaw += (free.turn * 1.6) * dt;                                // arrow keys turn
+    var f = free.fwd + free.stickF, s = free.side + free.stickS, len = Math.hypot(f, s);
+    if (len > 1) { f /= len; s /= len; len = 1; }
+    var ground = groundAt(free.r, free.c), air = free.footY > ground + 0.02;
+    if (len > 0.05) {
+      var a = yaw + lookYaw, sp = (free.run || free.stickRun ? RUN_MS : WALK_MS) * (air ? 0.6 : 1);
+      var east = (Math.sin(a) * f + Math.cos(a) * s) * sp * dt, south = (-Math.cos(a) * f + Math.sin(a) * s) * sp * dt;
+      var nr = free.r + south / terrain.cellM, nc = free.c + east / terrain.cellM;
+      if (nr < 0 || nc < 0 || nr > terrain.rows - 1 || nc > terrain.cols - 1) {
+        flash(1, 'Edge of the EVA zone');
+      } else {
+        // The same slope as the red and yellow on the map (1 m terrain), for the cell you step into.
+        var up = groundAt(nr, nc) > ground;
+        var slope = terrain.slopeDeg[Math.round(nr) * terrain.cols + Math.round(nc)];
+        if (!air && up && slope > T.SLOPE_BLOCK_DEG) {
+          flash(2, 'Too steep to climb here (over 25°)');      // the suit and the loose ground stop you
+        } else {
+          if (!air && slope >= T.SLOPE_CAUTION_DEG) {           // steep: half speed
+            nr = free.r + (nr - free.r) * 0.5; nc = free.c + (nc - free.c) * 0.5;
+          }
+          free.r = nr; free.c = nc;
+        }
+      }
+    }
+    // Mars gravity: jump, and fall when the ground drops away under you.
+    ground = groundAt(free.r, free.c);
+    if (free.jump && free.footY <= ground + 0.02) { free.vy = JUMP_MS; free.jump = false; }
+    free.vy -= MARS_G * dt;
+    free.footY += free.vy * dt;
+    if (free.footY <= ground) { free.footY = ground; free.vy = 0; }
+    update();
+    free.raf = requestAnimationFrame(freeFrame);
+  }
+  var flashAt = 0;
+  function flash(level, text) {
+    if (performance.now() - flashAt < 1500) return;
+    flashAt = performance.now();
+    notice = { atS: simS, forS: 2.5, level: level, text: text };
+  }
+  q('hud-walk').addEventListener('click', function () { setFree(!free.on); });
+  var KEYS = { KeyW: 'f', ArrowUp: 'f', KeyS: 'b', ArrowDown: 'b', KeyA: 'l', KeyD: 'r', ArrowLeft: 'tl', ArrowRight: 'tr' };
+  var held = {};
+  function applyKeys() {
+    free.fwd = (held.f ? 1 : 0) - (held.b ? 1 : 0);
+    free.side = (held.r ? 1 : 0) - (held.l ? 1 : 0);
+    free.turn = (held.tr ? 1 : 0) - (held.tl ? 1 : 0);
+  }
+  document.addEventListener('keydown', function (e) {
+    if (el.hidden || !free.on) return;
+    if (KEYS[e.code]) { held[KEYS[e.code]] = true; applyKeys(); e.preventDefault(); }
+    if (e.key === 'Shift') free.run = true;
+    if (e.code === 'Space') { free.jump = true; e.preventDefault(); e.stopImmediatePropagation(); }
+  }, true);
+  document.addEventListener('keyup', function (e) {
+    if (KEYS[e.code]) { held[KEYS[e.code]] = false; applyKeys(); }
+    if (e.key === 'Shift') free.run = false;
+  });
+  window.addEventListener('blur', function () { held = {}; applyKeys(); free.run = false; });
+  // Phone: a joystick (walk; pushed to the edge = run) and a jump button.
+  var stick = q('hud-stick'), knob = stick.querySelector('i'), stickId = null;
+  function stickMove(e) {
+    var b = stick.getBoundingClientRect(), R = b.width / 2;
+    var dx = e.clientX - (b.left + R), dy = e.clientY - (b.top + R), d = Math.hypot(dx, dy);
+    if (d > R) { dx = dx / d * R; dy = dy / d * R; }
+    knob.style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
+    free.stickF = -dy / R; free.stickS = dx / R; free.stickRun = d > R * 0.92;
+  }
+  stick.addEventListener('pointerdown', function (e) { stickId = e.pointerId; stick.setPointerCapture(e.pointerId); stickMove(e); e.preventDefault(); });
+  stick.addEventListener('pointermove', function (e) { if (e.pointerId === stickId) stickMove(e); });
+  function stickEnd(e) {
+    if (e.pointerId !== stickId) return;
+    stickId = null; knob.style.transform = ''; free.stickF = free.stickS = 0; free.stickRun = false;
+  }
+  stick.addEventListener('pointerup', stickEnd);
+  stick.addEventListener('pointercancel', stickEnd);
+  q('hud-jump').addEventListener('pointerdown', function (e) { free.jump = true; e.preventDefault(); });
+
   function startEmergency(level, text) {
-    var st = stateAt(simS);
+    var st = free.on ? { r: free.r, c: free.c } : stateAt(simS);
+    if (free.on) setFree(false);
     var cell = nearestCell(st);
     var path = P.pathHome(terrain, plan.field, cell);
     if (!path) return;
@@ -565,6 +690,7 @@
   });
   q('hud-emergency').addEventListener('click', function () { startEmergency(); });
   q('hud-progress').addEventListener('input', function () {
+    if (free.on) setFree(false);
     if (emergency) { emergency = null; lastCellKey = ''; }
     simS = this.value / 1000 * tl.totalS;
     update();
@@ -584,5 +710,6 @@
   syncButton();
 
   window.SeraHud = { open: open, close: close, emergency: startEmergency, offRoute: stepOffRoute, storm: stormAlert,
-    _state: function () { return { simS: simS, totalS: tl && tl.totalS, emergency: !!emergency }; } };
+    _state: function () { return { simS: simS, totalS: tl && tl.totalS, emergency: !!emergency,
+      free: free.on ? { r: free.r, c: free.c, air: free.footY - groundAt(free.r, free.c) } : null }; } };
 })();
