@@ -746,3 +746,17 @@ body.hud-open { overflow: hidden; }
 @media (max-width: 760px) {
   .hud.free .hud-keys { top: 172px; padding: 0 16px; font-size: 11px; }
 }
+
+/* ---- Game mode (free walk, computer): the mouse is captured; Ctrl lets it go ---- */
+.hud-grab, .hud-cross { display: none; }
+.hud.free:not(.game) .hud-grab { display: block; position: absolute; left: 50%; top: 34%; transform: translate(-50%, -50%); margin: 0; z-index: 2;
+  padding: 10px 16px; border-radius: 10px; background: rgba(8,14,16,.72); border: 1px solid rgba(167,241,194,.45);
+  font: 600 13px var(--font-body); color: #E9FFF2; pointer-events: none; text-align: center; max-width: 80%; }
+.hud.free.game .hud-cross { display: block; position: absolute; left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px 0 0 -3px; z-index: 2;
+  border-radius: 50%; background: rgba(233,255,242,.75); box-shadow: 0 0 0 1px rgba(0,0,0,.35); pointer-events: none; }
+.hud.free.game.looked .hud-keys { opacity: .5; transition: opacity .6s; }
+.hud.free.game .hud-controls, .hud.free.game .hud-sim, .hud.free.game #hud-exit { pointer-events: none; opacity: .55; }
+@media (pointer: coarse) { .hud.free:not(.game) .hud-grab { display: none; } }
+/* third person: you are outside, so no helmet frame and no visor glass */
+.hud.third .hud-helmet, .hud.third.fpv::before, .hud.third.fpv::after { display: none; }
+.hud.third .hud-cross { display: none !important; }

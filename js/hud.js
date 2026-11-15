@@ -41,9 +41,12 @@
   var RADAR_M = 450;                        // the radar shows 450 m around you
   // Free walk: you move yourself (keys or joystick), the clock runs in real time, Mars gravity.
   var MARS_G = 3.71;                        // m/s2, 0.38 of Earth's
-  var WALK_MS = 2.0, RUN_MS = 5.0;          // walk / run speed on flat ground (sped up for a demo)
+  var WALK_MS = 1.4, RUN_MS = 3.0;          // walk / run speed on flat ground (sped up for a demo)
   var JUMP_MS = 2.2;                        // take-off speed: ~0.65 m high, ~1.2 s in the air on Mars
-  var free = { on: false, r: 0, c: 0, footY: 0, vy: 0, last: 0, raf: 0, fwd: 0, side: 0, turn: 0, run: false, jump: false, stickF: 0, stickS: 0, stickRun: false };
+  var free = { on: false, r: 0, c: 0, footY: 0, vy: 0, last: 0, raf: 0, fwd: 0, side: 0, turn: 0, run: false, jump: false, stickF: 0, stickS: 0, stickRun: false,
+    vx: 0, vz: 0, phase: 0, stride: 0, dip: 0, dipV: 0, bodyYaw: 0, third: 0, thirdWant: 0 };
+  // Camera distance steps for the mouse wheel: 0 = through the helmet, then behind the astronaut.
+  var THIRD = [0, 3.5, 6, 10];
 
   function cellIndex(c) { return c.r * terrain.cols + c.c; }
   function fmtClock(s) {
@@ -326,10 +329,21 @@
     if (playing && !looking && now - lastLookAt > 2500) {          // after a look-around, slowly face ahead again
       var back = Math.exp(-dt / 1.6); wantYaw *= back; wantPitch *= back;
     }
-    var ease = 1 - Math.exp(-dt / 0.14);                           // the look follows your drag softly
+    var ease = 1 - Math.exp(-dt / (locked() ? 0.035 : 0.14));       // the look follows your drag softly
     lookYaw += (wantYaw - lookYaw) * ease; lookPitch += (wantPitch - lookPitch) * ease;
-    SeraFpv.render({ r: st.r, c: st.c, yaw: yaw + lookYaw, pitch: -0.1 + lookPitch,
-      hour: tl.startH + simS / MT.MARS_HOUR_S, footY: free.on ? free.footY : undefined });
+    var cam = { r: st.r, c: st.c, yaw: yaw + lookYaw, pitch: -0.1 + lookPitch,
+      hour: tl.startH + simS / MT.MARS_HOUR_S, footY: free.on ? free.footY : undefined };
+    if (free.on) {
+      free.third += (free.thirdWant - free.third) * (1 - Math.exp(-dt / 0.18));
+      if (Math.abs(free.thirdWant - free.third) < 0.01) free.third = free.thirdWant;
+      el.classList.toggle('third', free.third > 0.3);
+      // the step: the head goes up and down twice and sways once per stride; a landing bends the knees
+      cam.bob = Math.abs(Math.sin(free.phase)) * 0.045 * free.stride - 0.02 * free.stride - free.dip;
+      cam.sway = Math.sin(free.phase) * 0.025 * free.stride;
+      cam.third = free.third;
+      cam.body = { yaw: free.bodyYaw, phase: free.phase, stride: free.stride, air: free.footY > groundAt(free.r, free.c) + 0.05 };
+    }
+    SeraFpv.render(cam);
     compass(yaw + lookYaw);
     placeRadar();
     // While paused, keep drawing until the look has settled.
@@ -380,6 +394,7 @@
       if (t - lastTap < 320) { wantYaw = 0; wantPitch = 0; lastTap = 0; if (!playing) update(); return; }
       lastTap = t;
     }
+    if (free.on && e.pointerType === 'mouse' && !phone) { lockMouse(); return; }
     looking = true; lx = e.clientX; ly = e.clientY;
     view3d.setPointerCapture(e.pointerId);
     el.classList.add('looked');
@@ -393,6 +408,34 @@
     if (!playing) update();
   });
   function stopLook() { looking = false; lastLookAt = performance.now(); }
+  // ---- Game mode (free walk on a computer): the mouse is captured, moving it looks around.
+  // Ctrl lets the mouse go (to press buttons) and Ctrl again captures it. Esc also lets it go.
+  function locked() { return document.pointerLockElement === view3d; }
+  var unlockedAt = 0;
+  function lockMouse() {
+    if (!free.on || phone || locked() || !view3d.requestPointerLock) return;
+    try { var p = view3d.requestPointerLock(); if (p && p.catch) p.catch(function () {}); } catch (e) { /* needs a click */ }
+  }
+  function unlockMouse() { if (locked()) document.exitPointerLock(); }
+  document.addEventListener('pointerlockchange', function () {
+    el.classList.toggle('game', locked());
+    if (!locked()) unlockedAt = performance.now();
+    if (!el.hidden) update();
+  });
+  document.addEventListener('mousemove', function (e) {
+    if (!locked()) return;
+    wantYaw += e.movementX * 0.0022;                               // mouse right = turn right
+    wantPitch = Math.max(-1.2, Math.min(1.0, wantPitch - e.movementY * 0.0018));
+    el.classList.add('looked');
+  });
+  // Mouse wheel in free walk: back = step out behind the astronaut (third person), forward = into the helmet.
+  view3d.addEventListener('wheel', function (e) {
+    if (!free.on) return;
+    e.preventDefault();
+    var i = THIRD.indexOf(free.thirdWant); if (i < 0) i = 0;
+    i = Math.max(0, Math.min(THIRD.length - 1, i + (e.deltaY > 0 ? 1 : -1)));
+    free.thirdWant = THIRD[i];
+  }, { passive: false });
   view3d.addEventListener('pointerup', stopLook);
   view3d.addEventListener('pointercancel', stopLook);
   view3d.addEventListener('dblclick', function () { wantYaw = 0; wantPitch = 0; if (!playing) update(); });
@@ -452,6 +495,7 @@
   }
   function close() {
     if (free.on) setFree(false);
+    unlockMouse();
     pause();
     el.hidden = true;
     if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(function () {});
@@ -487,7 +531,12 @@
       var st = stateAt(simS);
       emergency = null; notice = null; sceneKey = '';
       free.r = st.r; free.c = st.c; free.footY = groundAt(st.r, st.c); free.vy = 0; free.last = 0;
+      free.vx = free.vz = 0; free.stride = 0; free.dip = free.dipV = 0;
       yaw = yaw + lookYaw; lookYaw = wantYaw = 0;                // walk the way you look
+      free.bodyYaw = yaw;
+      lockMouse();
+    } else {
+      unlockMouse(); free.third = free.thirdWant = 0; el.classList.remove('third');
     }
     free.on = on;
     el.classList.toggle('free', on);
@@ -506,17 +555,40 @@
     var f = free.fwd + free.stickF, s = free.side + free.stickS, len = Math.hypot(f, s);
     if (len > 1) { f /= len; s /= len; len = 1; }
     var ground = groundAt(free.r, free.c), air = free.footY > ground + 0.02;
-    if (len > 0.05) {
-      var a = yaw + lookYaw, sp = (free.run || free.stickRun ? RUN_MS : WALK_MS) * (air ? 0.6 : 1);
-      var east = (Math.sin(a) * f + Math.cos(a) * s) * sp * dt, south = (-Math.cos(a) * f + Math.sin(a) * s) * sp * dt;
+    // Where you want to go, and how fast. The suit is heavy and Mars gives little grip (0.38 g):
+    // you speed up and stop over about a second; in the air you cannot steer at all.
+    var a = yaw + lookYaw, sp = (free.run || free.stickRun ? RUN_MS : WALK_MS) * len;
+    var tx = (Math.sin(a) * f + Math.cos(a) * s) / (len || 1) * sp, tz = (-Math.cos(a) * f + Math.sin(a) * s) / (len || 1) * sp;
+    if (len <= 0.05) tx = tz = 0;
+    if (!air) {
+      var acc = (tx || tz ? 2.2 : 2.8) * dt, dvx = tx - free.vx, dvz = tz - free.vz, dv = Math.hypot(dvx, dvz);
+      if (dv > acc) { dvx *= acc / dv; dvz *= acc / dv; }
+      free.vx += dvx; free.vz += dvz;
+    }
+    var speed = Math.hypot(free.vx, free.vz);
+    if (speed > 0.3) free.bodyYaw = angleTo(free.bodyYaw, Math.atan2(free.vx, -free.vz), 1 - Math.exp(-dt / 0.25));
+    // the step: one stride ~ 1.5 m walking, longer when loping
+    if (!air) {
+      free.phase += speed / (speed > 2 ? 2.4 : 1.5) * Math.PI * dt;
+      free.stride += (Math.min(1, speed / 1.4) - free.stride) * (1 - Math.exp(-dt / 0.2));
+    }
+    if (speed > 0.01) {
+      var east = free.vx * dt, south = free.vz * dt;
       var nr = free.r + south / terrain.cellM, nc = free.c + east / terrain.cellM;
+      var rise = groundAt(nr, nc) - ground, run = Math.hypot(east, south);
+      if (!air && rise > 0 && run > 0) {                          // uphill is slower, more so the steeper
+        var k = Math.max(0.35, 1 - (rise / run) * 1.6);
+        nr = free.r + (nr - free.r) * k; nc = free.c + (nc - free.c) * k;
+      }
       if (nr < 0 || nc < 0 || nr > terrain.rows - 1 || nc > terrain.cols - 1) {
+        free.vx = free.vz = 0;
         flash(1, 'Edge of the EVA zone');
       } else {
         // The same slope as the red and yellow on the map (1 m terrain), for the cell you step into.
         var up = groundAt(nr, nc) > ground;
         var slope = terrain.slopeDeg[Math.round(nr) * terrain.cols + Math.round(nc)];
         if (!air && up && slope > T.SLOPE_BLOCK_DEG) {
+          free.vx *= 0.3; free.vz *= 0.3;
           flash(2, 'Too steep to climb here (over 25°)');      // the suit and the loose ground stop you
         } else {
           if (!air && slope >= T.SLOPE_CAUTION_DEG) {           // steep: half speed
@@ -528,10 +600,17 @@
     }
     // Mars gravity: jump, and fall when the ground drops away under you.
     ground = groundAt(free.r, free.c);
-    if (free.jump && free.footY <= ground + 0.02) { free.vy = JUMP_MS; free.jump = false; }
+    if (free.jump && free.footY <= ground + 0.02) { free.vy = JUMP_MS; free.jump = false; free.dipV -= 0.25; }
+    free.jump = false;
     free.vy -= MARS_G * dt;
     free.footY += free.vy * dt;
-    if (free.footY <= ground) { free.footY = ground; free.vy = 0; }
+    if (free.footY <= ground) {
+      if (free.vy < -1) free.dipV += Math.min(0.9, -free.vy * 0.25);   // landing: the knees give a little
+      free.footY = ground; free.vy = 0;
+    }
+    // the knee bend springs back
+    free.dipV += (-free.dip * 60 - free.dipV * 11) * dt;
+    free.dip = Math.max(-0.05, Math.min(0.18, free.dip + free.dipV * dt));
     update();
     free.raf = requestAnimationFrame(freeFrame);
   }
@@ -553,6 +632,7 @@
     if (el.hidden || !free.on) return;
     if (KEYS[e.code]) { held[KEYS[e.code]] = true; applyKeys(); e.preventDefault(); }
     if (e.key === 'Shift') free.run = true;
+    if (e.key === 'Control' && !e.repeat) { if (locked()) unlockMouse(); else lockMouse(); e.preventDefault(); }
     if (e.code === 'Space') { free.jump = true; e.preventDefault(); e.stopImmediatePropagation(); }
   }, true);
   document.addEventListener('keyup', function (e) {
@@ -697,7 +777,7 @@
   });
   document.addEventListener('keydown', function (e) {
     if (el.hidden) return;
-    if (e.key === 'Escape') close();
+    if (e.key === 'Escape') { if (locked() || performance.now() - unlockedAt < 400) return; close(); }
     else if (e.key === ' ' && e.target.tagName !== 'BUTTON' && e.target.tagName !== 'INPUT') {
       e.preventDefault(); if (playing) pause(); else play();
     }

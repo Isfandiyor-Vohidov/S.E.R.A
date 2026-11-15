@@ -70,7 +70,9 @@
     '  vec3 dust = vec3(0.70, 0.44, 0.28), rock = vec3(0.36, 0.27, 0.22), dark = vec3(0.24, 0.18, 0.15);' +
     '  vec3 nn = normalize(vNor);' +
     '  vec3 alb;' +
-    '  if (uKind > 1.5) {' +
+    '  if (uKind > 2.5) {' +                                                   // the astronaut: white suit, grey pack, gold visor
+    '    alb = vSlope > 2.5 ? vec3(0.58, 0.58, 0.58) : vSlope > 1.5 ? vec3(0.62, 0.42, 0.14) : vec3(0.90, 0.89, 0.86) * vSlope;' +
+    '  } else if (uKind > 1.5) {' +
     '    alb = mix(rock, dark, 0.35) * vSlope * (0.8 + 0.4 * n(p*3.0 + vPos.y*2.0));' +
     '  } else {' +
     '    alb = mix(dust, rock, patch * 0.65) * (0.82 + 0.36 * g);' +
@@ -281,6 +283,72 @@
       [a, b, c].forEach(function (p) { P.push(p[0], p[1], p[2]); N.push(nx / l, ny / l, nz / l); Sh.push(shade); });
     });
   }
+  // ---- the astronaut (third-person view) --------------------------------------------------
+  // A simple suit made of boxes and a round helmet, no face (the gold visor is down).
+  // Legs and arms swing with the step. Built again every frame: it is only a few hundred triangles.
+  var SPHERE = (function () {                       // icosahedron split once: a rounder helmet
+    var v = ICO.v.slice(), f = [], mid = {};
+    function m(a, b) {
+      var k = a < b ? a + '_' + b : b + '_' + a;
+      if (mid[k] === undefined) { var p = [v[a][0] + v[b][0], v[a][1] + v[b][1], v[a][2] + v[b][2]], l = Math.hypot(p[0], p[1], p[2]); v.push([p[0] / l, p[1] / l, p[2] / l]); mid[k] = v.length - 1; }
+      return mid[k];
+    }
+    ICO.f.forEach(function (t) { var a = m(t[0], t[1]), b = m(t[1], t[2]), c = m(t[2], t[0]); f.push([t[0], a, c], [t[1], b, a], [t[2], c, b], [a, b, c]); });
+    return { v: v, f: f };
+  })();
+  var walker = null;
+  function buildWalker(o) {
+    var P = [], N = [], S = [];
+    var fy = Math.sin(o.yaw), fz = -Math.cos(o.yaw), rx = Math.cos(o.yaw), rz = Math.sin(o.yaw);
+    function world(p) { return [o.x + rx * p[0] + fy * p[2], o.y + p[1], o.z + rz * p[0] + fz * p[2]]; }
+    function swing(p, py, a) {                      // turn a point about the hip / shoulder (local x axis)
+      if (!a) return p;
+      var dy = p[1] - py, df = p[2], c = Math.cos(a), s = Math.sin(a);
+      return [p[0], py + dy * c - df * s, dy * s + df * c];
+    }
+    function tri(a, b, c, center, shade) {
+      var ux = b[0] - a[0], uy = b[1] - a[1], uz = b[2] - a[2], vx = c[0] - a[0], vy = c[1] - a[1], vz = c[2] - a[2];
+      var nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx, l = Math.hypot(nx, ny, nz) || 1;
+      var mx = (a[0] + b[0] + c[0]) / 3 - center[0], my = (a[1] + b[1] + c[1]) / 3 - center[1], mz = (a[2] + b[2] + c[2]) / 3 - center[2];
+      if (nx * mx + ny * my + nz * mz < 0) l = -l;   // normals always point out
+      [a, b, c].forEach(function (p) { P.push(p[0], p[1], p[2]); N.push(nx / l, ny / l, nz / l); S.push(shade); });
+    }
+    // box: centre (x, y, f), size (w, h, d), swing about height py by angle a
+    function box(cx, cy, cf, w, h, d, shade, py, a) {
+      var c = [], i;
+      for (i = 0; i < 8; i++) c.push(world(swing([cx + (i & 1 ? w : -w) / 2, cy + (i & 2 ? h : -h) / 2, cf + (i & 4 ? d : -d) / 2], py, a)));
+      var ctr = world(swing([cx, cy, cf], py, a));
+      [[0, 1, 3, 2], [4, 5, 7, 6], [0, 1, 5, 4], [2, 3, 7, 6], [0, 2, 6, 4], [1, 3, 7, 5]].forEach(function (q) {
+        tri(c[q[0]], c[q[1]], c[q[2]], ctr, shade); tri(c[q[0]], c[q[2]], c[q[3]], ctr, shade);
+      });
+    }
+    function ball(cx, cy, cf, rx_, ry, rf, shade) {
+      var ctr = world([cx, cy, cf]);
+      var pts = SPHERE.v.map(function (a) { return world([cx + a[0] * rx_, cy + a[1] * ry, cf + a[2] * rf]); });
+      SPHERE.f.forEach(function (t) { tri(pts[t[0]], pts[t[1]], pts[t[2]], ctr, shade); });
+    }
+    var sw = Math.sin(o.phase) * 0.55 * o.stride, air = o.air ? 0.35 : 0;
+    // legs with boots (swing at the hip), opposite arms (swing at the shoulder)
+    [-1, 1].forEach(function (k) {
+      var a = sw * k + air * (k > 0 ? 0.6 : -0.3);
+      box(0.13 * k, 0.5, 0, 0.19, 0.8, 0.23, 0.95, 0.92, a);
+      box(0.13 * k, 0.07, 0.04, 0.21, 0.14, 0.32, 0.55, 0.92, a);
+      box(0.34 * k, 1.17, 0, 0.13, 0.6, 0.15, 0.95, 1.45, -sw * k * 0.8 - air * 0.4);
+      box(0.34 * k, 0.86, 0.01, 0.12, 0.1, 0.13, 0.55, 1.45, -sw * k * 0.8 - air * 0.4);   // gloves
+    });
+    box(0, 1.03, 0, 0.36, 0.26, 0.27, 0.8, 0, 0);       // waist ring
+    box(0, 1.3, 0, 0.52, 0.5, 0.32, 1.0, 0, 0);         // torso
+    box(0, 1.27, 0.165, 0.24, 0.16, 0.04, 0.5, 0, 0);   // chest panel
+    box(0, 1.3, -0.29, 0.46, 0.62, 0.24, 3.0, 0, 0);    // life-support pack
+    ball(0, 1.72, 0, 0.19, 0.2, 0.19, 0.98);            // helmet
+    ball(0, 1.72, 0.06, 0.15, 0.12, 0.15, 2.0);         // gold visor
+    if (!walker) walker = { pos: gl.createBuffer(), nor: gl.createBuffer(), slope: gl.createBuffer() };
+    gl.bindBuffer(gl.ARRAY_BUFFER, walker.pos); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(P), gl.DYNAMIC_DRAW);
+    gl.bindBuffer(gl.ARRAY_BUFFER, walker.nor); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(N), gl.DYNAMIC_DRAW);
+    gl.bindBuffer(gl.ARRAY_BUFFER, walker.slope); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(S), gl.DYNAMIC_DRAW);
+    walker.count = P.length / 3;
+  }
+
   function slopeAtXZ(x, z) {
     var c = Math.floor(x / terrain.cellM), r = Math.floor(z / terrain.cellM);
     if (r < 0 || c < 0 || r >= terrain.rows || c >= terrain.cols) return -1;
@@ -399,7 +467,8 @@
     gl.enable(gl.DEPTH_TEST);
 
     var x = (cam.c + 0.5) * terrain.cellM, z = (cam.r + 0.5) * terrain.cellM;
-    var eye = [x, (cam.footY !== undefined ? cam.footY : elevAt(x, z)) + EYE_M, z];   // footY: in the air (free walk)
+    var foot = cam.footY !== undefined ? cam.footY : elevAt(x, z);              // footY: in the air (free walk)
+    var eye = [x + (cam.sway || 0) * Math.cos(cam.yaw), foot + EYE_M + (cam.bob || 0), z + (cam.sway || 0) * Math.sin(cam.yaw)];
     var aspect = w / Math.max(1, h), fovY = FOV, pitch = cam.pitch;
     if (aspect < 1) {                                // phone upright: keep ~58-70 deg across, look lower
       fovY = Math.min(100, Math.max(FOV, 2 * Math.atan(Math.tan(37.5 * Math.PI / 180) / aspect) * 180 / Math.PI));
@@ -407,6 +476,13 @@
     }
     var cp = Math.cos(pitch);
     var at = [eye[0] + Math.sin(cam.yaw) * cp, eye[1] + Math.sin(pitch), eye[2] - Math.cos(cam.yaw) * cp];
+    var dist = cam.third || 0;
+    if (dist > 0.05) {                               // third person: the camera behind and above the astronaut
+      var piv = [x, foot + 1.55, z];
+      eye = [piv[0] - Math.sin(cam.yaw) * cp * dist, piv[1] - Math.sin(pitch) * dist + 0.25 * Math.min(1, dist / 3), piv[2] + Math.cos(cam.yaw) * cp * dist];
+      eye[1] = Math.max(eye[1], elevAt(eye[0], eye[2]) + 0.4);   // never under the ground
+      at = [piv[0] + Math.sin(cam.yaw) * cp * 1.2, piv[1] + Math.sin(pitch) * 1.2, piv[2] - Math.cos(cam.yaw) * cp * 1.2];
+    }
     var mvp = mul(perspective(fovY, aspect, NEAR, FAR), lookAt(eye, at, [0, 1, 0]));
     var sun = sunDir(cam.hour);
 
@@ -429,6 +505,12 @@
       gl.uniform1f(L.uKind, 2);
       attrib(L.aPos, rocks.pos, 3); attrib(L.aNor, rocks.nor, 3); attrib(L.aSlope, rocks.slope, 1);
       gl.drawArrays(gl.TRIANGLES, 0, rocks.count);
+    }
+    if (dist > 0.05 && cam.body) {
+      buildWalker({ x: x, y: foot, z: z, yaw: cam.body.yaw, phase: cam.body.phase, stride: cam.body.stride, air: cam.body.air });
+      gl.uniform1f(L.uKind, 3);
+      attrib(L.aPos, walker.pos, 3); attrib(L.aNor, walker.nor, 3); attrib(L.aSlope, walker.slope, 1);
+      gl.drawArrays(gl.TRIANGLES, 0, walker.count);
     }
     gl.disableVertexAttribArray(L.aNor); gl.disableVertexAttribArray(L.aSlope);
 

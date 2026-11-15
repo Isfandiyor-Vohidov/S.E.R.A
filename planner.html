@@ -8,13 +8,13 @@
   <meta name="description" content="Plan a safe walk on the real terrain of Gale Crater, Mars: route, way home and a GO / CAUTION / NO-GO verdict.">
   <link rel="icon" href="img/mark.png?v=3" type="image/png">
   <script src="js/theme.js?v=2"></script>
-  <script src="js/i18n.js?v=34"></script>
+  <script src="js/i18n.js?v=35"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&family=Montserrat:wght@400;500&display=swap">
   <link rel="stylesheet" href="lib/leaflet/leaflet.css">
   <link rel="stylesheet" href="css/theme.css?v=16">
-  <link rel="stylesheet" href="css/style.css?v=50">
+  <link rel="stylesheet" href="css/style.css?v=51">
 </head>
 <body>
   <div id="print-head" class="print-head" aria-hidden="true">
@@ -133,7 +133,9 @@
       <p>The helmet view is made for landscape, like a real visor.</p>
       <div class="rot-actions"><button type="button" id="hud-upright" class="hud-btn">Stay upright</button><button type="button" id="hud-rot-back" class="hud-btn">Back to the map</button></div>
     </div>
-    <p class="hud-keys"><span class="t-mouse">W A S D or arrows: walk · Shift: run · Space: jump · drag: look</span><span class="t-touch">Joystick: walk (to the edge: run) · ⤒: jump · swipe: look</span> · Mars gravity 0.38 g</p>
+    <p class="hud-keys"><span class="t-mouse">W A S D: walk · Shift: run · Space: jump · mouse: look · wheel: third person · Ctrl: free the mouse</span><span class="t-touch">Joystick: walk (to the edge: run) · ⤒: jump · swipe: look</span> · Mars gravity 0.38 g</p>
+    <p class="hud-grab">Click the view or press Ctrl to take the mouse back into the walk</p>
+    <i class="hud-cross" aria-hidden="true"></i>
     <div id="hud-stick" class="hud-stick" aria-label="Walk joystick"><i></i></div>
     <button type="button" id="hud-jump" class="hud-jump" aria-label="Jump">⤒</button>
     <p class="hud-model">3D: real terrain, 5 m grid (MODEL) · rocks are drawn for the look, not from the data</p>
@@ -200,8 +202,8 @@
   <script src="js/globe.js?v=7"></script>
   <script src="js/planner-globe.js?v=6"></script>
   <script src="js/relief.js?v=2"></script>
-  <script src="js/fpv.js?v=17"></script>
-  <script src="js/hud.js?v=26"></script>
+  <script src="js/fpv.js?v=18"></script>
+  <script src="js/hud.js?v=27"></script>
   <script src="js/tour.js?v=2"></script>
   <script src="data/places.js?v=1"></script>
   <script src="js/search.js?v=2"></script>
