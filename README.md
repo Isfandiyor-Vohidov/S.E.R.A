@@ -89,7 +89,7 @@ node validate.mjs
 | A* route time vs the Dijkstra field, 13 random pairs | identical (max difference 0.0000 s) |
 | Same trip up and down a hill (303 m height difference) | 103.2 min down vs 129.7 min up |
 | Walking speed on flat ground | 2.52 km/h (Apollo EVA ≈ 2.2 km/h) |
-| Demo plan | 1.93 km, 1 h 56 min, 292 min spare |
+| Demo plan (4 points, the 4th behind a 15–25° slope: CAUTION) | 3.01 km, 2 h 56 min, 232 min spare |
 | Slopes in the zone | 61.5 % safe, 22.2 % caution, 16.3 % blocked |
 
 ## Data sources

@@ -5,6 +5,7 @@
 
 window.SERA_DEMO = {
   base: [-4.8080, 137.3810],
-  stops: [[-4.8150, 137.3820], [-4.8000, 137.3840], [-4.8110, 137.3835]],
+  // the 4th point is behind a 15-25 deg slope: the demo shows CAUTION and Mission Twin finds the gentle way round
+  stops: [[-4.8150, 137.3820], [-4.8000, 137.3840], [-4.8110, 137.3835], [-4.8062, 137.3892]],
   startLtst: '09:00'
 };

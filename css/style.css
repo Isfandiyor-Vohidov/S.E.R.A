@@ -528,14 +528,16 @@ body.hud-open { overflow: hidden; }
   max-width: min(470px, calc(100% - 24px)); pointer-events: none; }
 .twin[hidden] { display: none; }
 .twin > * { pointer-events: auto; }
-.twin-sera { height: 150px; margin-right: -14px; align-self: flex-end; position: relative; z-index: 1; filter: drop-shadow(0 8px 14px rgba(0,0,0,.45)); }
+.twin-sera { height: 150px; margin-right: 6px; align-self: flex-end; position: relative; z-index: 1; filter: drop-shadow(0 8px 14px rgba(0,0,0,.45)); }
 .twin-body { background: #142329; color: #EDF2EA; border: 1px solid rgba(237,242,234,.14); border-radius: 14px;
-  padding: 12px 14px 10px 22px; box-shadow: 0 12px 34px rgba(0,0,0,.45); flex: 1; min-width: 0; }
-.twin-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
-.twin-head b { font: 700 17px var(--font-head); color: #E78F67; }
+  padding: 12px 14px 10px 16px; box-shadow: 0 12px 34px rgba(0,0,0,.45); flex: 1; min-width: 0; }
+.twin-head { display: flex; align-items: center; gap: 10px; flex-wrap: nowrap; margin-bottom: 6px; }
+.twin-head label { min-width: 0; white-space: nowrap; }
+body.twin-open .sera-ai { visibility: hidden; }
+.twin-head b { font: 700 17px var(--font-head); color: #E78F67; white-space: nowrap; }
 .twin-head label { font-size: 12.5px; color: #9FB2AC; display: flex; gap: 6px; align-items: center; }
-.twin-head select { background: #0C171A; color: #EDF2EA; border: 1px solid rgba(237,242,234,.2); border-radius: 8px; padding: 4px 6px; max-width: 170px; }
-.twin-close { margin-left: auto; background: none; border: 0; color: #9FB2AC; font-size: 20px; cursor: pointer; }
+.twin-head select { background: #0C171A; color: #EDF2EA; border: 1px solid rgba(237,242,234,.2); border-radius: 8px; padding: 4px 6px; max-width: 150px; min-width: 0; }
+.twin-close { margin-left: auto; flex-shrink: 0; padding: 0 2px; background: none; border: 0; color: #9FB2AC; font-size: 20px; cursor: pointer; }
 .twin-table { width: 100%; border-collapse: collapse; font-size: 12.5px; font-variant-numeric: tabular-nums; }
 .twin-table th, .twin-table td { padding: 4px 5px; border-bottom: 1px solid rgba(237,242,234,.1); text-align: left; }
 .twin-table thead th { font-size: 11.5px; color: #EDF2EA; }

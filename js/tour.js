@@ -19,7 +19,7 @@
       run: function () { if (hudOpen()) click('hud-exit'); S.globe.show(true); setTimeout(function () { S.globe.select('gale'); }, 600); } },
     { ms: 6500, title: 'One EVA zone, 2 × 2 km', text: 'Real terrain from a 1 m elevation model (HiRISE, CTX, HRSC). Yellow: steep, slower. Red: over 25°, closed.',
       run: function () { S.globe.show(false); S.setActive('eva'); S.views.eva(); } },
-    { ms: 7000, title: 'Plan in one click', text: 'Base and three science points. S.E.R.A finds a safe path over the slopes and the fastest order of the points.',
+    { ms: 7000, title: 'Plan in one click', text: 'Base and four science points. S.E.R.A finds a safe path over the slopes and the fastest order of the points.',
       run: function () { S.runDemo(); } },
     { ms: 7000, title: 'GO / CAUTION / NO-GO', text: 'One clear answer with the reason: suit time, daylight, slopes, radio, dose and live space weather.',
       run: function () { var v = $('verdict'); if (v) v.scrollIntoView({ block: 'center', behavior: 'smooth' }); flash(v); } },

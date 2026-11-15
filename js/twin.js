@@ -58,9 +58,21 @@
     });
   }
 
+  // Opened from the button: start with the point where the two routes differ the most
+  // (the most steep ground route B avoids), so the comparison shows something real.
+  function bestStop() {
+    var best = 0, bestGain = -1;
+    plan.stops.forEach(function (s, i) {
+      var a = route(s, 0), b = route(s, GENTLE);
+      if (!a || !b) return;
+      var gain = (a.steepM - b.steepM) + Math.abs(a.distM - b.distM) * 0.01;
+      if (gain > bestGain + 0.5) { bestGain = gain; best = i; }
+    });
+    return best;
+  }
   function open(stopIdx) {
     if (!plan.base || !plan.stops.length) return;
-    if (stopIdx === undefined) stopIdx = 0;
+    if (stopIdx === undefined) stopIdx = bestStop();
     var target = plan.stops[stopIdx];
     var A = route(target, 0), B = route(target, GENTLE);
     layer.clearLayers();
@@ -75,19 +87,22 @@
       return '<option value="' + i + '"' + (i === stopIdx ? ' selected' : '') + '>' + S.stopName(s, i) + '</option>';
     }).join('');
 
-    function row(label, a, b) { return '<tr><th>' + label + '</th><td>' + a + '</td><td>' + b + '</td></tr>'; }
+    // Same route: one column ("A = B"), not the same numbers twice.
+    function row(label, a, b) { return '<tr><th>' + label + '</th><td>' + a + '</td>' + (same ? '' : '<td>' + b + '</td>') + '</tr>'; }
     var mark = function (isPick) { return same ? '<span class="twin-ok">= same route</span>' : isPick ?'<span class="twin-ok">✓ S.E.R.A picks this</span>' : '<span class="twin-warn">⚠</span>'; };
     dlg.querySelector('.twin-table').innerHTML =
-      '<thead><tr><th></th><th><i class="sw sw-a"></i>Route A · fastest</th><th><i class="sw sw-b"></i>Route B · gentle</th></tr></thead><tbody>' +
+      (same ? '<thead><tr><th></th><th><i class="sw sw-a"></i>Route A = Route B</th></tr></thead><tbody>'
+            : '<thead><tr><th></th><th><i class="sw sw-a"></i>Route A · fastest</th><th><i class="sw sw-b"></i>Route B · gentle</th></tr></thead><tbody>') +
       row('Distance (there and back)', (A.distM / 1000).toFixed(2) + ' km', (B.distM / 1000).toFixed(2) + ' km') +
       row('Steep ground 15–25°', Math.round(A.steepM) + ' m · ' + A.steepPct.toFixed(0) + ' %', Math.round(B.steepM) + ' m · ' + B.steepPct.toFixed(0) + ' %') +
       row('Steepest step', A.maxSlope.toFixed(0) + '°', B.maxSlope.toFixed(0) + '°') +
       row('Time there', fmtMin(A.outS), fmtMin(B.outS)) +
       row('Time back', fmtMin(A.backS), fmtMin(B.backS)) +
       row('Spare suit time', fmtMin(A.spareS), fmtMin(B.spareS)) +
-      row('Recommendation', mark(!pickB), mark(pickB)) + '</tbody>';
+      (same ? '' : row('Recommendation', mark(!pickB), mark(pickB))) + '</tbody>';
     var why;
-    if (same) why = 'For ' + name + ' the fastest way is already the gentlest: both routes are the same.';
+    if (same) why = 'For ' + name + ' the fastest way is already the gentlest: there is no steep ground to go around, so both routes are one route.' +
+      (plan.stops.length > 1 ? ' Pick another science point above.' : '');
     else if (pickB) why = 'Route B takes ' + fmtMin(B.outS + B.backS - A.outS - A.backS) + ' longer but walks ' +
       Math.round(A.steepM - B.steepM) + ' m less on steep ground. With a heavy suit and samples, I would take B.';
     else why = 'Route B does not avoid enough steep ground to be worth the extra time. Route A is the better choice.';
@@ -97,6 +112,7 @@
     if (!same) draw(B, '#7CC4FF', '2 0');
     layer.addTo(map);
     dlg.hidden = false;
+    document.body.classList.add('twin-open');                 // her round button would sit under the card
     if (window.SeraAssistant) SeraAssistant.hide();          // her card would cover the table
     // Fit both routes into the part of the map the card does not cover.
     var b = L.latLngBounds([]);
@@ -105,9 +121,9 @@
     map.fitBounds(b, phone ? { paddingTopLeft: [16, 16], paddingBottomRight: [16, dlg.offsetHeight + 16] }
                            : { paddingTopLeft: [dlg.offsetWidth + 24, 16], paddingBottomRight: [16, 16] });
   }
-  function close() { dlg.hidden = true; layer.clearLayers(); map.removeLayer(layer); }
+  function close() { dlg.hidden = true; document.body.classList.remove('twin-open'); layer.clearLayers(); map.removeLayer(layer); }
 
-  btn.addEventListener('click', function () { open(0); });
+  btn.addEventListener('click', function () { open(); });
   dlg.querySelector('#twin-stop').addEventListener('change', function () { open(+this.value); });
   dlg.querySelector('.twin-close').addEventListener('click', close);
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !dlg.hidden) close(); });
