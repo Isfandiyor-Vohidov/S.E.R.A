@@ -321,7 +321,7 @@
   // The radar sits under the right-hand readouts; if there is no room there, to their left.
   function placeRadar() {
     var right = el.querySelector('.hud-right');
-    if (!right || window.innerWidth <= 760) { canvas.style.top = canvas.style.right = canvas.style.width = canvas.style.height = ''; return; }
+    if (!right || window.innerWidth <= 760 || window.innerHeight <= 500) { canvas.style.top = canvas.style.right = canvas.style.width = canvas.style.height = ''; return; }
     var box = el.getBoundingClientRect(), rr = right.getBoundingClientRect();
     var status = el.querySelector('.hud-statusline'), floor = status ? status.getBoundingClientRect().top : box.bottom - 120;
     var size = 150, top = rr.bottom + 14 - box.top;
@@ -417,6 +417,8 @@
     q('hud-preeva').textContent = verdict;
     el.hidden = false;
     document.body.classList.add('hud-open');
+    el.classList.remove('upright');
+    goLandscape();
     lookYaw = 0; lookPitch = 0; wantYaw = 0; wantPitch = 0; sceneKey = '';
     var first = plan.legs[0] && plan.legs[0].cells;
     if (first && first.length > 1) yaw = Math.atan2(first[1].c - first[0].c, first[0].r - first[1].r);
@@ -429,9 +431,29 @@
   function close() {
     pause();
     el.hidden = true;
+    if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(function () {});
     document.body.classList.remove('hud-open');
     openBtn.focus();
   }
+
+  // Phones: the helmet view is a landscape view, like a visor. Where the browser allows it
+  // (Android Chrome) it goes full screen and turns by itself; elsewhere (iPhone) a card asks to
+  // turn the phone (CSS shows it while the phone is upright). "Stay upright" keeps the upright layout.
+  var phone = window.matchMedia && matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 600;
+  function goLandscape() {
+    if (!phone) return;
+    var d = document.documentElement;
+    try {
+      if (d.requestFullscreen && !document.fullscreenElement) {
+        d.requestFullscreen({ navigationUI: 'hide' }).then(function () {
+          if (screen.orientation && screen.orientation.lock) return screen.orientation.lock('landscape');
+        }).catch(function () {});
+      }
+    } catch (e) { /* not allowed here: the card asks instead */ }
+  }
+  q('hud-upright').addEventListener('click', function () { el.classList.add('upright'); update(); });
+  q('hud-rot-back').addEventListener('click', function () { close(); });
+  window.addEventListener('resize', function () { if (!el.hidden && !playing) update(); });
 
   function startEmergency(level, text) {
     var st = stateAt(simS);
