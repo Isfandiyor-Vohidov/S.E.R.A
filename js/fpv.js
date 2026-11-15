@@ -71,7 +71,7 @@
     '  vec3 nn = normalize(vNor);' +
     '  vec3 alb;' +
     '  if (uKind > 2.5) {' +                                                   // the astronaut: white suit, grey pack, gold visor
-    '    alb = vSlope > 4.5 ? vec3(0.4, 1.4, 1.0) : vSlope > 3.5 ? vec3(0.30, 0.30, 0.31) : vSlope > 2.5 ? vec3(0.80, 0.80, 0.78)' +
+    '    alb = vSlope > 5.5 ? vec3(0.86, 0.36, 0.18) : vSlope > 4.5 ? vec3(0.4, 1.4, 1.0) : vSlope > 3.5 ? vec3(0.30, 0.30, 0.31) : vSlope > 2.5 ? vec3(0.80, 0.80, 0.78)' +
     '      : vSlope > 1.5 ? vec3(0.50, 0.33, 0.10) : vec3(0.93, 0.92, 0.89) * vSlope;' +
     '  } else if (uKind > 1.5) {' +
     '    alb = mix(rock, dark, 0.35) * vSlope * (0.8 + 0.4 * n(p*3.0 + vPos.y*2.0));' +
@@ -374,6 +374,10 @@
       var knee = (0.08 + 0.75 * Math.max(0, Math.cos(ph)) * st) * (1 - air) + air * 0.7;
       var hip = [0.125 * k, 0.94, 0], kneeP = add(hip, dir(hipA), 0.44), ank = add(kneeP, dir(hipA - knee), 0.42);
       limb(hip, kneeP, 0.125, 0.13, 0.97);
+      if (o.stripes) {
+        var tb = [hip[0] + (kneeP[0] - hip[0]) * 0.4, hip[1] + (kneeP[1] - hip[1]) * 0.4, hip[2] + (kneeP[2] - hip[2]) * 0.4];
+        blob(tb, [0.137, 0.035, 0.137], 6);
+      }
       blob(kneeP, [0.115, 0.1, 0.115], 0.9);                                  // knee joint
       limb(kneeP, ank, 0.112, 0.1, 0.97);
       blob([ank[0], ank[1] - 0.005, ank[2] + 0.045], [0.1, 0.075, 0.165], 4, 0.6, 8, 12);   // boot
@@ -383,6 +387,7 @@
       var sh = [0.31 * k, 1.49, 0], elb = add(sh, dir(armA, 0.1 * k), 0.29), wr = add(elb, dir(armA + 0.35 + 0.25 * st, 0.03 * k), 0.27);
       blob(sh, [0.125, 0.12, 0.125], 0.95);                                      // shoulder bearing
       limb(sh, elb, 0.098, 0.09, 0.97);
+      if (o.stripes) blob([sh[0] + (elb[0] - sh[0]) * 0.45, sh[1] + (elb[1] - sh[1]) * 0.45, sh[2] + (elb[2] - sh[2]) * 0.45], [0.104, 0.03, 0.104], 6);
       blob(elb, [0.09, 0.085, 0.09], 0.9);
       limb(elb, wr, 0.086, 0.075, 0.97);
       blob([wr[0], wr[1] + 0.02, wr[2]], [0.085, 0.03, 0.085], 3);               // wrist ring
@@ -401,11 +406,18 @@
     blob([0, 1.79, -0.005], [0.165, 0.175, 0.175], 1.0, 1, 12, 18);             // helmet shell
     blob([0, 1.775, 0.035], [0.152, 0.135, 0.155], 2, 1, 12, 18);               // gold visor
     blob([0, 1.925, 0.02], [0.05, 0.02, 0.06], 3);                              // helmet lights
-    if (!walker) walker = { pos: gl.createBuffer(), nor: gl.createBuffer(), slope: gl.createBuffer() };
-    gl.bindBuffer(gl.ARRAY_BUFFER, walker.pos); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(P), gl.DYNAMIC_DRAW);
-    gl.bindBuffer(gl.ARRAY_BUFFER, walker.nor); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(N), gl.DYNAMIC_DRAW);
-    gl.bindBuffer(gl.ARRAY_BUFFER, walker.slope); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(S), gl.DYNAMIC_DRAW);
-    walker.count = P.length / 3;
+    var m = o.mesh || { pos: gl.createBuffer(), nor: gl.createBuffer(), slope: gl.createBuffer() };
+    gl.bindBuffer(gl.ARRAY_BUFFER, m.pos); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(P), gl.DYNAMIC_DRAW);
+    gl.bindBuffer(gl.ARRAY_BUFFER, m.nor); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(N), gl.DYNAMIC_DRAW);
+    gl.bindBuffer(gl.ARRAY_BUFFER, m.slope); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(S), gl.DYNAMIC_DRAW);
+    m.count = P.length / 3;
+    return m;
+  }
+  var buddyMesh = null;
+  function drawMesh(L, m) {
+    gl.uniform1f(L.uKind, 3);
+    attrib(L.aPos, m.pos, 3); attrib(L.aNor, m.nor, 3); attrib(L.aSlope, m.slope, 1);
+    gl.drawArrays(gl.TRIANGLES, 0, m.count);
   }
 
   function slopeAtXZ(x, z) {
@@ -566,10 +578,15 @@
       gl.drawArrays(gl.TRIANGLES, 0, rocks.count);
     }
     if (dist > 0.05 && cam.body) {
-      buildWalker({ x: x, y: foot, z: z, yaw: cam.body.yaw, phase: cam.body.phase, stride: cam.body.stride, air: cam.body.air });
-      gl.uniform1f(L.uKind, 3);
-      attrib(L.aPos, walker.pos, 3); attrib(L.aNor, walker.nor, 3); attrib(L.aSlope, walker.slope, 1);
-      gl.drawArrays(gl.TRIANGLES, 0, walker.count);
+      walker = buildWalker({ x: x, y: foot, z: z, yaw: cam.body.yaw, phase: cam.body.phase, stride: cam.body.stride, air: cam.body.air, mesh: walker });
+      drawMesh(L, walker);
+    }
+    // The buddy: EVAs are walked in pairs (the buddy also relays the radio). Same suit, orange bands.
+    if (cam.buddy) {
+      var bx = (cam.buddy.c + 0.5) * terrain.cellM, bz = (cam.buddy.r + 0.5) * terrain.cellM;
+      buddyMesh = buildWalker({ x: bx, y: elevAt(bx, bz), z: bz, yaw: cam.buddy.yaw, phase: cam.buddy.phase, stride: cam.buddy.stride,
+        air: false, stripes: true, mesh: buddyMesh });
+      drawMesh(L, buddyMesh);
     }
     gl.disableVertexAttribArray(L.aNor); gl.disableVertexAttribArray(L.aSlope);
 

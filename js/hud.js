@@ -316,6 +316,37 @@
   // The head turns smoothly: it looks at a spot ~15 m ahead on the path (not at the next 5 m cell,
   // whose zigzag made the view jerk), and every turn eases in over about a second.
   var lastRender = 0, settleRaf = 0, wantYaw = 0, wantPitch = 0;
+  // The buddy (EVAs go in pairs): on the plan a few metres ahead and to the right on the same path;
+  // in free walk a few metres behind and to the right, catching up at walking pace.
+  var buddy = { r: 0, c: 0, yaw: 0, phase: 0, stride: 0, set: false };
+  function buddyAt(st, dt) {
+    var tr, tc, ty;
+    if (free.on) {
+      var by = free.bodyYaw;
+      tr = free.r + (Math.cos(by) * 3 + Math.sin(by) * 1.6) / terrain.cellM;   // 3 m behind, 1.6 m right
+      tc = free.c + (-Math.sin(by) * 3 + Math.cos(by) * 1.6) / terrain.cellM;
+      ty = by;
+    } else {
+      var ahead = stateAt(Math.min(endS(), simS + 12));                         // ~ 6 m ahead on the path
+      var hy = Math.atan2(ahead.c - st.c, st.r - ahead.r);
+      if (Math.hypot(ahead.c - st.c, ahead.r - st.r) < 0.05) hy = buddy.set ? buddy.yaw : yaw;
+      tr = ahead.r + Math.sin(hy) * 1.6 / terrain.cellM; tc = ahead.c + Math.cos(hy) * 1.6 / terrain.cellM;
+      ty = hy;
+    }
+    if (!buddy.set || Math.hypot(tr - buddy.r, tc - buddy.c) * terrain.cellM > 40) { buddy.r = tr; buddy.c = tc; buddy.yaw = ty; buddy.set = true; }
+    var dr = tr - buddy.r, dc = tc - buddy.c, d = Math.hypot(dr, dc) * terrain.cellM;
+    var sp = Math.min(d / Math.max(dt, 0.001), free.on ? RUN_MS : 50);              // metres per second this frame
+    var k = 1 - Math.exp(-dt / (free.on ? 0.6 : 0.15));
+    buddy.r += dr * k; buddy.c += dc * k;
+    var moving = d * k / Math.max(dt, 0.001);
+    if (d > 0.3) buddy.yaw = angleTo(buddy.yaw, Math.atan2(dc, -dr), 1 - Math.exp(-dt / 0.3));
+    else buddy.yaw = angleTo(buddy.yaw, ty, 1 - Math.exp(-dt / 0.8));
+    var walkSp = playing || free.on ? Math.min(1.6, moving) : 0;
+    if (playing && !free.on) walkSp = 1.4;
+    buddy.stride += (Math.min(1, walkSp / 1.4) - buddy.stride) * (1 - Math.exp(-dt / 0.25));
+    buddy.phase += walkSp / 1.5 * Math.PI * dt;
+    return { r: buddy.r, c: buddy.c, yaw: buddy.yaw, phase: buddy.phase, stride: buddy.stride };
+  }
   function render3d(st) {
     syncScene();
     var now = performance.now(), dt = Math.min(0.1, Math.max(0.001, (now - lastRender) / 1000));
@@ -333,6 +364,7 @@
     lookYaw += (wantYaw - lookYaw) * ease; lookPitch += (wantPitch - lookPitch) * ease;
     var cam = { r: st.r, c: st.c, yaw: yaw + lookYaw, pitch: -0.1 + lookPitch,
       hour: tl.startH + simS / MT.MARS_HOUR_S, footY: free.on ? free.footY : undefined };
+    cam.buddy = buddyAt(st, dt);
     if (free.on) {
       free.third += (free.thirdWant - free.third) * (1 - Math.exp(-dt / 0.18));
       if (Math.abs(free.thirdWant - free.third) < 0.01) free.third = free.thirdWant;
@@ -484,7 +516,7 @@
     document.body.classList.add('hud-open');
     el.classList.remove('upright');
     goLandscape();
-    lookYaw = 0; lookPitch = 0; wantYaw = 0; wantPitch = 0; sceneKey = '';
+    lookYaw = 0; lookPitch = 0; wantYaw = 0; wantPitch = 0; sceneKey = ''; buddy.set = false;
     var first = plan.legs[0] && plan.legs[0].cells;
     if (first && first.length > 1) yaw = Math.atan2(first[1].c - first[0].c, first[0].r - first[1].r);
     setView(fpvOK && !mapPreferred);
