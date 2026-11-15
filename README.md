@@ -14,7 +14,7 @@ S.E.R.A plans an EVA (a walk outside the habitat) on the real terrain of Gale Cr
 
 1. Open the site and press **Launch Mission** — the Mission Planner opens with a ready demo plan.
 2. Or open the planner and press **Plan my own EVA**: the first click inside the dashed 2 × 2 km zone places the base, every next click adds a science point. Any marker can be dragged to a new spot; dropped on ground over 25°, outside the zone or with no safe way home, it goes back and S.E.R.A says why. **Clear plan** removes the science points and keeps the base; a second press clears the base too.
-3. Press **Start EVA · helmet view** to play the walk as a simulation and try **Emergency · home**. In 3D press **Walk yourself** to leave the route and walk on the terrain (game controls, mouse wheel for third person). On a phone the helmet view is landscape: turn the phone sideways.
+3. Press **Start EVA · helmet view** (for the demo plan the button says **Start simulation**) to play the walk as a simulation and try **Emergency · home**. In 3D press **Walk yourself** to leave the route and walk on the terrain (game controls, mouse wheel for third person). On a phone the helmet view is landscape: turn the phone sideways.
 4. Read the verdict at the top of the panel. Change the **EVA start time** (**Now** = the current time at the site) or press **Simulate solar storm** to see how the verdict changes.
 5. Press **Mission Twin** to compare the fastest and the gentle route to one point. Press the **S.E.R.A** button any time: the assistant explains the current plan.
 
@@ -180,7 +180,7 @@ The core modules are pure functions without the DOM, so they also run in Node.js
 
 ## Use of AI
 
-The code was written with AI assistance (Claude by Anthropic, in Claude Code) and reviewed by the team. Every JavaScript file says so in its header. The idea, the choice of place, the safety rules and all decisions were made by the team; the AI helped to implement them and to check the numbers. The S.E.R.A logo (`img/sera-logo.jpg`) is an AI-generated concept image and is marked so on the image itself. The S.E.R.A character poses (`img/sera/`) and the helmet frame (`img/helmet.webp`) are AI-generated images; S.E.R.A is a fictional character, not a real person, and is marked “AI-generated character” in the app. No voices or videos in this project were made by AI. *(Full report added before submission.)*
+The code was written with AI assistance (Claude by Anthropic, in Claude Code) and reviewed by the team. Every JavaScript file says so in its header. The idea, the choice of place, the safety rules and all decisions were made by the team; the AI helped to implement them and to check the numbers. The S.E.R.A logo (`img/sera-logo.jpg`) is an AI-generated concept image and is marked so on the image itself. The S.E.R.A character poses (`img/sera/`) and the site picture of S.E.R.A holding Mars (`img/sera-hold.webp`, background removed by us; the planet on her palm is the live 3D Mars from NASA data) and the helmet frame (`img/helmet.webp`) are AI-generated images; S.E.R.A is a fictional character, not a real person, and is marked “AI-generated character” in the app. No voices or videos in this project were made by AI. *(Full report added before submission.)*
 
 ## License
 

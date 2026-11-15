@@ -758,7 +758,14 @@
     setActive('eva');
     map.invalidateSize();
     map.fitBounds(evaBounds(), { padding: [20, 20], animate: false });
+    plan.demoKey = planKey();
   }
+  // The demo plan is a simulation; once the base or a point is moved, added or removed it is your own plan.
+  function planKey() {
+    if (!plan.base) return '';
+    return plan.base.r + ',' + plan.base.c + '|' + plan.stops.map(function (s) { return s.r + ',' + s.c; }).sort().join(';');
+  }
+  function isDemo() { return !!plan.demoKey && plan.demoKey === planKey(); }
 
   document.getElementById('btn-demo').addEventListener('click', runDemo);
   document.getElementById('btn-demo-top').addEventListener('click', runDemo);
@@ -782,7 +789,7 @@
   }
 
   window.SERA = { map: map, terrain: terrain, evaBounds: evaBounds, plan: plan,
-    views: views, setActive: setActive, runDemo: runDemo, render: render, stopName: stopName, cellLatLng: cellLatLng,
+    views: views, setActive: setActive, runDemo: runDemo, isDemo: isDemo, render: render, stopName: stopName, cellLatLng: cellLatLng,
     tileLayers: { viking: viking, ctx: ctx, hirise: hirise },
     addNamer: function (fn) { namers.push(fn); } };
 })();

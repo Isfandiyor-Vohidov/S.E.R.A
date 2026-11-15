@@ -785,7 +785,14 @@
   window.addEventListener('resize', function () { if (!el.hidden) update(); });
 
   // The HUD needs a finished plan.
-  function syncButton() { openBtn.disabled = !(plan.base && plan.stops.length && plan.home); }
+  // The demo plan opens as a simulation; a plan you made yourself opens as your EVA.
+  function startLabel() { return window.SERA && SERA.isDemo && SERA.isDemo() ? 'Start simulation · helmet view' : 'Start EVA · helmet view'; }
+  var lastLabel = '';
+  function syncButton() {
+    openBtn.disabled = !(plan.base && plan.stops.length && plan.home);
+    var l = startLabel();
+    if (l !== lastLabel) { lastLabel = l; openBtn.textContent = l; }
+  }
   setInterval(syncButton, 500);
   syncButton();
 

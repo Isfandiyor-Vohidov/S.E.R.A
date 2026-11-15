@@ -263,7 +263,7 @@
       a.text = p.stops.length + ' science points, EVA ' + fmtMin(b.totalS) + ', ' + fmtMin(b.marginS) + ' of spare suit time.';
       a.do = 'Ready? Walk it in the helmet view.';
       a.spot = byId('btn-hud');
-      a.actions = [{ label: 'Start EVA · helmet view', primary: true, run: function () { hide(); click('btn-hud'); } }];
+      a.actions = [{ label: window.SERA && SERA.isDemo && SERA.isDemo() ? 'Start simulation · helmet view' : 'Start EVA · helmet view', primary: true, run: function () { hide(); click('btn-hud'); } }];
     } else if (f.id === 'slopes' && f.level === 2) {
       var bad = 0;
       p.stops.forEach(function (s, i) { if (!p.legs[i] || !isFinite(s.homeS)) bad = bad || i + 1; });

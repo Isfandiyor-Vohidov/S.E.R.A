@@ -281,6 +281,8 @@
     ['mSv per sol', 'мЗв за сол', 'mZv bir solda'],
     ['higher chance of dust storms', 'выше вероятность пылевых бурь', 'chang bo\'ronlari ehtimoli yuqori'],
     ['cached', 'из кэша', 'keshdan'],
+    ['S.E.R.A AND LOGO: AI-GENERATED CHARACTER · MARS: NASA VIKING + MOLA', 'S.E.R.A И ЛОГОТИП: СОЗДАНЫ ИИ · МАРС: NASA VIKING + MOLA', 'S.E.R.A AND LOGO: AI-GENERATED CHARACTER · MARS: NASA VIKING + MOLA'],
+    ['Start simulation · helmet view', 'Начать симуляцию · вид из шлема', 'Start simulation · helmet view'],
     ['Start EVA · helmet view', 'Начать EVA · вид из шлема', 'EVA ni boshlash · dubulg\'a ko\'rinishi'],
     ['Simulate solar storm', 'Смоделировать солнечную бурю', 'Quyosh bo\'ronini modellashtirish'],
     ['Stop storm simulation', 'Остановить бурю', 'Bo\'ronni to\'xtatish'],

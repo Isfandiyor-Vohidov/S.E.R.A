@@ -231,3 +231,16 @@ td a:hover { text-decoration: underline; }
   .table-wrap td + td { font-size: 13.5px; line-height: 1.5; }
   .table-wrap td:last-child { margin-top: 4px; font-size: 12.5px; letter-spacing: .02em; }
 }
+
+/* Hero: S.E.R.A (AI-generated character) holds the live 3D Mars on her palm.
+   The picture is 800 x 1262; the stage is 10 : 11, the picture fills its height on the right
+   (69.7 % of the width). Her palm is at 40 % across and 34.5 % down; the planet (78 % of its box)
+   sits just above it, 30 % of the stage wide. */
+.hero-stage { position: relative; width: 100%; aspect-ratio: 10 / 11; }
+.hero-stage .globe-hero { position: absolute; left: 20.8%; top: 5.85%; width: 38.5%; z-index: 1; }
+.hero-stage .hero-sera { position: absolute; right: 0; top: 0; height: 100%; width: auto; z-index: 2; pointer-events: none;
+  -webkit-mask-image: linear-gradient(to bottom, #000 80%, transparent 99%); mask-image: linear-gradient(to bottom, #000 80%, transparent 99%); }
+.hero-cap { margin: 4px 0 0; text-align: center; color: var(--text); }
+.hero-cap .hero-full { display: block; font: 500 clamp(17px, 2.2vw, 26px)/1.2 var(--font-logo); letter-spacing: .01em; }
+.hero-cap .hero-ai { display: block; margin-top: 8px; font: 400 10px/1.3 var(--font-logo); letter-spacing: .14em; opacity: .75; }
+.hero-art:has(.hero-stage) { max-width: 560px; }
