@@ -13,12 +13,12 @@ S.E.R.A plans an EVA (a walk outside the habitat) on the real terrain of Gale Cr
 ## How to use
 
 1. Open the site and press **Launch Mission** — the Mission Planner opens with a ready demo plan.
-2. Or open the planner and press **Plan my own EVA**: the first click inside the dashed 2 × 2 km zone places the base, every next click adds a science point. Any marker can be dragged to a new spot; dropped on ground over 25°, outside the zone or with no safe way home, it goes back and S.E.R.A says why.
-3. Press **Start EVA · helmet view** to play the walk as a simulation and try **Emergency · home**.
-4. Read the verdict at the top of the panel. Change the **EVA start time** or press **Simulate solar storm** to see how the verdict changes.
+2. Or open the planner and press **Plan my own EVA**: the first click inside the dashed 2 × 2 km zone places the base, every next click adds a science point. Any marker can be dragged to a new spot; dropped on ground over 25°, outside the zone or with no safe way home, it goes back and S.E.R.A says why. **Clear plan** removes the science points and keeps the base; a second press clears the base too.
+3. Press **Start EVA · helmet view** to play the walk as a simulation and try **Emergency · home**. In 3D press **Walk yourself** to leave the route and walk on the terrain (game controls, mouse wheel for third person). On a phone the helmet view is landscape: turn the phone sideways.
+4. Read the verdict at the top of the panel. Change the **EVA start time** (**Now** = the current time at the site) or press **Simulate solar storm** to see how the verdict changes.
 5. Press **Mission Twin** to compare the fastest and the gentle route to one point. Press the **S.E.R.A** button any time: the assistant explains the current plan.
 
-At the first visit the assistant S.E.R.A shows a short guide: one part of the screen at a time, the rest blurred.
+Only at the very first visit the assistant S.E.R.A shows a short guide: one part of the screen at a time, the rest blurred. Whenever she shows something later (her button, **Show**), the rest of the screen is blurred too; a click on the blur or Esc ends it.
 
 ## What it does
 
@@ -34,17 +34,19 @@ At the first visit the assistant S.E.R.A shows a short guide: one part of the sc
 | Mars clock | Mars24 algorithm: local solar time, season (Ls), sunrise and sunset, Curiosity sol |
 | Weather | Curiosity REMS means for the current season |
 | Space weather | Live solar particle events (NASA DONKI) and X-ray flares (NOAA GOES) |
+| Radio contact | Line of sight from a 10 m mast on the base to the suit antenna over the real terrain (radio shadow on the **Radio** layer); how long the plan stays out of contact. Buddy rule: out of sight of the mast, the buddy relays |
+| Move and clear | Drag the base or any point to move it; red while over ground it cannot stand on. **Clear plan** keeps the base |
 | Verdict | GO / CAUTION / NO-GO from the worst factor, with the reason |
 | Elevation profile and legend | Under the map |
 | 3D Mars | A small WebGL globe (no libraries, ~0.5 MB texture) with famous places; Gale Crater opens the EVA zone. On the site and behind the **3D Mars** button of the planner |
 | Curiosity path and photos | The real rover path through the zone (144 stops, sols 4464–4989) with Navcam photos; a rover stop can be added as a science point |
 | Light and dark theme | Toggle in the top bar, remembered in the browser |
 | Helmet view (simulation) | Plays the EVA along the route, first person through a helmet frame: suit time left, time home from where you stand, next target, slope under feet. Speed 1 s = 10 s (walk pace, default in 3D), 1, 4 or 10 min. **Emergency · home** leads back by the fastest safe way from the current spot |
-| 3D helmet view | First person on the real terrain of the zone (WebGL, no libraries): the route on the ground, beacons for the points and the base, readouts on the visor glass, a round radar and a compass. Drag to look around. MODEL: 5 m grid, so small rocks are not in the data; the rocks you see are scattered for the look only (never on the route) and the visor says so. The Sun moves with the local solar time. **Map view** switches back to the top-down map |
+| 3D helmet view | First person on the real terrain of the zone (WebGL, no libraries): the route on the ground, beacons for the points and the base, readouts on the visor glass, a round radar and a compass. Drag to look around. MODEL: 5 m grid, so small rocks are not in the data; the rocks you see are scattered for the look only (never on the route) and the visor says so. The Sun moves with the local solar time. **Map view** switches back to the top-down map. On phones the view is landscape (full screen and turned by itself where the browser allows; otherwise a card asks to turn the phone, **Stay upright** keeps the upright layout) |
 | Free walk | In the 3D helmet view, **Walk yourself** lets you leave the route and walk on the terrain. Computer: game controls, the mouse is captured and looks around; **Ctrl** lets the mouse go and captures it again (Esc too); W A S D to walk, Shift to lope, Space to jump; the **mouse wheel** steps out behind the astronaut (third person: a rounded pressure suit with a life-support pack and the gold visor down, knees and elbows bend with the step) and back into the helmet. Phones: a joystick and a jump button. Realistic pace for a pressure suit: walk 1.4 m/s, lope 3 m/s, with inertia (low gravity = little grip: about a second to speed up or stop, no steering in the air), steps sway the head, landings bend the knees, uphill is slower. Mars gravity 0.38 g (3.71 m/s²). Slopes over 25° cannot be climbed, the edge of the EVA zone stops you. **Follow the route** goes back to the planned walk |
 | Deviation watch | **Test · off route** moves the walker 40–60 m aside: S.E.R.A builds a new safe path to the next point and keeps the rest of the plan. **Test · storm alert** gives NO-GO and the fastest way home from where you stand |
 | Mission Twin | For one science point: Route A (fastest) and Route B (gentle: 15–25° slopes cost 8×), there and back, side by side: distance, steep ground, steepest step, time, spare suit time, and S.E.R.A's recommendation. Both drawn on the map |
-| Assistant S.E.R.A | A fictional AI assistant character: first-visit guide, reactions (thinking → GO / CAUTION / NO-GO, welcome back), and an explanation of the current plan on request |
+| Assistant S.E.R.A | A fictional AI assistant character: first-visit guide, reactions (thinking → GO / CAUTION / NO-GO, welcome back), and an explanation of the current plan on request. She points at what she talks about (a ring and a line in the verdict colour) with a “what to do” line and a fix button; when she shows something, the rest of the screen is blurred. She speaks only when the verdict or its reason changes, and keeps quiet while Mission Twin is open |
 | Several EVAs | A plan longer than one suit allows is split into several EVAs from the base, in the same fastest order |
 | Minerals (CRISM) | Hydrated minerals and clays from 5 MRO CRISM observations over the zone; the strongest spots (on safe ground) can be added as science points |
 | Geology and night IR | USGS global geologic map and THEMIS night infrared (rock vs dust) as map layers |
@@ -64,6 +66,7 @@ Every number in the app is marked **DATA** (measured by a mission) or **MODEL** 
 | Suit time | plan is longer than 8 h minus 15 % reserve | less than 30 min spare |
 | Daylight | start before sunrise or back after sunset | back less than 1 Mars hour before sunset |
 | Space weather | solar particle event in the last 48 h | X-class flare in the last 24 h, or no live data |
+| Radio contact | — | more than 15 min in a row out of sight of the base mast |
 
 The radiation dose of the EVA and the dust season are shown for information.
 
@@ -161,8 +164,9 @@ python prep_logo.py    # S.E.R.A letters and planet icon cut from our logo
 | `js/share.js` | Share link and print card |
 | `js/offline.js`, `sw.js` | Offline mode |
 | `js/i18n.js` | English / Russian |
-| `js/hud.js` | Helmet view: EVA simulation, deviation and storm tests, emergency return |
-| `js/fpv.js` | 3D first-person view of the terrain for the helmet view (WebGL) |
+| `js/hud.js` | Helmet view: EVA simulation, deviation and storm tests, emergency return, free walk (keys, mouse capture, joystick, Mars gravity) |
+| `js/fpv.js` | 3D view of the terrain for the helmet view (WebGL): first and third person, the astronaut model |
+| `js/radio.js` | Radio shadow of the base mast and contact gaps along the plan |
 | `js/twin.js` | Mission Twin: two routes to one point |
 | `js/assistant.js` | Assistant S.E.R.A: guide, reactions, explanation |
 | `js/globe.js`, `js/planner-globe.js` | 3D Mars globe |
