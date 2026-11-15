@@ -10,6 +10,8 @@
 //    like an AR overlay on the visor;
 //  - the route as a ribbon on the ground (copper), the way home (mint), science points and the base
 //    as light beacons with labels;
+//  - the habitat at the base (with an inside you can walk into) and the science stations that are
+//    built at the points (MODEL: drawn for the experience, not from the data);
 //  - dust haze with distance and a butterscotch sky.
 // If WebGL is not there, init() returns false and the HUD keeps its top-down map.
 
@@ -62,6 +64,21 @@
     '  return mix(mix(h(i),h(i+vec2(1,0)),f.x), mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x), f.y); }' +
     'float bump(vec2 p){ return n(p*2.3)*0.55 + n(p*6.1)*0.25 + n(p*0.7)*0.9; }' +
     'void main(){' +
+    // uKind 4: inside the base. vSlope is a palette code; 20+ glow (lamps, screens, the window).
+    '  if (uKind > 3.5) {' +
+    '    float s = vSlope; vec3 nn4 = normalize(vNor); vec3 a;' +
+    '    if (s > 19.5) {' +
+    '      a = s > 24.5 ? vec3(0.45, 1.0, 0.6) : s > 23.5 ? vec3(0.95, 0.6, 0.42) : s > 22.5 ? vec3(1.0, 0.35, 0.28)' +
+    '        : s > 21.5 ? vec3(0.98, 0.76, 0.36) : s > 20.5 ? vec3(0.35, 0.9, 0.85) : vec3(1.0, 0.97, 0.9);' +
+    '      gl_FragColor = vec4(a, 1.0); return;' +
+    '    }' +
+    '    a = s > 17.5 ? vec3(0.08, 0.09, 0.1) : s > 16.5 ? vec3(0.62, 0.5, 0.4) : s > 15.5 ? vec3(0.3, 0.58, 0.26)' +
+    '      : s > 14.5 ? vec3(0.86, 0.45, 0.2) : s > 13.5 ? vec3(0.25, 0.42, 0.55) : s > 12.5 ? vec3(0.55, 0.57, 0.6)' +
+    '      : s > 11.5 ? vec3(0.68, 0.69, 0.71) : s > 10.5 ? vec3(0.3, 0.31, 0.33) : vec3(0.84, 0.85, 0.86);' +
+    '    float li = 0.42 + 0.4 * max(dot(nn4, normalize(vec3(0.2, 1.0, 0.3))), 0.0) + 0.2 * max(dot(nn4, normalize(vec3(-0.4, 0.3, -0.6))), 0.0);' +
+    '    li *= 1.0 - 0.25 * smoothstep(2.0, 9.0, distance(vPos, uCam));' +
+    '    gl_FragColor = vec4(a * li, 1.0); return;' +
+    '  }' +
     '  vec2 p = vPos.xz;' +
     '  float d = distance(vPos, uCam);' +
     '  float near = 1.0 - smoothstep(25.0, 160.0, d);' +                   // fine detail only close up
@@ -71,7 +88,7 @@
     '  vec3 nn = normalize(vNor);' +
     '  vec3 alb;' +
     '  if (uKind > 2.5) {' +                                                   // the astronaut: white suit, grey pack, gold visor
-    '    alb = vSlope > 5.5 ? vec3(0.86, 0.36, 0.18) : vSlope > 4.5 ? vec3(0.4, 1.4, 1.0) : vSlope > 3.5 ? vec3(0.30, 0.30, 0.31) : vSlope > 2.5 ? vec3(0.80, 0.80, 0.78)' +
+    '    alb = vSlope > 6.5 ? vec3(0.10, 0.14, 0.27) : vSlope > 5.5 ? vec3(0.86, 0.36, 0.18) : vSlope > 4.5 ? vec3(0.4, 1.4, 1.0) : vSlope > 3.5 ? vec3(0.30, 0.30, 0.31) : vSlope > 2.5 ? vec3(0.80, 0.80, 0.78)' +
     '      : vSlope > 1.5 ? vec3(0.50, 0.33, 0.10) : vec3(0.93, 0.92, 0.89) * vSlope;' +
     '  } else if (uKind > 1.5) {' +
     '    alb = mix(rock, dark, 0.35) * vSlope * (0.8 + 0.4 * n(p*3.0 + vPos.y*2.0));' +
@@ -454,6 +471,249 @@
     rockAt = [cx, cz];
   }
 
+  // ---- things that are built: the habitat, science stations, the inside of the base -------------
+  // A small mesh builder in local metres. The origin o and the mirror d (on x) put it in the world,
+  // so the airlock of the habitat can face the base point from either side.
+  // Shade codes outside are the astronaut's (uKind 3: 0..1.2 white, 2 gold, 3 light grey, 4 dark grey,
+  // 5 teal light, 6 orange, 7 solar cells); inside the base, the palette of uKind 4 (see the shader).
+  function cross(a, b) { return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]; }
+  function unit(a) { var l = Math.hypot(a[0], a[1], a[2]) || 1; return [a[0] / l, a[1] / l, a[2] / l]; }
+  function Builder(o, d) {
+    var P = [], N = [], S = [];
+    function tri(a, b, c, na, nb, nc, s) {
+      [[a, na], [b, nb], [c, nc]].forEach(function (v) {
+        P.push(o[0] + d * v[0][0], o[1] + v[0][1], o[2] + v[0][2]); N.push(d * v[1][0], v[1][1], v[1][2]); S.push(s);
+      });
+    }
+    function quad(a, b, c, e, n, s) { tri(a, b, c, n, n, n, s); tri(a, c, e, n, n, n, s); }
+    return {
+      box: function (x0, y0, z0, x1, y1, z1, s) {
+        quad([x1, y0, z0], [x1, y1, z0], [x1, y1, z1], [x1, y0, z1], [1, 0, 0], s);
+        quad([x0, y0, z1], [x0, y1, z1], [x0, y1, z0], [x0, y0, z0], [-1, 0, 0], s);
+        quad([x0, y1, z0], [x0, y1, z1], [x1, y1, z1], [x1, y1, z0], [0, 1, 0], s);
+        quad([x0, y0, z1], [x0, y0, z0], [x1, y0, z0], [x1, y0, z1], [0, -1, 0], s);
+        quad([x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1], [0, 0, 1], s);
+        quad([x1, y0, z0], [x0, y0, z0], [x0, y1, z0], [x1, y1, z0], [0, 0, -1], s);
+      },
+      // a round tube from p0 to p1, radius r0 -> r1 (a cone when they differ), closed ends if caps
+      tube: function (p0, p1, r0, r1, s, seg, caps) {
+        var ax = unit([p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2]]);
+        var u = unit(cross(ax, Math.abs(ax[1]) < 0.9 ? [0, 1, 0] : [1, 0, 0])), v = cross(ax, u);
+        function ring(a) { return [u[0] * Math.cos(a) + v[0] * Math.sin(a), u[1] * Math.cos(a) + v[1] * Math.sin(a), u[2] * Math.cos(a) + v[2] * Math.sin(a)]; }
+        function at(p, n, r) { return [p[0] + n[0] * r, p[1] + n[1] * r, p[2] + n[2] * r]; }
+        var back = [-ax[0], -ax[1], -ax[2]];
+        for (var i = 0; i < seg; i++) {
+          var n0 = ring(i / seg * Math.PI * 2), n1 = ring((i + 1) / seg * Math.PI * 2);
+          var A = at(p0, n0, r0), B = at(p0, n1, r0), C = at(p1, n1, r1), D = at(p1, n0, r1);
+          tri(A, B, C, n0, n1, n1, s); tri(A, C, D, n0, n1, n0, s);
+          if (caps) { tri(p0, B, A, back, back, back, s); tri(p1, D, C, ax, ax, ax, s); }
+        }
+      },
+      // a cylinder lying along x (a hull), centre (cy, cz), radius r; inward = seen from inside;
+      // parts lower than minY are left out (they are under the deck)
+      hull: function (x0, x1, cy, cz, r, s, seg, inward, minY) {
+        for (var i = 0; i < seg; i++) {
+          var a0 = i / seg * Math.PI * 2, a1 = (i + 1) / seg * Math.PI * 2;
+          var y0 = cy + r * Math.sin(a0), z0 = cz + r * Math.cos(a0), y1 = cy + r * Math.sin(a1), z1 = cz + r * Math.cos(a1);
+          if (minY !== undefined && y0 < minY && y1 < minY) continue;
+          var k = inward ? -1 : 1, n0 = [0, k * Math.sin(a0), k * Math.cos(a0)], n1 = [0, k * Math.sin(a1), k * Math.cos(a1)];
+          tri([x0, y0, z0], [x1, y0, z0], [x1, y1, z1], n0, n0, n1, s); tri([x0, y0, z0], [x1, y1, z1], [x0, y1, z1], n0, n1, n1, s);
+        }
+      },
+      // a flat round end on the plane x, facing nx (+1 or -1)
+      disc: function (x, cy, cz, r, nx, s, seg) {
+        var n = [nx, 0, 0];
+        for (var i = 0; i < seg; i++) {
+          var a0 = i / seg * Math.PI * 2, a1 = (i + 1) / seg * Math.PI * 2;
+          tri([x, cy, cz], [x, cy + r * Math.sin(a0), cz + r * Math.cos(a0)], [x, cy + r * Math.sin(a1), cz + r * Math.cos(a1)], n, n, n, s);
+        }
+      },
+      upload: function () {
+        if (!P.length) return null;
+        return { pos: buffer(new Float32Array(P)), nor: buffer(new Float32Array(N)), slope: buffer(new Float32Array(S)), count: P.length / 3 };
+      }
+    };
+  }
+  function dropMesh(m) { if (m) { gl.deleteBuffer(m.pos); gl.deleteBuffer(m.nor); gl.deleteBuffer(m.slope); } }
+
+  // The habitat: a pressurised module (4.6 m across, 10 m long) on legs, an airlock with steps,
+  // two solar arrays and an antenna. It stands 8.4 m from the base point, on the side away from
+  // the routes, the airlock towards the point. hab.out is where you stand to go in.
+  var hab = null, habMesh = null, habKey = '';
+  var HAB_CY = 3.0, HAB_R = 2.3;
+  function buildHabitat(baseCell, side) {
+    var bp = cellXZ(baseCell), cx = bp[0] + side * 8.4, cz = bp[1], g = elevAt(cx, cz);
+    var B = Builder([cx, g, cz], side), CY = HAB_CY, x;
+    function ground(lx, lz) { return elevAt(cx + side * lx, cz + lz) - g; }
+    B.hull(-5, 5, CY, 0, HAB_R, 0.92, 32, false);
+    B.disc(5, CY, 0, HAB_R, 1, 0.85, 32); B.disc(-5, CY, 0, HAB_R, -1, 0.85, 32);
+    for (x = -4.6; x <= 4.7; x += 2.3) B.hull(x - 0.09, x + 0.09, CY, 0, HAB_R + 0.07, 3, 32, false);
+    B.hull(0.9, 1.3, CY, 0, HAB_R + 0.03, 6, 32, false);                       // the orange band
+    [-1, 1].forEach(function (k) {                                              // gold-glass windows
+      B.box(-1.1, CY + 0.15, k > 0 ? 2.12 : -2.36, -0.3, CY + 0.75, k > 0 ? 2.36 : -2.12, 2);
+      B.box(1.7, CY + 0.15, k > 0 ? 2.12 : -2.36, 2.5, CY + 0.75, k > 0 ? 2.36 : -2.12, 2);
+    });
+    [[-3.4, -1], [-3.4, 1], [3.4, -1], [3.4, 1]].forEach(function (l) {             // legs down to the ground
+      var fx = l[0] + (l[0] > 0 ? 0.4 : -0.4), fz = l[1] * 1.95, gy = ground(fx, fz);
+      B.tube([l[0], CY - 1.5, l[1] * 1.4], [fx, gy, fz], 0.11, 0.11, 4, 8);
+      B.box(fx - 0.3, gy - 0.1, fz - 0.3, fx + 0.3, gy + 0.08, fz + 0.3, 4);
+    });
+    // airlock: a short, narrower tube with the door, teal lights round the door, steps down
+    B.hull(-6.6, -5, CY - 0.5, 0, 1.2, 0.92, 24, false); B.disc(-6.6, CY - 0.5, 0, 1.2, -1, 0.85, 24);
+    var dB = CY - 1.45, dT = CY + 0.35;
+    B.box(-6.66, dB, -0.5, -6.6, dT, 0.5, 4);
+    B.box(-6.7, dB, -0.62, -6.62, dT + 0.1, -0.52, 5); B.box(-6.7, dB, 0.52, -6.62, dT + 0.1, 0.62, 5); B.box(-6.7, dT, -0.62, -6.62, dT + 0.1, 0.62, 5);
+    for (var k = 0; k < 4; k++) {
+      var sx1 = -6.6 - 0.42 * k, sx0 = sx1 - 0.42, top = dB * (1 - k / 4);
+      B.box(sx0, Math.min(ground(sx0, 0), ground(sx1, 0)) - 0.3, -0.75, sx1, top, 0.75, 3);
+    }
+    [-1, 1].forEach(function (k) {                                              // solar arrays on masts
+      var mz = k * 5.2, gy = ground(0, mz);
+      B.tube([0, gy, mz], [0, gy + 2.2, mz], 0.08, 0.08, 4, 8);
+      B.box(-2.3, gy + 2.2, mz - 1.1, 2.3, gy + 2.26, mz + 1.1, 7);
+      B.box(-2.35, gy + 2.18, mz - 1.15, 2.35, gy + 2.2, mz + 1.15, 3);
+    });
+    B.tube([2.5, CY + HAB_R - 0.1, 0], [2.5, CY + HAB_R + 1.1, 0], 0.05, 0.05, 3, 8);   // antenna and dish
+    B.tube([2.5, CY + HAB_R + 1.1, 0], [2.5, CY + HAB_R + 1.45, 0.25], 0.06, 0.8, 0.92, 18, true);
+    B.box(2.45, CY + HAB_R + 1.45, -0.05, 2.55, CY + HAB_R + 1.55, 0.05, 5);
+    dropMesh(habMesh); habMesh = B.upload();
+    var xs = [cx + side * -8.3, cx + side * 5.3];
+    hab = { cx: cx, cz: cz, g: g, side: side, out: [cx - side * 9.3, cz],
+      box: { x0: Math.min(xs[0], xs[1]), x1: Math.max(xs[0], xs[1]), z0: cz - 2.6, z1: cz + 2.6 } };
+  }
+
+  // Science stations: hold E at a point (or the simulation's science work) and a station is built
+  // up step by step: tripod, instrument box, solar panel, mast with a teal light; a core sample
+  // tube lies next to it when it is done. p = 0..1 for each point.
+  var stationMesh = null, stationKey = '';
+  function setStations(list) {
+    if (!gl) return;
+    var key = list.map(function (s) { return s.p.toFixed(2); }).join();
+    if (key === stationKey) return;
+    stationKey = key;
+    var B = Builder([0, 0, 0], 1);
+    list.forEach(function (s) {
+      var p = s.p; if (p <= 0) return;
+      var c = cellXZ(s.cell), x = c[0] + 1.8, z = c[1] - 0.6, g = elevAt(x, z);
+      var top = g + 0.15 + Math.min(1, p / 0.35) * 1.0;
+      for (var j = 0; j < 3; j++) {
+        var a = j * 2.094 + 0.5, fx = x + Math.cos(a) * 0.6, fz = z + Math.sin(a) * 0.6;
+        B.tube([fx, elevAt(fx, fz), fz], [x + Math.cos(a) * 0.08, top, z + Math.sin(a) * 0.08], 0.03, 0.025, 3, 6);
+      }
+      if (p > 0.35) {
+        var k2 = Math.min(1, (p - 0.35) / 0.2), h = 0.2 * k2;
+        B.box(x - h, top, z - h, x + h, top + 0.32 * k2, z + h, 0.92);
+        B.box(x - h - 0.01, top + 0.1 * k2, z - h - 0.01, x + h + 0.01, top + 0.16 * k2, z + h + 0.01, 2);
+      }
+      if (p > 0.55) {
+        var w = 0.55 * Math.min(1, (p - 0.55) / 0.25);
+        B.tube([x, top + 0.32, z], [x, top + 0.6, z], 0.025, 0.025, 4, 6);
+        B.box(x - w, top + 0.6, z - 0.3, x + w, top + 0.63, z + 0.3, 7);
+      }
+      if (p > 0.8) {
+        var k4 = Math.min(1, (p - 0.8) / 0.2);
+        B.tube([x + 0.12, top + 0.32, z + 0.12], [x + 0.12, top + 0.32 + 0.7 * k4, z + 0.12], 0.015, 0.015, 3, 5);
+        if (p >= 1) {
+          B.box(x + 0.07, top + 1.0, z + 0.07, x + 0.17, top + 1.1, z + 0.17, 5);
+          B.tube([x - 0.75, g + 0.06, z + 0.5], [x - 0.3, g + 0.06, z + 0.75], 0.05, 0.05, 6, 8, true);
+        }
+      }
+    });
+    dropMesh(stationMesh); stationMesh = B.upload();
+  }
+
+  // Inside the base: the same module from inside (deck at y = 0, x from -5 at the airlock to +5).
+  // A lab bench with screens and the samples you brought, bunks, a galley table, a greenhouse
+  // shelf, a spare suit by the airlock, a window to Mars at the far end.
+  var insideMesh = null, insideKey = -1, spareSuit = null;
+  var IN_CY = 1.4;
+  function buildInside(samples) {
+    var B = Builder([0, 0, 0], 1), R = HAB_R, CY = IN_CY, x, i, y;
+    B.hull(-5, 5, CY, 0, R, 10, 40, true, -0.05);
+    for (x = -4; x <= 4; x += 2) B.hull(x - 0.07, x + 0.07, CY, 0, R - 0.07, 12, 40, true, 0);
+    B.disc(-5, CY, 0, R, 1, 10, 40); B.disc(5, CY, 0, R, -1, 10, 40);
+    B.box(-5, -0.1, -1.85, 5, 0, 1.85, 11);                                       // deck
+    for (x = -4.5; x <= 4.51; x += 0.5) B.box(x - 0.012, 0, -0.78, x + 0.012, 0.004, 0.78, 12);
+    B.box(-4.95, 0.001, -0.7, -4.55, 0.006, 0.7, 22);                             // amber line at the airlock
+    B.box(-4.3, 3.47, -0.78, 4.3, 3.51, -0.62, 20); B.box(-4.3, 3.47, 0.62, 4.3, 3.51, 0.78, 20);   // light strips
+    B.box(-4.5, 3.58, -0.22, 4.5, 3.64, 0.22, 18);                                // cable tray
+    B.tube([-4.5, 3.0, -1.3], [4.5, 3.0, -1.3], 0.03, 0.03, 12, 8); B.tube([-4.5, 3.0, 1.3], [4.5, 3.0, 1.3], 0.03, 0.03, 12, 8);
+    // the airlock door (west end), green frame, a red and a green lamp
+    B.box(-4.99, 0.05, -0.55, -4.94, 2.0, 0.55, 13);
+    B.box(-4.96, 0.05, -0.66, -4.9, 2.1, -0.55, 25); B.box(-4.96, 0.05, 0.55, -4.9, 2.1, 0.66, 25); B.box(-4.96, 2.0, -0.66, -4.9, 2.1, 0.66, 25);
+    B.tube([-4.94, 1.1, 0], [-4.86, 1.1, 0], 0.22, 0.22, 12, 16, true);
+    B.box(-4.96, 2.2, -0.3, -4.92, 2.3, -0.15, 23); B.box(-4.96, 2.2, 0.15, -4.92, 2.3, 0.3, 25);
+    // the window to Mars (east end)
+    B.disc(4.97, 1.75, 0, 0.5, -1, 24, 32); B.tube([4.99, 1.75, 0], [4.9, 1.75, 0], 0.58, 0.58, 12, 32);
+    // lab bench (north side), cabinets, two screens: a route and a GO lamp, a bar chart
+    B.box(-1.3, 0.86, -2.12, 2.5, 0.92, -1.0, 13);
+    B.box(-1.25, 0, -1.8, 0.2, 0.84, -1.08, 12); B.box(1.0, 0, -1.8, 2.45, 0.84, -1.08, 12);
+    B.box(-1.0, 1.25, -2.06, 0.6, 2.05, -1.99, 18); B.box(-0.95, 1.3, -1.99, 0.55, 2.0, -1.975, 21);
+    B.box(0.9, 1.25, -2.06, 2.3, 2.05, -1.99, 18); B.box(0.95, 1.3, -1.99, 2.25, 2.0, -1.975, 21);
+    [[-0.8, 1.5, -0.45, 1.53], [-0.48, 1.53, -0.45, 1.75], [-0.48, 1.72, 0.0, 1.75], [-0.03, 1.55, 0.0, 1.75]].forEach(function (r) {
+      B.box(r[0], r[1], -1.974, r[2], r[3], -1.97, 22);
+    });
+    B.box(0.22, 1.78, -1.974, 0.45, 1.92, -1.97, 25);
+    for (i = 0; i < 6; i++) B.box(1.05 + i * 0.2, 1.4, -1.974, 1.18 + i * 0.2, 1.5 + 0.08 * ((i * 37) % 5), -1.97, 22);
+    // sample canisters: one for every sample you took (empty slots up to six)
+    for (i = 0; i < 6; i++) {
+      x = -1.1 + i * 0.3;
+      B.box(x - 0.09, 0.92, -1.6, x + 0.09, 0.935, -1.42, 18);
+      if (i < samples) {
+        B.tube([x, 0.935, -1.51], [x, 1.16, -1.51], 0.07, 0.07, 15, 12, true);
+        B.tube([x, 1.16, -1.51], [x, 1.2, -1.51], 0.075, 0.075, 21, 12, true);
+      }
+    }
+    B.box(1.4, 0.92, -1.75, 1.75, 1.25, -1.4, 10); B.tube([1.57, 1.25, -1.57], [1.57, 1.48, -1.45], 0.05, 0.035, 18, 10, true);
+    B.box(0.2, 0.45, -1.05, 0.66, 0.52, -0.62, 14); B.box(0.2, 0.52, -1.08, 0.66, 1.0, -1.02, 14);
+    B.tube([0.43, 0, -0.84], [0.43, 0.45, -0.84], 0.03, 0.03, 13, 6);
+    // bunks (south side), two levels
+    [0.45, 1.45].forEach(function (yy) {
+      B.box(1.2, yy - 0.08, 0.95, 3.6, yy, 1.98, 13);
+      B.box(1.25, yy, 1.0, 3.55, yy + 0.14, 1.92, 14);
+      B.box(3.1, yy + 0.14, 1.1, 3.5, yy + 0.24, 1.8, 10);
+    });
+    B.box(1.2, 0, 0.95, 1.26, 2.0, 1.01, 13); B.box(3.54, 0, 0.95, 3.6, 2.0, 1.01, 13);
+    // galley table and stools (south-west), a cupboard above
+    B.box(-3.0, 0.74, 0.95, -1.6, 0.8, 1.8, 17); B.tube([-2.3, 0, 1.4], [-2.3, 0.74, 1.4], 0.05, 0.05, 13, 8);
+    B.tube([-3.3, 0, 0.92], [-3.3, 0.46, 0.92], 0.17, 0.17, 14, 12, true); B.tube([-1.35, 0, 0.92], [-1.35, 0.46, 0.92], 0.17, 0.17, 14, 12, true);
+    B.box(-3.0, 1.65, 1.62, -1.6, 2.15, 2.05, 12);
+    // greenhouse shelf (north-west): three shelves of plants under grow lights
+    [0.5, 1.1, 1.7].forEach(function (yy, j) {
+      B.box(-4.4, yy, -2.0, -2.4, yy + 0.04, -1.2, 13);
+      for (var q = 0; q < 6; q++) B.box(-4.3 + q * 0.32, yy + 0.04, -1.75, -4.1 + q * 0.32, yy + 0.16 + 0.07 * ((q + j * 2) % 3), -1.45, 16);
+      B.box(-4.4, yy + 0.44, -1.9, -2.4, yy + 0.47, -1.3, 20);
+    });
+    // suit station by the airlock (south-west): a rack and a spare suit
+    B.box(-4.6, 0, 1.55, -3.3, 0.05, 2.0, 13); B.box(-4.6, 2.05, 1.5, -3.3, 2.12, 1.9, 13);
+    dropMesh(insideMesh); insideMesh = B.upload();
+    spareSuit = buildWalker({ x: -3.95, y: 0.05, z: 1.5, yaw: 0, phase: 0, stride: 0, air: false, mesh: spareSuit });
+    insideKey = samples;
+  }
+  function renderInside(cam, w, h) {
+    if (insideKey !== cam.inside.samples) buildInside(cam.inside.samples);
+    var aspect = w / Math.max(1, h), fovY = FOV;
+    if (aspect < 1) fovY = Math.min(100, Math.max(FOV, 2 * Math.atan(Math.tan(37.5 * Math.PI / 180) / aspect) * 180 / Math.PI));
+    var eye = [cam.inside.x + (cam.sway || 0) * Math.cos(cam.yaw), 1.62 + (cam.bob || 0), cam.inside.z + (cam.sway || 0) * Math.sin(cam.yaw)];
+    var cp = Math.cos(cam.pitch);
+    var at = [eye[0] + Math.sin(cam.yaw) * cp, eye[1] + Math.sin(cam.pitch), eye[2] - Math.cos(cam.yaw) * cp];
+    var mvp = mul(perspective(fovY, aspect, 0.05, 80), lookAt(eye, at, [0, 1, 0]));
+    gl.useProgram(progLand.p);
+    var L = progLand.loc;
+    gl.uniformMatrix4fv(L.uMVP, false, new Float32Array(mvp));
+    gl.uniform3fv(L.uSun, unit([0.3, 1, 0.2]));
+    gl.uniform3fv(L.uCam, eye);
+    gl.uniform3fv(L.uFog, [0.1, 0.12, 0.13]);
+    gl.uniform2f(L.uZone, 1e6, 1e6);
+    gl.uniform1f(L.uKind, 4);
+    attrib(L.aPos, insideMesh.pos, 3); attrib(L.aNor, insideMesh.nor, 3); attrib(L.aSlope, insideMesh.slope, 1);
+    gl.drawArrays(gl.TRIANGLES, 0, insideMesh.count);
+    drawMesh(L, spareSuit);
+    gl.disableVertexAttribArray(L.aNor); gl.disableVertexAttribArray(L.aSlope);
+    canvas.parentNode.style.background = '#0d1416';
+    labelBox.style.display = 'none';
+  }
+
   // ---- public ---------------------------------------------------------------------------------
   function init(cv, terr, Tmod, labelLayer) {
     if (gl) return true;
@@ -483,6 +743,20 @@
     points.forEach(function (p) {
       for (var dr = -1; dr <= 1; dr++) for (var dc = -1; dc <= 1; dc++) av[(p.cell.r + dr) + ':' + (p.cell.c + dc)] = 1;
     });
+    // The habitat stands next to the base point, on the side where fewer route cells are.
+    var base = points.filter(function (p) { return p.base; })[0];
+    if (base) {
+      var lean = 0;
+      routeList.forEach(function (r) { (r.cells || []).forEach(function (c) {
+        if (Math.hypot(c.r - base.cell.r, c.c - base.cell.c) < 12) lean += c.c - base.cell.c;
+      }); });
+      var side = lean > 0 ? -1 : 1, hk = base.cell.r + ':' + base.cell.c + ':' + side;
+      if (hk !== habKey) { habKey = hk; buildHabitat(base.cell, side); }
+      for (var lx = -10; lx <= 7; lx += 2.5) for (var lz = -6.5; lz <= 6.5; lz += 2.5) {
+        var wx = hab.cx + side * lx, wz = hab.cz + lz;
+        av[Math.floor(wz / terrain.cellM) + ':' + Math.floor(wx / terrain.cellM)] = 1;
+      }
+    }
     if (Object.keys(av).join() !== Object.keys(avoid).join()) { avoid = av; rockAt = null; }
     beacons = points.map(function (p) {
       var b = beacon(p.cell, p.color, p.base ? 26 : 34);
@@ -536,6 +810,8 @@
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.DEPTH_TEST);
+    if (cam.inside) { renderInside(cam, w, h); return; }
+    labelBox.style.display = '';
 
     var x = (cam.c + 0.5) * terrain.cellM, z = (cam.r + 0.5) * terrain.cellM;
     var foot = cam.footY !== undefined ? cam.footY : elevAt(x, z);              // footY: in the air (free walk)
@@ -577,6 +853,8 @@
       attrib(L.aPos, rocks.pos, 3); attrib(L.aNor, rocks.nor, 3); attrib(L.aSlope, rocks.slope, 1);
       gl.drawArrays(gl.TRIANGLES, 0, rocks.count);
     }
+    if (habMesh) drawMesh(L, habMesh);
+    if (stationMesh) drawMesh(L, stationMesh);
     if (dist > 0.05 && cam.body) {
       walker = buildWalker({ x: x, y: foot, z: z, yaw: cam.body.yaw, phase: cam.body.phase, stride: cam.body.stride, air: cam.body.air, mesh: walker });
       drawMesh(L, walker);
@@ -647,6 +925,7 @@
     });
   }
 
-  root.SeraFpv = { init: init, setScene: setScene, setHome: setHome, render: render, elevAt: function (x, z) { return elevAt(x, z); },
+  root.SeraFpv = { init: init, setScene: setScene, setHome: setHome, render: render, setStations: setStations,
+    get habitat() { return hab; }, elevAt: function (x, z) { return elevAt(x, z); },
     get ok() { return !!gl; }, get rockCount() { return rocks ? rocks.count / 60 : 0; } };
 })(window);

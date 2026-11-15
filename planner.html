@@ -8,13 +8,13 @@
   <meta name="description" content="Plan a safe walk on the real terrain of Gale Crater, Mars: route, way home and a GO / CAUTION / NO-GO verdict.">
   <link rel="icon" href="img/mark.png?v=3" type="image/png">
   <script src="js/theme.js?v=2"></script>
-  <script src="js/i18n.js?v=41"></script>
+  <script src="js/i18n.js?v=42"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&family=Montserrat:wght@400;500&display=swap">
   <link rel="stylesheet" href="lib/leaflet/leaflet.css">
   <link rel="stylesheet" href="css/theme.css?v=16">
-  <link rel="stylesheet" href="css/style.css?v=54">
+  <link rel="stylesheet" href="css/style.css?v=55">
 </head>
 <body>
   <div id="print-head" class="print-head" aria-hidden="true">
@@ -133,11 +133,28 @@
       <p>The helmet view is made for landscape, like a real visor.</p>
       <div class="rot-actions"><button type="button" id="hud-upright" class="hud-btn">Stay upright</button><button type="button" id="hud-rot-back" class="hud-btn">Back to the map</button></div>
     </div>
-    <p class="hud-keys"><span class="t-mouse">W A S D: walk · Shift: run · Space: jump · mouse: look · wheel: third person · Ctrl: free the mouse</span><span class="t-touch">Joystick: walk (to the edge: run) · ⤒: jump · swipe: look</span> · Mars gravity 0.38 g</p>
+    <p class="hud-keys"><span class="t-mouse">W A S D: walk · Shift: run · Space: jump · E: act · F: photo · mouse: look · wheel: third person · Ctrl: free the mouse</span><span class="t-touch">Joystick: walk (to the edge: run) · ⤒: jump · E: act · ◉: photo · swipe: look</span> · Mars gravity 0.38 g</p>
     <p class="hud-grab">Click the view or press Ctrl to take the mouse back into the walk</p>
     <i class="hud-cross" aria-hidden="true"></i>
     <div id="hud-stick" class="hud-stick" aria-label="Walk joystick"><i></i></div>
     <button type="button" id="hud-jump" class="hud-jump" aria-label="Jump">⤒</button>
+    <button type="button" id="hud-act-btn" class="hud-act-btn" aria-label="Act (E)">E</button>
+    <button type="button" id="hud-snap" class="hud-snap" aria-label="Take a photo">◉</button>
+    <p id="hud-act" class="hud-act" hidden></p>
+    <div id="hud-ring" class="hud-ring" hidden></div>
+    <div id="hud-photos" class="hud-photos" hidden></div>
+    <div id="hud-card" class="hud-card" role="status" hidden>
+      <b>Science station deployed</b>
+      <p class="hud-card-sub"><span>Core sample</span> <span id="hud-card-n"></span></p>
+      <dl>
+        <dt>Science point</dt><dd id="hud-card-pt"></dd>
+        <dt>Elevation</dt><dd id="hud-card-el"></dd>
+        <dt>Slope here</dt><dd id="hud-card-sl"></dd>
+        <dt>Local solar time</dt><dd id="hud-card-tm"></dd>
+        <dt>From base</dt><dd id="hud-card-db"></dd>
+      </dl>
+      <p class="hud-card-note">The sample goes to the lab in the base: E at the airlock</p>
+    </div>
     <p class="hud-model">3D: real terrain, 5 m grid (MODEL) · rocks are drawn for the look, not from the data</p>
     <div class="hud-top">
       <span class="hud-sim">Simulation</span>
@@ -202,8 +219,8 @@
   <script src="js/globe.js?v=7"></script>
   <script src="js/planner-globe.js?v=6"></script>
   <script src="js/relief.js?v=2"></script>
-  <script src="js/fpv.js?v=21"></script>
-  <script src="js/hud.js?v=29"></script>
+  <script src="js/fpv.js?v=22"></script>
+  <script src="js/hud.js?v=30"></script>
   <script src="js/tour.js?v=3"></script>
   <script src="data/places.js?v=1"></script>
   <script src="js/search.js?v=2"></script>

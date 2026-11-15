@@ -8,7 +8,8 @@
 // conditions change (storm alert) -> NO-GO and the way home is rebuilt at once.
 // Seen from inside the helmet (visor frame image). The HUD is always dark.
 // 3D view (fpv.js): first person on the real terrain, look around by dragging; the top-down map
-// becomes a small radar. Without WebGL, or with "Map view", the old top-down map fills the visor.
+// becomes a small radar. In free walk: hold E at a science point to build a station and take a
+// core sample, E at the airlock to walk into the base, F for a photo. Without WebGL, or with "Map view", the old top-down map fills the visor.
 
 (function () {
   'use strict';
@@ -47,6 +48,12 @@
     vx: 0, vz: 0, phase: 0, stride: 0, dip: 0, dipV: 0, bodyYaw: 0, third: 0, thirdWant: 0 };
   // Camera distance steps for the mouse wheel: 0 = through the helmet, then behind the astronaut.
   var THIRD = [0, 3.5, 6, 10];
+  // Science at the points: in free walk, hold E for HOLD_S seconds and a station is built and a core
+  // sample taken; in the simulation the station grows during the science work. F takes a photo.
+  // At the base: E at the airlock takes you inside the habitat (the suit clock stops there).
+  var HOLD_S = 4;
+  var sci = { prog: [], done: [], samples: [], photos: 0, holding: false, photo: false, cardT: 0 };
+  var inside = { on: false, x: 0, z: 0 };
 
   function cellIndex(c) { return c.r * terrain.cols + c.c; }
   function fmtClock(s) {
@@ -237,6 +244,7 @@
     if (notice && simS - notice.atS < notice.forS) { level = Math.max(level, notice.level); msg = notice.text; }
     if (emergency) { level = Math.max(level, emergency.level || 1); msg = emergency.text || 'Emergency return: fastest safe way home'; }
     if (done) { level = 0; msg = emergency ? 'Back at base after emergency return' : 'EVA complete, back at base'; }
+    if (inside.on) { level = 0; msg = 'Inside the base: lab, bunks, greenhouse · suit time paused'; }
     var labels = ['GO', 'CAUTION', 'NO-GO'];
     var stEl = q('hud-status');
     stEl.className = 'hud-status lv' + level;
@@ -285,6 +293,7 @@
     q('hud-storm').disabled = !!emergency || done;
     q('hud-play').textContent = playing ? 'Pause' : (done ? 'Replay' : 'Play');
     draw(st);
+    showPrompt();
     var ctrl = q('hud-play').parentNode.offsetHeight;
     if (ctrl) el.style.setProperty('--ctrl-h', ctrl + 'px');
     if (fpvOn) render3d(st);
@@ -365,7 +374,16 @@
     var cam = { r: st.r, c: st.c, yaw: yaw + lookYaw, pitch: -0.1 + lookPitch,
       hour: tl.startH + simS / MT.MARS_HOUR_S, footY: free.on ? free.footY : undefined };
     cam.buddy = buddyAt(st, dt);
-    if (free.on) {
+    var sp = stationProgress();
+    SeraFpv.setStations(plan.stops.map(function (c, i) { return { cell: c, p: sp[i] }; }));
+    sp.forEach(function (p, i) { if (p >= 1 && !sci.done[i]) completeSample(i); });
+    if (inside.on) {
+      cam.inside = { x: inside.x, z: inside.z, samples: sci.samples.length };
+      cam.buddy = null;
+      cam.bob = Math.abs(Math.sin(free.phase)) * 0.035 * free.stride;
+      cam.sway = Math.sin(free.phase) * 0.02 * free.stride;
+      el.classList.remove('third');
+    } else if (free.on) {
       free.third += (free.thirdWant - free.third) * (1 - Math.exp(-dt / 0.18));
       if (Math.abs(free.thirdWant - free.third) < 0.01) free.third = free.thirdWant;
       el.classList.toggle('third', free.third > 0.3);
@@ -376,6 +394,7 @@
       cam.body = { yaw: free.bodyYaw, phase: free.phase, stride: free.stride, air: free.footY > groundAt(free.r, free.c) + 0.05 };
     }
     SeraFpv.render(cam);
+    if (sci.photo) { sci.photo = false; takePhoto(); }               // right after drawing: the frame is still there
     compass(yaw + lookYaw);
     placeRadar();
     // While paused, keep drawing until the look has settled.
@@ -517,6 +536,9 @@
     el.classList.remove('upright');
     goLandscape();
     lookYaw = 0; lookPitch = 0; wantYaw = 0; wantPitch = 0; sceneKey = ''; buddy.set = false;
+    sci.prog = plan.stops.map(function () { return 0; }); sci.done = []; sci.samples = []; sci.holding = false;
+    inside.on = false; el.classList.remove('inbase');
+    q('hud-card').hidden = true; q('hud-photos').innerHTML = ''; q('hud-photos').hidden = true;
     var first = plan.legs[0] && plan.legs[0].cells;
     if (first && first.length > 1) yaw = Math.atan2(first[1].c - first[0].c, first[0].r - first[1].r);
     setView(fpvOK && !mapPreferred);
@@ -554,6 +576,122 @@
   q('hud-rot-back').addEventListener('click', function () { close(); });
   window.addEventListener('resize', function () { if (!el.hidden && !playing) update(); });
 
+  // ---- Science stations, samples, photos, the base ---------------------------------------
+  // How far each station is built: what you did with E, or (simulation) how much of the science
+  // work at that point is done.
+  function stationProgress() {
+    return plan.stops.map(function (c, i) {
+      var p = sci.done[i] ? 1 : (sci.prog[i] || 0);               // a finished station stays up
+      if (!free.on && tl) tl.segs.forEach(function (sg) {
+        if (sg.type === 'work' && sg.stop === i) p = Math.max(p, Math.min(1, Math.max(0, (simS - sg.t0) / (sg.t1 - sg.t0))));
+      });
+      return p;
+    });
+  }
+  // A station is up: the sample card shows what was measured there (real terrain values).
+  function completeSample(i) {
+    sci.done[i] = true;
+    sci.samples.push(i);
+    var c = plan.stops[i], k = cellIndex(c), named = S.stopName(c, i, true);
+    var dist = Math.hypot(c.c - plan.base.c, c.r - plan.base.r) * terrain.cellM;
+    q('hud-card-n').textContent = '#' + sci.samples.length + ' / ' + plan.stops.length;
+    q('hud-card-pt').textContent = (i + 1) + (named ? ' · ' + named : '');
+    q('hud-card-el').textContent = terrain.elev[k].toFixed(0) + ' m';
+    q('hud-card-sl').textContent = terrain.slopeDeg[k].toFixed(0) + '°';
+    q('hud-card-tm').textContent = hhmm(tl.startH + simS / MT.MARS_HOUR_S);
+    q('hud-card-db').textContent = dist < 1000 ? Math.round(dist) + ' m' : (dist / 1000).toFixed(2) + ' km';
+    var card = q('hud-card');
+    card.hidden = false;
+    clearTimeout(sci.cardT);
+    sci.cardT = setTimeout(function () { card.hidden = true; }, 7000);
+  }
+  // A photo of the 3D view (with the sky, which is drawn behind the canvas), kept as a thumbnail
+  // you can click to save.
+  function takePhoto() {
+    var gc = q('hud-3d'), url;
+    try {
+      var c2 = document.createElement('canvas'); c2.width = gc.width; c2.height = gc.height;
+      var g = c2.getContext('2d');
+      if (inside.on) g.fillStyle = '#0d1416';
+      else { var gr = g.createLinearGradient(0, 0, 0, c2.height * 0.55); gr.addColorStop(0, '#6f5040'); gr.addColorStop(0.6, '#b38a6b'); gr.addColorStop(1, 'rgb(219,184,148)'); g.fillStyle = gr; }
+      g.fillRect(0, 0, c2.width, c2.height);
+      g.drawImage(gc, 0, 0);
+      url = c2.toDataURL('image/jpeg', 0.88);
+    } catch (e) { return; }
+    sci.photos++;
+    var a = document.createElement('a'), img = document.createElement('img');
+    a.href = url; a.download = 'SERA_photo_' + sci.photos + '.jpg'; a.title = 'Save the photo';
+    img.src = url; img.alt = 'Photo ' + sci.photos; a.appendChild(img);
+    var box = q('hud-photos');
+    box.appendChild(a);
+    while (box.children.length > 5) box.removeChild(box.firstChild);
+    box.hidden = false;
+    el.classList.remove('snap'); void el.offsetWidth; el.classList.add('snap');
+    notice = { atS: simS, forS: 3, level: 0, text: 'Photo saved: click it to download' };
+  }
+  // What is in reach (free walk): a science point, the airlock outside, the airlock inside.
+  function reach() {
+    if (!free.on) return null;
+    if (inside.on) return inside.x < -3.6 ? { type: 'exit' } : null;
+    var x = (free.c + 0.5) * terrain.cellM, z = (free.r + 0.5) * terrain.cellM, best = null;
+    plan.stops.forEach(function (c, i) {
+      var d = Math.hypot((c.c + 0.5) * terrain.cellM - x, (c.r + 0.5) * terrain.cellM - z);
+      if (d < 6 && (!best || d < best.d)) best = { type: 'point', i: i, d: d };
+    });
+    var h = window.SeraFpv && SeraFpv.habitat;
+    if (h) { var dh = Math.hypot(h.out[0] - x, h.out[1] - z); if (dh < 4 && (!best || dh < best.d)) best = { type: 'hatch', d: dh }; }
+    return best;
+  }
+  var lastPrompt = null;
+  function showPrompt() {
+    var r = reach(), text = '', ring = -1;
+    if (r && r.type === 'exit') text = 'E: leave the base';
+    else if (r && r.type === 'hatch') text = 'E: enter the base';
+    else if (r) {
+      var p = sci.prog[r.i] || 0;
+      if (p >= 1) text = 'Station working, sample taken · F: photo';
+      else { text = sci.holding ? 'Building the science station…' : 'Hold E: deploy a science station and take a core sample'; if (p > 0 || sci.holding) ring = p; }
+    }
+    if (text !== lastPrompt) { lastPrompt = text; q('hud-act').textContent = text; q('hud-act').hidden = !text; }
+    var rg = q('hud-ring');
+    rg.hidden = ring < 0;
+    if (ring >= 0) rg.style.setProperty('--p', ring.toFixed(3));
+  }
+  function act(down) {
+    if (!down) { sci.holding = false; return; }
+    var r = reach();
+    if (!r) return;
+    if (r.type === 'hatch') enterBase();
+    else if (r.type === 'exit') leaveBase();
+    else sci.holding = true;
+  }
+  function enterBase() {
+    inside.on = true; inside.x = -4.2; inside.z = 0;
+    yaw = Math.PI / 2; lookYaw = wantYaw = 0; lookPitch = wantPitch = 0;    // facing into the module
+    free.third = free.thirdWant = 0; free.vx = free.vz = 0; sci.holding = false;
+    el.classList.add('inbase');
+    update();
+  }
+  function leaveBase() {
+    var h = SeraFpv.habitat;
+    inside.on = false;
+    el.classList.remove('inbase');
+    if (h) {
+      free.c = h.out[0] / terrain.cellM - 0.5; free.r = h.out[1] / terrain.cellM - 0.5;
+      free.footY = groundAt(free.r, free.c); free.vy = 0; free.vx = free.vz = 0;
+      yaw = h.side > 0 ? -Math.PI / 2 : Math.PI / 2; free.bodyYaw = yaw;   // back to the airlock, facing out
+      lookYaw = wantYaw = 0;
+    }
+    lastCellKey = '';
+    update();
+  }
+  function inHab(r, c) {
+    var h = window.SeraFpv && SeraFpv.habitat;
+    if (!h) return false;
+    var x = (c + 0.5) * terrain.cellM, z = (r + 0.5) * terrain.cellM;
+    return x > h.box.x0 && x < h.box.x1 && z > h.box.z0 && z < h.box.z1;
+  }
+
   // ---- Free walk ------------------------------------------------------------------------
   function groundAt(r, c) { return SeraFpv.elevAt((c + 0.5) * terrain.cellM, (r + 0.5) * terrain.cellM); }
   function setFree(on) {
@@ -569,6 +707,8 @@
       lockMouse();
     } else {
       unlockMouse(); free.third = free.thirdWant = 0; el.classList.remove('third');
+      if (inside.on) { inside.on = false; el.classList.remove('inbase'); }
+      sci.holding = false;
     }
     free.on = on;
     el.classList.toggle('free', on);
@@ -582,7 +722,23 @@
     if (!free.on || el.hidden) return;
     var dt = free.last ? Math.min(0.05, (now - free.last) / 1000) : 0;
     free.last = now;
+    if (inside.on) {                                              // inside the base: walk the aisle, no suit clock
+      yaw += (free.turn * 1.6) * dt;
+      var fi = free.fwd + free.stickF, si = free.side + free.stickS, li = Math.hypot(fi, si);
+      if (li > 1) { fi /= li; si /= li; li = 1; }
+      var ai = yaw + lookYaw;
+      inside.x = Math.max(-4.55, Math.min(4.55, inside.x + (Math.sin(ai) * fi + Math.cos(ai) * si) * 1.3 * dt));
+      inside.z = Math.max(-0.8, Math.min(0.8, inside.z + (-Math.cos(ai) * fi + Math.sin(ai) * si) * 1.3 * dt));
+      free.phase += li * 1.3 / 1.5 * Math.PI * dt;
+      free.stride += (li - free.stride) * (1 - Math.exp(-dt / 0.2));
+      free.jump = false;
+      update();
+      free.raf = requestAnimationFrame(freeFrame);
+      return;
+    }
     simS = Math.min(tl.limitS, simS + dt);                        // the clock runs in real time
+    var near = sci.holding ? reach() : null;                      // holding E at a point builds the station
+    if (near && near.type === 'point' && (sci.prog[near.i] || 0) < 1) sci.prog[near.i] = Math.min(1, (sci.prog[near.i] || 0) + dt / HOLD_S);
     yaw += (free.turn * 1.6) * dt;                                // arrow keys turn
     var f = free.fwd + free.stickF, s = free.side + free.stickS, len = Math.hypot(f, s);
     if (len > 1) { f /= len; s /= len; len = 1; }
@@ -615,6 +771,8 @@
       if (nr < 0 || nc < 0 || nr > terrain.rows - 1 || nc > terrain.cols - 1) {
         free.vx = free.vz = 0;
         flash(1, 'Edge of the EVA zone');
+      } else if (inHab(nr, nc) && !inHab(free.r, free.c)) {
+        free.vx = free.vz = 0;                                    // the habitat is solid: go in by the airlock
       } else {
         // The same slope as the red and yellow on the map (1 m terrain), for the cell you step into.
         var up = groundAt(nr, nc) > ground;
@@ -666,12 +824,14 @@
     if (e.key === 'Shift') free.run = true;
     if (e.key === 'Control' && !e.repeat) { if (locked()) unlockMouse(); else lockMouse(); e.preventDefault(); }
     if (e.code === 'Space') { free.jump = true; e.preventDefault(); e.stopImmediatePropagation(); }
+    if (e.code === 'KeyE') { if (!e.repeat) act(true); e.preventDefault(); }
   }, true);
   document.addEventListener('keyup', function (e) {
+    if (e.code === 'KeyE') act(false);
     if (KEYS[e.code]) { held[KEYS[e.code]] = false; applyKeys(); }
     if (e.key === 'Shift') free.run = false;
   });
-  window.addEventListener('blur', function () { held = {}; applyKeys(); free.run = false; });
+  window.addEventListener('blur', function () { held = {}; applyKeys(); free.run = false; sci.holding = false; });
   // Phone: a joystick (walk; pushed to the edge = run) and a jump button.
   var stick = q('hud-stick'), knob = stick.querySelector('i'), stickId = null;
   function stickMove(e) {
@@ -690,6 +850,11 @@
   stick.addEventListener('pointerup', stickEnd);
   stick.addEventListener('pointercancel', stickEnd);
   q('hud-jump').addEventListener('pointerdown', function (e) { free.jump = true; e.preventDefault(); });
+  // Phone: the E button (hold it at a point, tap it at the airlock) and the camera button.
+  var actBtn = q('hud-act-btn');
+  actBtn.addEventListener('pointerdown', function (e) { act(true); e.preventDefault(); });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(function (t) { actBtn.addEventListener(t, function () { act(false); }); });
+  q('hud-snap').addEventListener('click', function () { if (fpvOn) { sci.photo = true; if (!playing && !free.on) update(); } });
 
   function startEmergency(level, text) {
     var st = free.on ? { r: free.r, c: free.c } : stateAt(simS);
@@ -810,6 +975,7 @@
   document.addEventListener('keydown', function (e) {
     if (el.hidden) return;
     if (e.key === 'Escape') { if (locked() || performance.now() - unlockedAt < 400) return; close(); }
+    else if (e.code === 'KeyF' && !e.repeat && fpvOn) { sci.photo = true; if (!playing && !free.on) update(); }
     else if (e.key === ' ' && e.target.tagName !== 'BUTTON' && e.target.tagName !== 'INPUT') {
       e.preventDefault(); if (playing) pause(); else play();
     }
