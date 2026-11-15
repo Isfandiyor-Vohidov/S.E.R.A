@@ -549,7 +549,9 @@
   // ---- First visit -----------------------------------------------------------------------
   var fromLink = /[?&](demo|at|tour|p)=/.test(location.search);
   if (onPlanner) {
-    if (!store(KEY_GUIDE) && !fromLink) setTimeout(startGuide, 700);
+    // Only on the very first visit: it counts as seen as soon as it starts, so leaving the page
+    // half-way does not bring it back. It can always be replayed from her card ("Show me how").
+    if (!store(KEY_GUIDE) && !fromLink) { store(KEY_GUIDE, '1'); setTimeout(startGuide, 700); }
   } else if (!store(KEY_HELLO)) {
     setTimeout(function () {
       store(KEY_HELLO, '1');
