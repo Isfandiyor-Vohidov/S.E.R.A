@@ -60,6 +60,28 @@
   linkSvg.appendChild(linkLine);
   document.body.appendChild(linkSvg);
   var spotGet = null;                  // function () -> element, or null
+  // Focus: when she shows something (her button, or "Show"), everything else is blurred and
+  // darkened, so the eye goes straight to it. A click on the blurred part or Esc ends it.
+  var focusOn = false;
+  var focus = document.createElement('div');
+  focus.className = 'sera-focus';
+  focus.hidden = true;
+  focus.innerHTML = '<i></i><i></i><i></i><i></i>';
+  document.body.appendChild(focus);
+  function endFocus() { focusOn = false; focus.hidden = true; focus.classList.remove('on'); }
+  focus.addEventListener('click', endFocus);
+  document.addEventListener('keydown', function (e) { if (focusOn && e.key === 'Escape') endFocus(); });
+  function placeFocus(r) {
+    if (!focusOn || !r) { focus.hidden = true; focus.classList.remove('on'); return; }
+    var W = window.innerWidth, H = window.innerHeight, p = focus.children;
+    var l = Math.max(0, r.left), t = Math.max(0, r.top), rr = Math.min(W, r.right), b = Math.min(H, r.bottom);
+    p[0].style.cssText = 'left:0;top:0;width:' + W + 'px;height:' + t + 'px';
+    p[1].style.cssText = 'left:0;top:' + b + 'px;width:' + W + 'px;height:' + Math.max(0, H - b) + 'px';
+    p[2].style.cssText = 'left:0;top:' + t + 'px;width:' + l + 'px;height:' + Math.max(0, b - t) + 'px';
+    p[3].style.cssText = 'left:' + rr + 'px;top:' + t + 'px;width:' + Math.max(0, W - rr) + 'px;height:' + Math.max(0, b - t) + 'px';
+    if (focus.hidden) { focus.hidden = false; void focus.offsetWidth; }
+    focus.classList.add('on');
+  }
 
   function visible(el) {
     if (!el || !el.getClientRects().length) return false;
@@ -75,11 +97,12 @@
   }
   function placeSpot() {
     var el = spotGet && !card.hidden && !guide ? spotGet() : null;
-    if (!visible(el)) { spot.hidden = true; linkSvg.style.display = 'none'; return; }
+    if (!visible(el)) { spot.hidden = true; linkSvg.style.display = 'none'; placeFocus(null); return; }
     var b = el.getBoundingClientRect(), pad = 6;
     var r = { left: b.left - pad, top: b.top - pad, right: b.right + pad, bottom: b.bottom + pad };
     spot.style.cssText = 'left:' + r.left + 'px;top:' + r.top + 'px;width:' + (r.right - r.left) + 'px;height:' + (r.bottom - r.top) + 'px';
     spot.hidden = false;
+    placeFocus(r);
     var bub = card.querySelector('.sera-bubble').getBoundingClientRect();
     var a = closest(bub, (r.left + r.right) / 2, (r.top + r.bottom) / 2);
     var z = closest(r, (bub.left + bub.right) / 2, (bub.top + bub.bottom) / 2);
@@ -97,6 +120,7 @@
   function showSpot(getEl, onMap) {
     var el = getEl();
     if (!el) return;
+    focusOn = true;
     if (onMap && S.map) {
       var wrap = document.querySelector('.map-wrap');
       if (wrap) wrap.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
@@ -116,9 +140,11 @@
     setTimeout(placeSpot, 700);
   }
 
-  // say({pose, title, text, do, level, spot, spotOnMap, actions:[{label, primary, run}], autoHide: ms, place, toast})
+  // say({pose, title, text, do, level, spot, spotOnMap, focus, actions:[{label, primary, run}], autoHide: ms, place, toast})
+  // focus: blur everything but the spot (her button and "Show"; her automatic short notes only ring it)
   function say(o) {
     verdictToast = false;
+    focusOn = !!(o.focus && o.spot);
     clearTimeout(hideTimer);
     hideTimer = 0;
     poseEl.src = IMG(o.pose || 'explain');
@@ -158,6 +184,7 @@
   }
   function hide() {
     card.hidden = true;
+    endFocus();
     document.body.style.paddingBottom = '';     // room made on a phone by "Show"
     clearTimeout(hideTimer);
     hideTimer = 0;
@@ -328,7 +355,7 @@
     }
     var a = advise();
     if (!a) { say({ pose: 'thinking', title: 'Checking the plan…', text: 'Slopes, suit time, daylight, space weather.' }); return; }
-    say({ pose: a.pose, level: a.level, title: a.title, text: a.text, do: a.do, spot: a.spot, spotOnMap: a.spotOnMap,
+    say({ pose: a.pose, level: a.level, title: a.title, text: a.text, do: a.do, spot: a.spot, spotOnMap: a.spotOnMap, focus: true,
       actions: a.actions.concat(a.level === 0 ? [guideBtn] : []) });
   }
 
