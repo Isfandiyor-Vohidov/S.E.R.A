@@ -275,6 +275,7 @@
     ['Saving', 'Сохранение', 'Saqlanmoqda'],
     ['map files saved. The planner now works without internet.', 'файлов карт сохранено. Планировщик теперь работает без интернета.', 'xarita fayli saqlandi. Rejalashtiruvchi endi internetsiz ishlaydi.'],
     ['Clear plan', 'Очистить план', 'Rejani tozalash'],
+    ['Removes the science points, the base stays (drag H to move it). Press again to remove the base too.', 'Удаляет научные точки, база остаётся (H можно перетащить). Нажмите ещё раз, чтобы убрать и базу.', 'Removes the science points, the base stays (drag H to move it). Press again to remove the base too.'],
     ['Place the base first.', 'Сначала поставьте базу.', 'Avval bazani qo\'ying.'],
     ['Link copied. Anyone who opens it sees this plan.', 'Ссылка скопирована. Кто её откроет, увидит этот план.', 'Havola nusxalandi. Uni ochgan kishi shu rejani ko\'radi.'],
     ['Copy this link:', 'Скопируйте ссылку:', 'Havolani nusxalang:'],

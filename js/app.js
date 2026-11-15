@@ -688,8 +688,11 @@
     render();
   });
 
+  // "Clear plan" removes the science points only: the base usually stays where it is (drag the
+  // H marker to move it). With no points left, a second press removes the base too.
   document.getElementById('btn-clear').addEventListener('click', function () {
-    clearPlan();
+    if (plan.base && plan.stops.length) plan.stops = [];
+    else clearPlan();
     recompute();
     render();
   });
